@@ -1,7 +1,7 @@
 {
   "info": {
-    "name": "Project Tracker API (Simplified)",
-    "description": "Simplified API collection for Project Tracker Backend with single, flexible endpoints for tasks. Follows RESTful principles with comprehensive examples.",
+    "name": "Project Tracker API (Updated)",
+    "description": "Updated API collection for Project Tracker Backend with improved task management, user ID references, and consistent response formats. Includes proper error handling and migration-ready endpoints.",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
   },
   "item": [
@@ -20,7 +20,53 @@
               "raw": "{\n  \"name\": \"John Doe\",\n  \"email\": \"john@example.com\",\n  \"password\": \"password123\",\n  \"role\": \"developer\",\n  \"department\": \"Engineering\"\n}"
             },
             "url": "{{base_url}}/api/auth/register"
-          }
+          },
+          "response": [
+            {
+              "name": "Success Response",
+              "originalRequest": {
+                "method": "POST",
+                "header": [
+                  { "key": "Content-Type", "value": "application/json" }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"name\": \"John Doe\",\n  \"email\": \"john@example.com\",\n  \"password\": \"password123\",\n  \"role\": \"developer\",\n  \"department\": \"Engineering\"\n}"
+                },
+                "url": "{{base_url}}/api/auth/register"
+              },
+              "status": "Created",
+              "code": 201,
+              "_postman_previewlanguage": "json",
+              "header": [
+                { "key": "Content-Type", "value": "application/json" }
+              ],
+              "cookie": [],
+              "body": "{\n  \"_id\": \"507f1f77bcf86cd799439011\",\n  \"name\": \"John Doe\",\n  \"email\": \"john@example.com\",\n  \"role\": \"developer\",\n  \"department\": \"Engineering\",\n  \"isActive\": true,\n  \"emailVerified\": false,\n  \"createdAt\": \"2024-12-01T10:00:00.000Z\",\n  \"updatedAt\": \"2024-12-01T10:00:00.000Z\"\n}"
+            },
+            {
+              "name": "Duplicate Email Error",
+              "originalRequest": {
+                "method": "POST",
+                "header": [
+                  { "key": "Content-Type", "value": "application/json" }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"name\": \"John Doe\",\n  \"email\": \"john@example.com\",\n  \"password\": \"password123\"\n}"
+                },
+                "url": "{{base_url}}/api/auth/register"
+              },
+              "status": "Conflict",
+              "code": 409,
+              "_postman_previewlanguage": "json",
+              "header": [
+                { "key": "Content-Type", "value": "application/json" }
+              ],
+              "cookie": [],
+              "body": "{\n  \"error\": \"Duplicate email\",\n  \"message\": \"A user with this email already exists\"\n}"
+            }
+          ]
         },
         {
           "name": "Login User",
@@ -34,57 +80,31 @@
               "raw": "{\n  \"email\": \"john@example.com\",\n  \"password\": \"password123\"\n}"
             },
             "url": "{{base_url}}/api/auth/login"
-          }
-        },
-        {
-          "name": "Get User Profile",
-          "request": {
-            "method": "GET",
-            "header": [
-              { "key": "Authorization", "value": "Bearer {{token}}" }
-            ],
-            "url": "{{base_url}}/api/auth/profile"
-          }
-        },
-        {
-          "name": "Update Profile",
-          "request": {
-            "method": "PUT",
-            "header": [
-              { "key": "Content-Type", "value": "application/json" },
-              { "key": "Authorization", "value": "Bearer {{token}}" }
-            ],
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"name\": \"John Updated\",\n  \"department\": \"Product\",\n  \"role\": \"manager\"\n}"
-            },
-            "url": "{{base_url}}/api/auth/profile"
-          }
-        },
-        {
-          "name": "Change Password",
-          "request": {
-            "method": "POST",
-            "header": [
-              { "key": "Content-Type", "value": "application/json" },
-              { "key": "Authorization", "value": "Bearer {{token}}" }
-            ],
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"currentPassword\": \"password123\",\n  \"newPassword\": \"newpassword123\"\n}"
-            },
-            "url": "{{base_url}}/api/auth/change-password"
-          }
-        },
-        {
-          "name": "Refresh Token",
-          "request": {
-            "method": "POST",
-            "header": [
-              { "key": "Authorization", "value": "Bearer {{token}}" }
-            ],
-            "url": "{{base_url}}/api/auth/refresh-token"
-          }
+          },
+          "response": [
+            {
+              "name": "Success Response",
+              "originalRequest": {
+                "method": "POST",
+                "header": [
+                  { "key": "Content-Type", "value": "application/json" }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"email\": \"john@example.com\",\n  \"password\": \"password123\"\n}"
+                },
+                "url": "{{base_url}}/api/auth/login"
+              },
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "header": [
+                { "key": "Content-Type", "value": "application/json" }
+              ],
+              "cookie": [],
+              "body": "{\n  \"token\": \"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...\",\n  \"user\": {\n    \"_id\": \"507f1f77bcf86cd799439011\",\n    \"name\": \"John Doe\",\n    \"email\": \"john@example.com\",\n    \"role\": \"developer\",\n    \"department\": \"Engineering\"\n  }\n}"
+            }
+          ]
         }
       ]
     },
@@ -97,15 +117,25 @@
             "method": "GET",
             "header": [ { "key": "Authorization", "value": "Bearer {{token}}" } ],
             "url": "{{base_url}}/api/users"
-          }
-        },
-        {
-          "name": "Get User By ID",
-          "request": {
-            "method": "GET",
-            "header": [ { "key": "Authorization", "value": "Bearer {{token}}" } ],
-            "url": "{{base_url}}/api/users/{{user_id}}"
-          }
+          },
+          "response": [
+            {
+              "name": "Success Response",
+              "originalRequest": {
+                "method": "GET",
+                "header": [ { "key": "Authorization", "value": "Bearer {{token}}" } ],
+                "url": "{{base_url}}/api/users"
+              },
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "header": [
+                { "key": "Content-Type", "value": "application/json" }
+              ],
+              "cookie": [],
+              "body": "[\n  {\n    \"_id\": \"507f1f77bcf86cd799439011\",\n    \"name\": \"John Doe\",\n    \"email\": \"john@example.com\",\n    \"role\": \"developer\",\n    \"department\": \"Engineering\",\n    \"isActive\": true,\n    \"createdAt\": \"2024-12-01T10:00:00.000Z\",\n    \"updatedAt\": \"2024-12-01T10:00:00.000Z\"\n  },\n  {\n    \"_id\": \"507f1f77bcf86cd799439012\",\n    \"name\": \"Jane Smith\",\n    \"email\": \"jane@example.com\",\n    \"role\": \"manager\",\n    \"department\": \"Product\",\n    \"isActive\": true,\n    \"createdAt\": \"2024-12-01T11:00:00.000Z\",\n    \"updatedAt\": \"2024-12-01T11:00:00.000Z\"\n  }\n]"
+            }
+          ]
         },
         {
           "name": "Create New User",
@@ -120,131 +150,37 @@
               "raw": "{\n  \"name\": \"Jane Smith\",\n  \"email\": \"jane@example.com\",\n  \"password\": \"password123\",\n  \"role\": \"developer\",\n  \"department\": \"Engineering\"\n}"
             },
             "url": "{{base_url}}/api/users"
-          }
-        },
-        {
-          "name": "Update User",
-          "request": {
-            "method": "PUT",
-            "header": [
-              { "key": "Content-Type", "value": "application/json" },
-              { "key": "Authorization", "value": "Bearer {{token}}" }
-            ],
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"name\": \"Jane Updated\",\n  \"role\": \"senior_developer\",\n  \"department\": \"Engineering\"\n}"
-            },
-            "url": "{{base_url}}/api/users/{{user_id}}"
-          }
-        },
-        {
-          "name": "Delete User",
-          "request": {
-            "method": "DELETE",
-            "header": [ { "key": "Authorization", "value": "Bearer {{token}}" } ],
-            "url": "{{base_url}}/api/users/{{user_id}}"
-          }
+          },
+          "response": [
+            {
+              "name": "Success Response",
+              "originalRequest": {
+                "method": "POST",
+                "header": [
+                  { "key": "Content-Type", "value": "application/json" },
+                  { "key": "Authorization", "value": "Bearer {{token}}" }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"name\": \"Jane Smith\",\n  \"email\": \"jane@example.com\",\n  \"password\": \"password123\",\n  \"role\": \"developer\",\n  \"department\": \"Engineering\"\n}"
+                },
+                "url": "{{base_url}}/api/users"
+              },
+              "status": "Created",
+              "code": 201,
+              "_postman_previewlanguage": "json",
+              "header": [
+                { "key": "Content-Type", "value": "application/json" }
+              ],
+              "cookie": [],
+              "body": "{\n  \"_id\": \"507f1f77bcf86cd799439012\",\n  \"name\": \"Jane Smith\",\n  \"email\": \"jane@example.com\",\n  \"role\": \"developer\",\n  \"department\": \"Engineering\",\n  \"isActive\": true,\n  \"emailVerified\": false,\n  \"createdAt\": \"2024-12-01T11:00:00.000Z\",\n  \"updatedAt\": \"2024-12-01T11:00:00.000Z\"\n}"
+            }
+          ]
         }
       ]
     },
     {
-      "name": "Projects Management",
-      "item": [
-        {
-          "name": "Get All Projects",
-          "request": {
-            "method": "GET",
-            "header": [],
-            "url": "{{base_url}}/api/projects?page=1&limit=10&status=Active"
-          }
-        },
-        {
-          "name": "Get Project By ID",
-          "request": {
-            "method": "GET",
-            "header": [],
-            "url": "{{base_url}}/api/projects/{{project_id}}"
-          }
-        },
-        {
-          "name": "Get Project Tasks",
-          "request": {
-            "method": "GET",
-            "header": [],
-            "url": "{{base_url}}/api/projects/{{project_id}}/tasks"
-          }
-        },
-        {
-          "name": "Create New Project",
-          "request": {
-            "method": "POST",
-            "header": [
-              { "key": "Content-Type", "value": "application/json" },
-              { "key": "Authorization", "value": "Bearer {{token}}" }
-            ],
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"title\": \"E-commerce Platform\",\n  \"description\": \"Build a modern e-commerce platform with React and Node.js\",\n  \"status\": \"Active\",\n  \"priority\": \"High\",\n  \"startDate\": \"2024-01-01\",\n  \"dueDate\": \"2024-12-31\",\n  \"assignedTo\": []\n}"
-            },
-            "url": "{{base_url}}/api/projects"
-          }
-        },
-        {
-          "name": "Update Project",
-          "request": {
-            "method": "PUT",
-            "header": [
-              { "key": "Content-Type", "value": "application/json" },
-              { "key": "Authorization", "value": "Bearer {{token}}" }
-            ],
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"title\": \"Updated E-commerce Platform\",\n  \"status\": \"In Progress\",\n  \"progress\": 25\n}"
-            },
-            "url": "{{base_url}}/api/projects/{{project_id}}"
-          }
-        },
-        {
-          "name": "Delete Project",
-          "request": {
-            "method": "DELETE",
-            "header": [ { "key": "Authorization", "value": "Bearer {{token}}" } ],
-            "url": "{{base_url}}/api/projects/{{project_id}}"
-          }
-        },
-        {
-          "name": "Upload Project Document",
-          "request": {
-            "method": "POST",
-            "header": [ { "key": "Authorization", "value": "Bearer {{token}}" } ],
-            "body": {
-              "mode": "formdata",
-              "formdata": [
-                { "key": "file", "type": "file", "src": "document.pdf" }
-              ]
-            },
-            "url": "{{base_url}}/api/projects/{{project_id}}/upload"
-          }
-        },
-        {
-          "name": "Add Team Member",
-          "request": {
-            "method": "POST",
-            "header": [
-              { "key": "Content-Type", "value": "application/json" },
-              { "key": "Authorization", "value": "Bearer {{token}}" }
-            ],
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"userId\": \"{{user_id}}\",\n  \"role\": \"developer\"\n}"
-            },
-            "url": "{{base_url}}/api/projects/{{project_id}}/team-members"
-          }
-        }
-      ]
-    },
-    {
-      "name": "Tasks Management (Single APIs)",
+      "name": "Tasks Management (Updated)",
       "item": [
         {
           "name": "Get All Tasks",
@@ -252,18 +188,28 @@
             "method": "GET",
             "header": [ { "key": "Authorization", "value": "Bearer {{token}}" } ],
             "url": "{{base_url}}/api/tasks"
-          }
+          },
+          "response": [
+            {
+              "name": "Success Response",
+              "originalRequest": {
+                "method": "GET",
+                "header": [ { "key": "Authorization", "value": "Bearer {{token}}" } ],
+                "url": "{{base_url}}/api/tasks"
+              },
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "header": [
+                { "key": "Content-Type", "value": "application/json" }
+              ],
+              "cookie": [],
+              "body": "[\n  {\n    \"_id\": \"507f1f77bcf86cd799439021\",\n    \"id\": \"TASK-0001\",\n    \"projectId\": \"PROJ-001\",\n    \"task\": \"Implement User Authentication\",\n    \"description\": \"Create login and registration functionality with JWT tokens\",\n    \"taskType\": \"Feature\",\n    \"priority\": \"High\",\n    \"status\": \"In Progress\",\n    \"assignedTo\": {\n      \"_id\": \"507f1f77bcf86cd799439011\",\n      \"name\": \"John Doe\",\n      \"email\": \"john@example.com\"\n    },\n    \"reporter\": {\n      \"_id\": \"507f1f77bcf86cd799439012\",\n      \"name\": \"Jane Smith\",\n      \"email\": \"jane@example.com\"\n    },\n    \"startDate\": \"2024-12-01T00:00:00.000Z\",\n    \"eta\": \"2024-12-31T00:00:00.000Z\",\n    \"estimatedHours\": 8,\n    \"actualHours\": 3,\n    \"remark\": \"Started working on authentication flow\",\n    \"labels\": [\"frontend\", \"auth\", \"urgent\"],\n    \"sprint\": \"Sprint 1\",\n    \"createdAt\": \"2024-12-01T10:00:00.000Z\",\n    \"updatedAt\": \"2024-12-01T15:00:00.000Z\"\n  },\n  {\n    \"_id\": \"507f1f77bcf86cd799439022\",\n    \"id\": \"TASK-0002\",\n    \"projectId\": \"PROJ-001\",\n    \"task\": \"Fix Login Bug\",\n    \"description\": \"Resolve issue with login form validation\",\n    \"taskType\": \"Bug\",\n    \"priority\": \"Critical\",\n    \"status\": \"To Do\",\n    \"assignedTo\": {\n      \"_id\": \"507f1f77bcf86cd799439011\",\n      \"name\": \"John Doe\",\n      \"email\": \"john@example.com\"\n    },\n    \"reporter\": {\n      \"_id\": \"507f1f77bcf86cd799439012\",\n      \"name\": \"Jane Smith\",\n      \"email\": \"jane@example.com\"\n    },\n    \"eta\": \"2024-12-15T00:00:00.000Z\",\n    \"estimatedHours\": 4,\n    \"labels\": [\"bug\", \"frontend\"],\n    \"createdAt\": \"2024-12-01T16:00:00.000Z\",\n    \"updatedAt\": \"2024-12-01T16:00:00.000Z\"\n  }\n]"
+            }
+          ]
         },
         {
-          "name": "Get Task By ID",
-          "request": {
-            "method": "GET",
-            "header": [ { "key": "Authorization", "value": "Bearer {{token}}" } ],
-            "url": "{{base_url}}/api/tasks/{{task_id}}"
-          }
-        },
-        {
-          "name": "Create Task",
+          "name": "Create Task (with User ID)",
           "request": {
             "method": "POST",
             "header": [
@@ -272,10 +218,113 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"projectId\": \"{{project_id}}\",\n  \"task\": \"Implement User Authentication\",\n  \"description\": \"Create login and registration functionality with JWT tokens\",\n  \"taskType\": \"Feature\",\n  \"priority\": \"High\",\n  \"status\": \"To Do\",\n  \"assignedTo\": \"{{user_id}}\",\n  \"reporter\": \"{{user_id}}\",\n  \"eta\": \"2024-12-31\",\n  \"estimatedHours\": 8,\n  \"labels\": [\"frontend\", \"auth\", \"urgent\"],\n  \"sprint\": \"Sprint 1\"\n}"
+              "raw": "{\n  \"projectId\": \"PROJ-001\",\n  \"task\": \"Implement User Authentication\",\n  \"description\": \"Create login and registration functionality with JWT tokens\",\n  \"taskType\": \"Feature\",\n  \"priority\": \"High\",\n  \"status\": \"To Do\",\n  \"assignedTo\": \"507f1f77bcf86cd799439011\",\n  \"reporter\": \"507f1f77bcf86cd799439012\",\n  \"eta\": \"2024-12-31\",\n  \"estimatedHours\": 8,\n  \"labels\": [\"frontend\", \"auth\", \"urgent\"],\n  \"sprint\": \"Sprint 1\"\n}"
             },
             "url": "{{base_url}}/api/tasks",
-            "description": "Create any type of task with flexible fields.\n\n**Examples:**\n- **Feature Task**: Set `taskType\": \"Feature\", priority\": \"High\"\n- **Bug Task**: Set `taskType\": \"Bug\", priority\": \"Critical\"\n- **Enhancement**: Set `taskType\": \"Enhancement\", priority\": \"Medium\"\n- **Documentation**: Set `taskType\": \"Documentation\", priority\": \"Low\"\n- **Research**: Set `taskType\": \"Research\", priority\": \"Medium\"\n\n**Required Fields:** projectId, task, assignedTo, reporter, eta\n**Optional Fields:** description, taskType, priority, status, startDate, estimatedHours, remark, roadBlock, supportNeeded, labels, attachments, relatedTasks, parentTask, sprint"
+            "description": "Create a new task with user ID references.\n\n**Important Changes:**\n- `assignedTo` and `reporter` now accept User IDs (ObjectId strings)\n- You can also pass user email or name - the API will convert them to IDs\n- Task ID is automatically generated with retry logic for duplicates\n\n**User Reference Examples:**\n- **User ID**: `\"assignedTo\": \"507f1f77bcf86cd799439011\"`\n- **User Email**: `\"assignedTo\": \"john@example.com\"`\n- **User Name**: `\"assignedTo\": \"John Doe\"`\n\n**Required Fields:** projectId, task, assignedTo, reporter, eta\n**Optional Fields:** description, taskType, priority, status, startDate, estimatedHours, remark, roadBlock, supportNeeded, labels, attachments, relatedTasks, parentTask, sprint"
+          },
+          "response": [
+            {
+              "name": "Success Response",
+              "originalRequest": {
+                "method": "POST",
+                "header": [
+                  { "key": "Content-Type", "value": "application/json" },
+                  { "key": "Authorization", "value": "Bearer {{token}}" }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"projectId\": \"PROJ-001\",\n  \"task\": \"Implement User Authentication\",\n  \"description\": \"Create login and registration functionality with JWT tokens\",\n  \"taskType\": \"Feature\",\n  \"priority\": \"High\",\n  \"status\": \"To Do\",\n  \"assignedTo\": \"507f1f77bcf86cd799439011\",\n  \"reporter\": \"507f1f77bcf86cd799439012\",\n  \"eta\": \"2024-12-31\",\n  \"estimatedHours\": 8,\n  \"labels\": [\"frontend\", \"auth\", \"urgent\"],\n  \"sprint\": \"Sprint 1\"\n}"
+                },
+                "url": "{{base_url}}/api/tasks"
+              },
+              "status": "Created",
+              "code": 201,
+              "_postman_previewlanguage": "json",
+              "header": [
+                { "key": "Content-Type", "value": "application/json" }
+              ],
+              "cookie": [],
+              "body": "{\n  \"_id\": \"507f1f77bcf86cd799439021\",\n  \"id\": \"TASK-0003\",\n  \"projectId\": \"PROJ-001\",\n  \"task\": \"Implement User Authentication\",\n  \"description\": \"Create login and registration functionality with JWT tokens\",\n  \"taskType\": \"Feature\",\n  \"priority\": \"High\",\n  \"status\": \"To Do\",\n  \"assignedTo\": {\n    \"_id\": \"507f1f77bcf86cd799439011\",\n    \"name\": \"John Doe\",\n    \"email\": \"john@example.com\"\n  },\n  \"reporter\": {\n    \"_id\": \"507f1f77bcf86cd799439012\",\n    \"name\": \"Jane Smith\",\n    \"email\": \"jane@example.com\"\n  },\n  \"eta\": \"2024-12-31T00:00:00.000Z\",\n  \"estimatedHours\": 8,\n  \"labels\": [\"frontend\", \"auth\", \"urgent\"],\n  \"sprint\": \"Sprint 1\",\n  \"createdAt\": \"2024-12-01T10:00:00.000Z\",\n  \"updatedAt\": \"2024-12-01T10:00:00.000Z\"\n}"
+            },
+            {
+              "name": "Duplicate Task ID Error",
+              "originalRequest": {
+                "method": "POST",
+                "header": [
+                  { "key": "Content-Type", "value": "application/json" },
+                  { "key": "Authorization", "value": "Bearer {{token}}" }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"projectId\": \"PROJ-001\",\n  \"task\": \"Test Task\",\n  \"assignedTo\": \"507f1f77bcf86cd799439011\",\n  \"reporter\": \"507f1f77bcf86cd799439012\",\n  \"eta\": \"2024-12-31\"\n}"
+                },
+                "url": "{{base_url}}/api/tasks"
+              },
+              "status": "Conflict",
+              "code": 409,
+              "_postman_previewlanguage": "json",
+              "header": [
+                { "key": "Content-Type", "value": "application/json" }
+              ],
+              "cookie": [],
+              "body": "{\n  \"error\": \"Duplicate task ID\",\n  \"message\": \"A task with this ID already exists. Please try again.\"\n}"
+            },
+            {
+              "name": "Invalid User Reference Error",
+              "originalRequest": {
+                "method": "POST",
+                "header": [
+                  { "key": "Content-Type", "value": "application/json" },
+                  { "key": "Authorization", "value": "Bearer {{token}}" }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"projectId\": \"PROJ-001\",\n  \"task\": \"Test Task\",\n  \"assignedTo\": \"nonexistent@email.com\",\n  \"reporter\": \"507f1f77bcf86cd799439012\",\n  \"eta\": \"2024-12-31\"\n}"
+                },
+                "url": "{{base_url}}/api/tasks"
+              },
+              "status": "Bad Request",
+              "code": 400,
+              "_postman_previewlanguage": "json",
+              "header": [
+                { "key": "Content-Type", "value": "application/json" }
+              ],
+              "cookie": [],
+              "body": "{\n  \"error\": \"Invalid user reference\",\n  \"message\": \"User not found with provided email\"\n}"
+            }
+          ]
+        },
+        {
+          "name": "Create Task (with User Email)",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"projectId\": \"PROJ-001\",\n  \"task\": \"Fix Login Bug\",\n  \"description\": \"Resolve issue with login form validation\",\n  \"taskType\": \"Bug\",\n  \"priority\": \"Critical\",\n  \"status\": \"To Do\",\n  \"assignedTo\": \"john@example.com\",\n  \"reporter\": \"jane@example.com\",\n  \"eta\": \"2024-12-15\",\n  \"estimatedHours\": 4,\n  \"labels\": [\"bug\", \"frontend\"]\n}"
+            },
+            "url": "{{base_url}}/api/tasks",
+            "description": "Create task using user email addresses. The API will automatically convert emails to user IDs."
+          }
+        },
+        {
+          "name": "Create Task (with User Name)",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"projectId\": \"PROJ-001\",\n  \"task\": \"Update Documentation\",\n  \"description\": \"Update API documentation with new endpoints\",\n  \"taskType\": \"Documentation\",\n  \"priority\": \"Medium\",\n  \"status\": \"To Do\",\n  \"assignedTo\": \"John Doe\",\n  \"reporter\": \"Jane Smith\",\n  \"eta\": \"2024-12-20\",\n  \"estimatedHours\": 6,\n  \"labels\": [\"documentation\", \"api\"]\n}"
+            },
+            "url": "{{base_url}}/api/tasks",
+            "description": "Create task using user names. The API will automatically convert names to user IDs (case insensitive)."
           }
         },
         {
@@ -291,8 +340,75 @@
               "raw": "{\n  \"status\": \"In Progress\",\n  \"actualHours\": 3,\n  \"remark\": \"Started working on authentication flow\",\n  \"startDate\": \"2024-12-01\"\n}"
             },
             "url": "{{base_url}}/api/tasks/{{task_id}}",
-            "description": "Update any task field with flexible updates.\n\n**Common Update Examples:**\n- **Start Work**: `{\"status\": \"In Progress\", \"startDate\": \"2024-12-01\"}`\n- **Add Roadblock**: `{\"status\": \"Blocked\", \"roadBlock\": \"Need API docs\", \"supportNeeded\": \"Backend specs\"}`\n- **Complete Task**: `{\"status\": \"Completed\", \"actualHours\": 8, \"remark\": \"Successfully completed\"}`\n- **Add Attachments**: `{\"attachments\": [\"docs.pdf\", \"screenshots.zip\"]}`\n- **Link Related Tasks**: `{\"relatedTasks\": [\"TASK-0002\", \"TASK-0003\"], \"parentTask\": \"TASK-0001\"}`\n- **Update Labels**: `{\"labels\": [\"frontend\", \"auth\", \"completed\"]}`\n\n**All fields are optional** - only send the fields you want to update."
-          }
+            "description": "Update any task field with flexible updates.\n\n**Common Update Examples:**\n- **Start Work**: `{\"status\": \"In Progress\", \"startDate\": \"2024-12-01\"}`\n- **Add Roadblock**: `{\"status\": \"Blocked\", \"roadBlock\": \"Need API docs\", \"supportNeeded\": \"Backend specs\"}`\n- **Complete Task**: `{\"status\": \"Completed\", \"actualHours\": 8, \"remark\": \"Successfully completed\"}`\n- **Reassign Task**: `{\"assignedTo\": \"jane@example.com\"}` (supports ID, email, or name)\n- **Add Attachments**: `{\"attachments\": [\"docs.pdf\", \"screenshots.zip\"]}`\n- **Link Related Tasks**: `{\"relatedTasks\": [\"TASK-0002\", \"TASK-0003\"], \"parentTask\": \"TASK-0001\"}`\n- **Update Labels**: `{\"labels\": [\"frontend\", \"auth\", \"completed\"]}`\n\n**All fields are optional** - only send the fields you want to update."
+          },
+          "response": [
+            {
+              "name": "Success Response",
+              "originalRequest": {
+                "method": "PUT",
+                "header": [
+                  { "key": "Content-Type", "value": "application/json" },
+                  { "key": "Authorization", "value": "Bearer {{token}}" }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"status\": \"In Progress\",\n  \"actualHours\": 3,\n  \"remark\": \"Started working on authentication flow\",\n  \"startDate\": \"2024-12-01\"\n}"
+                },
+                "url": "{{base_url}}/api/tasks/{{task_id}}"
+              },
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "header": [
+                { "key": "Content-Type", "value": "application/json" }
+              ],
+              "cookie": [],
+              "body": "{\n  \"_id\": \"507f1f77bcf86cd799439021\",\n  \"id\": \"TASK-0001\",\n  \"projectId\": \"PROJ-001\",\n  \"task\": \"Implement User Authentication\",\n  \"description\": \"Create login and registration functionality with JWT tokens\",\n  \"taskType\": \"Feature\",\n  \"priority\": \"High\",\n  \"status\": \"In Progress\",\n  \"assignedTo\": {\n    \"_id\": \"507f1f77bcf86cd799439011\",\n    \"name\": \"John Doe\",\n    \"email\": \"john@example.com\"\n  },\n  \"reporter\": {\n    \"_id\": \"507f1f77bcf86cd799439012\",\n    \"name\": \"Jane Smith\",\n    \"email\": \"jane@example.com\"\n  },\n  \"startDate\": \"2024-12-01T00:00:00.000Z\",\n  \"eta\": \"2024-12-31T00:00:00.000Z\",\n  \"estimatedHours\": 8,\n  \"actualHours\": 3,\n  \"remark\": \"Started working on authentication flow\",\n  \"labels\": [\"frontend\", \"auth\", \"urgent\"],\n  \"sprint\": \"Sprint 1\",\n  \"createdAt\": \"2024-12-01T10:00:00.000Z\",\n  \"updatedAt\": \"2024-12-01T15:00:00.000Z\"\n}"
+            }
+          ]
+        },
+        {
+          "name": "Get Task By ID",
+          "request": {
+            "method": "GET",
+            "header": [ { "key": "Authorization", "value": "Bearer {{token}}" } ],
+            "url": "{{base_url}}/api/tasks/{{task_id}}"
+          },
+          "response": [
+            {
+              "name": "Success Response",
+              "originalRequest": {
+                "method": "GET",
+                "header": [ { "key": "Authorization", "value": "Bearer {{token}}" } ],
+                "url": "{{base_url}}/api/tasks/{{task_id}}"
+              },
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "header": [
+                { "key": "Content-Type", "value": "application/json" }
+              ],
+              "cookie": [],
+              "body": "{\n  \"_id\": \"507f1f77bcf86cd799439021\",\n  \"id\": \"TASK-0001\",\n  \"projectId\": \"PROJ-001\",\n  \"task\": \"Implement User Authentication\",\n  \"description\": \"Create login and registration functionality with JWT tokens\",\n  \"taskType\": \"Feature\",\n  \"priority\": \"High\",\n  \"status\": \"In Progress\",\n  \"assignedTo\": {\n    \"_id\": \"507f1f77bcf86cd799439011\",\n    \"name\": \"John Doe\",\n    \"email\": \"john@example.com\"\n  },\n  \"reporter\": {\n    \"_id\": \"507f1f77bcf86cd799439012\",\n    \"name\": \"Jane Smith\",\n    \"email\": \"jane@example.com\"\n  },\n  \"startDate\": \"2024-12-01T00:00:00.000Z\",\n  \"eta\": \"2024-12-31T00:00:00.000Z\",\n  \"estimatedHours\": 8,\n  \"actualHours\": 3,\n  \"remark\": \"Started working on authentication flow\",\n  \"labels\": [\"frontend\", \"auth\", \"urgent\"],\n  \"sprint\": \"Sprint 1\",\n  \"createdAt\": \"2024-12-01T10:00:00.000Z\",\n  \"updatedAt\": \"2024-12-01T15:00:00.000Z\"\n}"
+            },
+            {
+              "name": "Task Not Found",
+              "originalRequest": {
+                "method": "GET",
+                "header": [ { "key": "Authorization", "value": "Bearer {{token}}" } ],
+                "url": "{{base_url}}/api/tasks/nonexistent-id"
+              },
+              "status": "Not Found",
+              "code": 404,
+              "_postman_previewlanguage": "json",
+              "header": [
+                { "key": "Content-Type", "value": "application/json" }
+              ],
+              "cookie": [],
+              "body": "{\n  \"error\": \"Task not found\",\n  \"message\": \"No task found with the provided ID\"\n}"
+            }
+          ]
         },
         {
           "name": "Delete Task",
@@ -300,119 +416,47 @@
             "method": "DELETE",
             "header": [ { "key": "Authorization", "value": "Bearer {{token}}" } ],
             "url": "{{base_url}}/api/tasks/{{task_id}}"
-          }
+          },
+          "response": [
+            {
+              "name": "Success Response",
+              "originalRequest": {
+                "method": "DELETE",
+                "header": [ { "key": "Authorization", "value": "Bearer {{token}}" } ],
+                "url": "{{base_url}}/api/tasks/{{task_id}}"
+              },
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "header": [
+                { "key": "Content-Type", "value": "application/json" }
+              ],
+              "cookie": [],
+              "body": "{\n  \"message\": \"Task deleted successfully\",\n  \"deletedTaskId\": \"TASK-0001\"\n}"
+            }
+          ]
         }
       ]
     },
     {
-      "name": "User Tasks Management",
+      "name": "Migration & Maintenance",
       "item": [
         {
-          "name": "Get All User Tasks (Filtered)",
+          "name": "Reset Task ID Counter",
           "request": {
             "method": "GET",
             "header": [],
-            "url": "{{base_url}}/api/user-tasks?userId={{user_id}}&date=2024-12-01&typeOfWork=Development&status=Pending"
+            "url": "{{base_url}}/migration/reset-task-counter",
+            "description": "This is a maintenance endpoint to reset the task ID counter. Run this if you encounter duplicate task ID errors."
           }
         },
         {
-          "name": "Get User Task By ID",
+          "name": "Migrate Task Users",
           "request": {
             "method": "GET",
             "header": [],
-            "url": "{{base_url}}/api/user-tasks/{{user_task_id}}"
-          }
-        },
-        {
-          "name": "Create User Task",
-          "request": {
-            "method": "POST",
-            "header": [
-              { "key": "Content-Type", "value": "application/json" },
-              { "key": "Authorization", "value": "Bearer {{token}}" }
-            ],
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"date\": \"2024-12-01\",\n  \"typeOfWork\": \"Development\",\n  \"workDescription\": \"Implemented user authentication module with JWT tokens\",\n  \"project\": \"{{project_id}}\",\n  \"task\": \"TASK-0001\",\n  \"frequency\": \"Daily\",\n  \"status\": \"Completed\",\n  \"hoursSpent\": 8,\n  \"notes\": \"Successfully completed authentication feature\"\n}"
-            },
-            "url": "{{base_url}}/api/user-tasks",
-            "description": "Create user task entries for time tracking.\n\n**Work Types:** Development, Testing, Meeting, Documentation, Research, Bug Fix, Feature, Other\n**Frequency:** Daily, Weekly, Monthly, Adhoc\n**Status:** Pending, In Progress, Completed"
-          }
-        },
-        {
-          "name": "Update User Task",
-          "request": {
-            "method": "PUT",
-            "header": [
-              { "key": "Content-Type", "value": "application/json" },
-              { "key": "Authorization", "value": "Bearer {{token}}" }
-            ],
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"status\": \"Completed\",\n  \"hoursSpent\": 8,\n  \"notes\": \"Updated: Completed all planned work for the day\"\n}"
-            },
-            "url": "{{base_url}}/api/user-tasks/{{user_task_id}}"
-          }
-        },
-        {
-          "name": "Delete User Task",
-          "request": {
-            "method": "DELETE",
-            "header": [ { "key": "Authorization", "value": "Bearer {{token}}" } ],
-            "url": "{{base_url}}/api/user-tasks/{{user_task_id}}"
-          }
-        },
-        {
-          "name": "Get User Tasks by User ID",
-          "request": {
-            "method": "GET",
-            "header": [],
-            "url": "{{base_url}}/api/user-tasks/user/{{user_id}}"
-          }
-        },
-        {
-          "name": "Get User Tasks by Date",
-          "request": {
-            "method": "GET",
-            "header": [],
-            "url": "{{base_url}}/api/user-tasks/date/2024-12-01?userId={{user_id}}"
-          }
-        },
-        {
-          "name": "Get User Task Summary",
-          "request": {
-            "method": "GET",
-            "header": [],
-            "url": "{{base_url}}/api/user-tasks/user/{{user_id}}/summary?startDate=2024-12-01&endDate=2024-12-31"
-          }
-        }
-      ]
-    },
-    {
-      "name": "Dashboard & Analytics",
-      "item": [
-        {
-          "name": "Get Dashboard Stats",
-          "request": {
-            "method": "GET",
-            "header": [ { "key": "Authorization", "value": "Bearer {{token}}" } ],
-            "url": "{{base_url}}/api/dashboard"
-          }
-        },
-        {
-          "name": "Get Projects Summary",
-          "request": {
-            "method": "GET",
-            "header": [ { "key": "Authorization", "value": "Bearer {{token}}" } ],
-            "url": "{{base_url}}/api/dashboard/projects-summary"
-          }
-        },
-        {
-          "name": "Get Tasks Summary",
-          "request": {
-            "method": "GET",
-            "header": [ { "key": "Authorization", "value": "Bearer {{token}}" } ],
-            "url": "{{base_url}}/api/dashboard/tasks-summary"
+            "url": "{{base_url}}/migration/fix-task-users",
+            "description": "This is a maintenance endpoint to convert existing task user references from names/emails to proper user IDs."
           }
         }
       ]
@@ -421,9 +465,9 @@
   "variable": [
     { "key": "base_url", "value": "http://localhost:5000" },
     { "key": "token", "value": "" },
-    { "key": "user_id", "value": "" },
-    { "key": "project_id", "value": "" },
-    { "key": "task_id", "value": "" },
+    { "key": "user_id", "value": "507f1f77bcf86cd799439011" },
+    { "key": "project_id", "value": "PROJ-001" },
+    { "key": "task_id", "value": "507f1f77bcf86cd799439021" },
     { "key": "user_task_id", "value": "" }
   ]
 }
