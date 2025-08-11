@@ -6,6 +6,18 @@ exports.getAllUsers = async (req, res) => {
   res.json(users);
 };
 
+exports.getUserById = async (req, res) => {
+  try {
+    const user = await User.findById(req.params.id).select('-password');
+    if (!user) {
+      return res.status(404).json({ message: 'User not found' });
+    }
+    res.json(user);
+  } catch (err) {
+    res.status(400).json({ error: err.message });
+  }
+};
+
 exports.createUser = async (req, res) => {
   try {
     const { name, email, password, role, department } = req.body;

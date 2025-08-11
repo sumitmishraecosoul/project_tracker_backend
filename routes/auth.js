@@ -4,6 +4,7 @@ const authController = require('../controllers/authController');
 const auth = require('../middleware/auth');
 
 // Public routes
+router.post('/signup', authController.signup); // alias for backward compatibility
 router.post('/register', authController.signup);
 router.post('/login', authController.login);
 router.post('/forgot-password', authController.forgotPassword);

@@ -24,7 +24,7 @@ const userTaskSchema = new mongoose.Schema({
     ref: 'Project'
   },
   task: {
-    type: mongoose.Schema.Types.ObjectId,
+    type: String,
     ref: 'Task'
   },
   frequency: {

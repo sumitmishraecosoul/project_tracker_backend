@@ -1,0 +1,433 @@
+{
+  "info": {
+    "name": "Project Tracker API (Simplified)",
+    "description": "Simplified API collection for Project Tracker Backend with single, flexible endpoints for tasks. Follows RESTful principles with comprehensive examples.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "Authentication",
+      "item": [
+        {
+          "name": "Register User",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"John Doe\",\n  \"email\": \"john@example.com\",\n  \"password\": \"password123\",\n  \"role\": \"developer\",\n  \"department\": \"Engineering\"\n}"
+            },
+            "url": "{{base_url}}/api/auth/register"
+          }
+        },
+        {
+          "name": "Login User",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"john@example.com\",\n  \"password\": \"password123\"\n}"
+            },
+            "url": "{{base_url}}/api/auth/login"
+          }
+        },
+        {
+          "name": "Get User Profile",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "url": "{{base_url}}/api/auth/profile"
+          }
+        },
+        {
+          "name": "Update Profile",
+          "request": {
+            "method": "PUT",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"John Updated\",\n  \"department\": \"Product\",\n  \"role\": \"manager\"\n}"
+            },
+            "url": "{{base_url}}/api/auth/profile"
+          }
+        },
+        {
+          "name": "Change Password",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"currentPassword\": \"password123\",\n  \"newPassword\": \"newpassword123\"\n}"
+            },
+            "url": "{{base_url}}/api/auth/change-password"
+          }
+        },
+        {
+          "name": "Refresh Token",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "url": "{{base_url}}/api/auth/refresh-token"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Users Management",
+      "item": [
+        {
+          "name": "Get All Users",
+          "request": {
+            "method": "GET",
+            "header": [ { "key": "Authorization", "value": "Bearer {{token}}" } ],
+            "url": "{{base_url}}/api/users"
+          }
+        },
+        {
+          "name": "Get User By ID",
+          "request": {
+            "method": "GET",
+            "header": [ { "key": "Authorization", "value": "Bearer {{token}}" } ],
+            "url": "{{base_url}}/api/users/{{user_id}}"
+          }
+        },
+        {
+          "name": "Create New User",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Jane Smith\",\n  \"email\": \"jane@example.com\",\n  \"password\": \"password123\",\n  \"role\": \"developer\",\n  \"department\": \"Engineering\"\n}"
+            },
+            "url": "{{base_url}}/api/users"
+          }
+        },
+        {
+          "name": "Update User",
+          "request": {
+            "method": "PUT",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Jane Updated\",\n  \"role\": \"senior_developer\",\n  \"department\": \"Engineering\"\n}"
+            },
+            "url": "{{base_url}}/api/users/{{user_id}}"
+          }
+        },
+        {
+          "name": "Delete User",
+          "request": {
+            "method": "DELETE",
+            "header": [ { "key": "Authorization", "value": "Bearer {{token}}" } ],
+            "url": "{{base_url}}/api/users/{{user_id}}"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Projects Management",
+      "item": [
+        {
+          "name": "Get All Projects",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{base_url}}/api/projects?page=1&limit=10&status=Active"
+          }
+        },
+        {
+          "name": "Get Project By ID",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{base_url}}/api/projects/{{project_id}}"
+          }
+        },
+        {
+          "name": "Get Project Tasks",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{base_url}}/api/projects/{{project_id}}/tasks"
+          }
+        },
+        {
+          "name": "Create New Project",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"title\": \"E-commerce Platform\",\n  \"description\": \"Build a modern e-commerce platform with React and Node.js\",\n  \"status\": \"Active\",\n  \"priority\": \"High\",\n  \"startDate\": \"2024-01-01\",\n  \"dueDate\": \"2024-12-31\",\n  \"assignedTo\": []\n}"
+            },
+            "url": "{{base_url}}/api/projects"
+          }
+        },
+        {
+          "name": "Update Project",
+          "request": {
+            "method": "PUT",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"title\": \"Updated E-commerce Platform\",\n  \"status\": \"In Progress\",\n  \"progress\": 25\n}"
+            },
+            "url": "{{base_url}}/api/projects/{{project_id}}"
+          }
+        },
+        {
+          "name": "Delete Project",
+          "request": {
+            "method": "DELETE",
+            "header": [ { "key": "Authorization", "value": "Bearer {{token}}" } ],
+            "url": "{{base_url}}/api/projects/{{project_id}}"
+          }
+        },
+        {
+          "name": "Upload Project Document",
+          "request": {
+            "method": "POST",
+            "header": [ { "key": "Authorization", "value": "Bearer {{token}}" } ],
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                { "key": "file", "type": "file", "src": "document.pdf" }
+              ]
+            },
+            "url": "{{base_url}}/api/projects/{{project_id}}/upload"
+          }
+        },
+        {
+          "name": "Add Team Member",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"userId\": \"{{user_id}}\",\n  \"role\": \"developer\"\n}"
+            },
+            "url": "{{base_url}}/api/projects/{{project_id}}/team-members"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Tasks Management (Single APIs)",
+      "item": [
+        {
+          "name": "Get All Tasks",
+          "request": {
+            "method": "GET",
+            "header": [ { "key": "Authorization", "value": "Bearer {{token}}" } ],
+            "url": "{{base_url}}/api/tasks"
+          }
+        },
+        {
+          "name": "Get Task By ID",
+          "request": {
+            "method": "GET",
+            "header": [ { "key": "Authorization", "value": "Bearer {{token}}" } ],
+            "url": "{{base_url}}/api/tasks/{{task_id}}"
+          }
+        },
+        {
+          "name": "Create Task",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"projectId\": \"{{project_id}}\",\n  \"task\": \"Implement User Authentication\",\n  \"description\": \"Create login and registration functionality with JWT tokens\",\n  \"taskType\": \"Feature\",\n  \"priority\": \"High\",\n  \"status\": \"To Do\",\n  \"assignedTo\": \"{{user_id}}\",\n  \"reporter\": \"{{user_id}}\",\n  \"eta\": \"2024-12-31\",\n  \"estimatedHours\": 8,\n  \"labels\": [\"frontend\", \"auth\", \"urgent\"],\n  \"sprint\": \"Sprint 1\"\n}"
+            },
+            "url": "{{base_url}}/api/tasks",
+            "description": "Create any type of task with flexible fields.\n\n**Examples:**\n- **Feature Task**: Set `taskType\": \"Feature\", priority\": \"High\"\n- **Bug Task**: Set `taskType\": \"Bug\", priority\": \"Critical\"\n- **Enhancement**: Set `taskType\": \"Enhancement\", priority\": \"Medium\"\n- **Documentation**: Set `taskType\": \"Documentation\", priority\": \"Low\"\n- **Research**: Set `taskType\": \"Research\", priority\": \"Medium\"\n\n**Required Fields:** projectId, task, assignedTo, reporter, eta\n**Optional Fields:** description, taskType, priority, status, startDate, estimatedHours, remark, roadBlock, supportNeeded, labels, attachments, relatedTasks, parentTask, sprint"
+          }
+        },
+        {
+          "name": "Update Task",
+          "request": {
+            "method": "PUT",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"status\": \"In Progress\",\n  \"actualHours\": 3,\n  \"remark\": \"Started working on authentication flow\",\n  \"startDate\": \"2024-12-01\"\n}"
+            },
+            "url": "{{base_url}}/api/tasks/{{task_id}}",
+            "description": "Update any task field with flexible updates.\n\n**Common Update Examples:**\n- **Start Work**: `{\"status\": \"In Progress\", \"startDate\": \"2024-12-01\"}`\n- **Add Roadblock**: `{\"status\": \"Blocked\", \"roadBlock\": \"Need API docs\", \"supportNeeded\": \"Backend specs\"}`\n- **Complete Task**: `{\"status\": \"Completed\", \"actualHours\": 8, \"remark\": \"Successfully completed\"}`\n- **Add Attachments**: `{\"attachments\": [\"docs.pdf\", \"screenshots.zip\"]}`\n- **Link Related Tasks**: `{\"relatedTasks\": [\"TASK-0002\", \"TASK-0003\"], \"parentTask\": \"TASK-0001\"}`\n- **Update Labels**: `{\"labels\": [\"frontend\", \"auth\", \"completed\"]}`\n\n**All fields are optional** - only send the fields you want to update."
+          }
+        },
+        {
+          "name": "Delete Task",
+          "request": {
+            "method": "DELETE",
+            "header": [ { "key": "Authorization", "value": "Bearer {{token}}" } ],
+            "url": "{{base_url}}/api/tasks/{{task_id}}"
+          }
+        }
+      ]
+    },
+    {
+      "name": "User Tasks Management",
+      "item": [
+        {
+          "name": "Get All User Tasks (Filtered)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{base_url}}/api/user-tasks?userId={{user_id}}&date=2024-12-01&typeOfWork=Development&status=Pending"
+          }
+        },
+        {
+          "name": "Get User Task By ID",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{base_url}}/api/user-tasks/{{user_task_id}}"
+          }
+        },
+        {
+          "name": "Create User Task",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"date\": \"2024-12-01\",\n  \"typeOfWork\": \"Development\",\n  \"workDescription\": \"Implemented user authentication module with JWT tokens\",\n  \"project\": \"{{project_id}}\",\n  \"task\": \"TASK-0001\",\n  \"frequency\": \"Daily\",\n  \"status\": \"Completed\",\n  \"hoursSpent\": 8,\n  \"notes\": \"Successfully completed authentication feature\"\n}"
+            },
+            "url": "{{base_url}}/api/user-tasks",
+            "description": "Create user task entries for time tracking.\n\n**Work Types:** Development, Testing, Meeting, Documentation, Research, Bug Fix, Feature, Other\n**Frequency:** Daily, Weekly, Monthly, Adhoc\n**Status:** Pending, In Progress, Completed"
+          }
+        },
+        {
+          "name": "Update User Task",
+          "request": {
+            "method": "PUT",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"status\": \"Completed\",\n  \"hoursSpent\": 8,\n  \"notes\": \"Updated: Completed all planned work for the day\"\n}"
+            },
+            "url": "{{base_url}}/api/user-tasks/{{user_task_id}}"
+          }
+        },
+        {
+          "name": "Delete User Task",
+          "request": {
+            "method": "DELETE",
+            "header": [ { "key": "Authorization", "value": "Bearer {{token}}" } ],
+            "url": "{{base_url}}/api/user-tasks/{{user_task_id}}"
+          }
+        },
+        {
+          "name": "Get User Tasks by User ID",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{base_url}}/api/user-tasks/user/{{user_id}}"
+          }
+        },
+        {
+          "name": "Get User Tasks by Date",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{base_url}}/api/user-tasks/date/2024-12-01?userId={{user_id}}"
+          }
+        },
+        {
+          "name": "Get User Task Summary",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": "{{base_url}}/api/user-tasks/user/{{user_id}}/summary?startDate=2024-12-01&endDate=2024-12-31"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Dashboard & Analytics",
+      "item": [
+        {
+          "name": "Get Dashboard Stats",
+          "request": {
+            "method": "GET",
+            "header": [ { "key": "Authorization", "value": "Bearer {{token}}" } ],
+            "url": "{{base_url}}/api/dashboard"
+          }
+        },
+        {
+          "name": "Get Projects Summary",
+          "request": {
+            "method": "GET",
+            "header": [ { "key": "Authorization", "value": "Bearer {{token}}" } ],
+            "url": "{{base_url}}/api/dashboard/projects-summary"
+          }
+        },
+        {
+          "name": "Get Tasks Summary",
+          "request": {
+            "method": "GET",
+            "header": [ { "key": "Authorization", "value": "Bearer {{token}}" } ],
+            "url": "{{base_url}}/api/dashboard/tasks-summary"
+          }
+        }
+      ]
+    }
+  ],
+  "variable": [
+    { "key": "base_url", "value": "http://localhost:5000" },
+    { "key": "token", "value": "" },
+    { "key": "user_id", "value": "" },
+    { "key": "project_id", "value": "" },
+    { "key": "task_id", "value": "" },
+    { "key": "user_task_id", "value": "" }
+  ]
+}
+
+
+
+

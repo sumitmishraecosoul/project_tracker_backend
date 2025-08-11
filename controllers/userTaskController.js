@@ -20,7 +20,6 @@ const getAllUserTasks = async (req, res) => {
     const userTasks = await UserTask.find(filter)
       .populate('user', 'name email')
       .populate('project', 'title')
-      .populate('task', 'title')
       .sort({ date: -1, createdAt: -1 })
       .skip(skip)
       .limit(limit);
@@ -43,8 +42,7 @@ const getUserTaskById = async (req, res) => {
   try {
     const userTask = await UserTask.findById(req.params.id)
       .populate('user', 'name email')
-      .populate('project', 'title')
-      .populate('task', 'title');
+      .populate('project', 'title');
 
     if (!userTask) {
       return res.status(404).json({ message: 'User task not found' });
@@ -95,7 +93,7 @@ const updateUserTask = async (req, res) => {
       return res.status(404).json({ message: 'User task not found' });
     }
 
-    if (userTask.user.toString() !== req.user.id && !req.user.isAdmin) {
+    if (userTask.user.toString() !== req.user.id && req.user.role !== 'admin') {
       return res.status(403).json({ message: 'Not authorized to update this task' });
     }
 
@@ -121,7 +119,7 @@ const deleteUserTask = async (req, res) => {
       return res.status(404).json({ message: 'User task not found' });
     }
 
-    if (userTask.user.toString() !== req.user.id && !req.user.isAdmin) {
+    if (userTask.user.toString() !== req.user.id && req.user.role !== 'admin') {
       return res.status(403).json({ message: 'Not authorized to delete this task' });
     }
 
@@ -146,7 +144,6 @@ const getUserTasksByUserId = async (req, res) => {
 
     const userTasks = await UserTask.find(filter)
       .populate('project', 'title')
-      .populate('task', 'title')
       .sort({ date: -1 });
 
     res.json(userTasks);
@@ -167,7 +164,6 @@ const getUserTasksByDate = async (req, res) => {
     const userTasks = await UserTask.find(filter)
       .populate('user', 'name email')
       .populate('project', 'title')
-      .populate('task', 'title')
       .sort({ createdAt: -1 });
 
     res.json(userTasks);

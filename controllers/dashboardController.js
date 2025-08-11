@@ -17,11 +17,11 @@ const getDashboardStats = async (req, res) => {
     const activeProjects = await Project.countDocuments({ status: 'Active' });
     const completedTasks = await Task.countDocuments({ status: 'Completed' });
     const pendingTasks = await Task.countDocuments({ 
-      status: { $in: ['Not Started', 'In Progress'] } 
+      status: { $in: ['To Do', 'In Progress'] } 
     });
     
     const overdueTasks = await Task.countDocuments({
-      dueDate: { $lt: new Date() },
+      eta: { $lt: new Date() },
       status: { $ne: 'Completed' }
     });
 

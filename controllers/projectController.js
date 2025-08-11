@@ -136,7 +136,7 @@ const updateProject = async (req, res) => {
     }
 
     // Check if user has permission to update
-    if (project.createdBy.toString() !== req.user.id && !req.user.isAdmin) {
+    if (project.createdBy.toString() !== req.user.id && req.user.role !== 'admin') {
       return res.status(403).json({ message: 'Not authorized to update this project' });
     }
 
@@ -175,7 +175,7 @@ const deleteProject = async (req, res) => {
       return res.status(404).json({ message: 'Project not found' });
     }
 
-    if (project.createdBy.toString() !== req.user.id && !req.user.isAdmin) {
+    if (project.createdBy.toString() !== req.user.id && req.user.role !== 'admin') {
       return res.status(403).json({ message: 'Not authorized to delete this project' });
     }
 

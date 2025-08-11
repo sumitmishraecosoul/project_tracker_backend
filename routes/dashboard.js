@@ -3,9 +3,9 @@ const router = express.Router();
 const dashboardController = require('../controllers/dashboardController');
 const auth = require('../middleware/auth');
 
-// Public routes
-router.get('/', dashboardController.getDashboardStats);
-router.get('/projects-summary', dashboardController.getProjectsSummary);
-router.get('/tasks-summary', dashboardController.getTasksSummary);
+// Protected routes
+router.get('/', auth, dashboardController.getDashboardStats);
+router.get('/projects-summary', auth, dashboardController.getProjectsSummary);
+router.get('/tasks-summary', auth, dashboardController.getTasksSummary);
 
 module.exports = router;

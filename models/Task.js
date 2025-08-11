@@ -1,76 +1,93 @@
 const mongoose = require('mongoose');
 
-const taskSchema = new mongoose.Schema({
-  projectId: {
-    type: mongoose.Schema.Types.ObjectId,
-    ref: 'Project',
-    required: true
-  },
-  title: {
-    type: String,
-    required: true,
-    trim: true
-  },
-  description: {
-    type: String,
-    trim: true
-  },
-  status: {
-    type: String,
-    enum: ['Not Started', 'In Progress', 'Completed', 'Blocked', 'Cancelled'],
-    default: 'Not Started'
-  },
-  priority: {
-    type: String,
-    enum: ['Low', 'Medium', 'High', 'Critical'],
-    default: 'Medium'
-  },
-  assignedTo: {
-    type: mongoose.Schema.Types.ObjectId,
-    ref: 'User',
-    required: true
-  },
-  createdBy: {
-    type: mongoose.Schema.Types.ObjectId,
-    ref: 'User',
-    required: true
-  },
-  dueDate: {
-    type: Date
-  },
-  estimatedHours: {
-    type: Number,
-    default: 0
-  },
-  actualHours: {
-    type: Number,
-    default: 0
-  },
-  attachments: [{
-    filename: String,
-    path: String,
-    uploadedBy: {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: 'User'
+const taskSchema = new mongoose.Schema(
+  {
+    id: {
+      type: String,
+      required: true,
+      unique: true
     },
-    uploadedAt: {
-      type: Date,
-      default: Date.now
-    }
-  }],
-  comments: [{
-    content: String,
-    author: {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: 'User'
+    projectId: {
+      type: String,
+      required: true
     },
-    createdAt: {
+    task: {
+      type: String,
+      required: true,
+      trim: true
+    },
+    description: {
+      type: String,
+      trim: true
+    },
+    taskType: {
+      type: String,
+      enum: ['Feature', 'Bug', 'Enhancement', 'Documentation', 'Research'],
+      default: 'Feature'
+    },
+    priority: {
+      type: String,
+      enum: ['Critical', 'High', 'Medium', 'Low'],
+      default: 'Medium'
+    },
+    status: {
+      type: String,
+      enum: ['To Do', 'In Progress', 'Completed', 'Blocked', 'On Hold'],
+      default: 'To Do'
+    },
+    assignedTo: {
+      type: String,
+      required: true
+    },
+    reporter: {
+      type: String,
+      required: true
+    },
+    startDate: {
+      type: Date
+    },
+    eta: {
       type: Date,
-      default: Date.now
+      required: true
+    },
+    estimatedHours: {
+      type: Number
+    },
+    actualHours: {
+      type: Number
+    },
+    remark: {
+      type: String,
+      trim: true
+    },
+    roadBlock: {
+      type: String,
+      trim: true
+    },
+    supportNeeded: {
+      type: String,
+      trim: true
+    },
+    labels: {
+      type: [String],
+      default: []
+    },
+    attachments: {
+      type: [String],
+      default: []
+    },
+    relatedTasks: {
+      type: [String],
+      default: []
+    },
+    parentTask: {
+      type: String
+    },
+    sprint: {
+      type: String
     }
-  }]
-}, {
-  timestamps: true
-});
+  },
+  { timestamps: true }
+);
 
 module.exports = mongoose.model('Task', taskSchema);

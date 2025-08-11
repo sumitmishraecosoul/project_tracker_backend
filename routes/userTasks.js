@@ -5,9 +5,10 @@ const auth = require('../middleware/auth');
 
 // Public routes
 router.get('/', userTaskController.getAllUserTasks);
-router.get('/:id', userTaskController.getUserTaskById);
 router.get('/user/:userId', userTaskController.getUserTasksByUserId);
+router.get('/user/:userId/summary', userTaskController.getUserTaskSummary);
 router.get('/date/:date', userTaskController.getUserTasksByDate);
+router.get('/:id', userTaskController.getUserTaskById);
 
 // Protected routes
 router.post('/', auth, userTaskController.createUserTask);
