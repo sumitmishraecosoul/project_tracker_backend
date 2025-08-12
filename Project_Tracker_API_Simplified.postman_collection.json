@@ -319,6 +319,296 @@
               "body": "{\n  \"error\": \"Failed to fetch project tasks\",\n  \"message\": \"Database connection error\"\n}"
             }
           ]
+        },
+        {
+          "name": "Create Project",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"title\": \"E-commerce Platform\",\n  \"description\": \"Build a modern e-commerce platform with React and Node.js\",\n  \"status\": \"Active\",\n  \"priority\": \"High\",\n  \"startDate\": \"2024-01-01\",\n  \"dueDate\": \"2024-12-31\",\n  \"assignedTo\": [\"507f1f77bcf86cd799439011\"],\n  \"teamMembers\": [\n    {\n      \"user\": \"507f1f77bcf86cd799439012\",\n      \"role\": \"developer\"\n    },\n    {\n      \"user\": \"507f1f77bcf86cd799439013\",\n      \"role\": \"designer\"\n    }\n  ]\n}"
+            },
+            "url": "{{base_url}}/api/projects",
+            "description": "Create a new project with team members and assigned users.\n\n**Features:**\n- Validates all user IDs exist before creating project\n- Prevents duplicate team members\n- Creates notifications for all team members\n- Supports team member roles\n\n**Required Fields:** title\n**Optional Fields:** description, status, priority, startDate, dueDate, assignedTo, teamMembers"
+          },
+          "response": [
+            {
+              "name": "Success Response",
+              "originalRequest": {
+                "method": "POST",
+                "header": [
+                  { "key": "Content-Type", "value": "application/json" },
+                  { "key": "Authorization", "value": "Bearer {{token}}" }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"title\": \"E-commerce Platform\",\n  \"description\": \"Build a modern e-commerce platform with React and Node.js\",\n  \"status\": \"Active\",\n  \"priority\": \"High\",\n  \"startDate\": \"2024-01-01\",\n  \"dueDate\": \"2024-12-31\",\n  \"assignedTo\": [\"507f1f77bcf86cd799439011\"],\n  \"teamMembers\": [\n    {\n      \"user\": \"507f1f77bcf86cd799439012\",\n      \"role\": \"developer\"\n    },\n    {\n      \"user\": \"507f1f77bcf86cd799439013\",\n      \"role\": \"designer\"\n    }\n  ]\n}"
+                },
+                "url": "{{base_url}}/api/projects"
+              },
+              "status": "Created",
+              "code": 201,
+              "_postman_previewlanguage": "json",
+              "header": [
+                { "key": "Content-Type", "value": "application/json" }
+              ],
+              "cookie": [],
+              "body": "{\n  \"_id\": \"507f1f77bcf86cd799439031\",\n  \"title\": \"E-commerce Platform\",\n  \"description\": \"Build a modern e-commerce platform with React and Node.js\",\n  \"status\": \"Active\",\n  \"priority\": \"High\",\n  \"startDate\": \"2024-01-01T00:00:00.000Z\",\n  \"dueDate\": \"2024-12-31T00:00:00.000Z\",\n  \"createdBy\": {\n    \"_id\": \"507f1f77bcf86cd799439011\",\n    \"name\": \"John Doe\",\n    \"email\": \"john@example.com\"\n  },\n  \"assignedTo\": [\n    {\n      \"_id\": \"507f1f77bcf86cd799439011\",\n      \"name\": \"John Doe\",\n      \"email\": \"john@example.com\"\n    }\n  ],\n  \"teamMembers\": [\n    {\n      \"user\": {\n        \"_id\": \"507f1f77bcf86cd799439012\",\n        \"name\": \"Jane Smith\",\n        \"email\": \"jane@example.com\"\n      },\n      \"role\": \"developer\"\n    },\n    {\n      \"user\": {\n        \"_id\": \"507f1f77bcf86cd799439013\",\n        \"name\": \"Bob Wilson\",\n        \"email\": \"bob@example.com\"\n      },\n      \"role\": \"designer\"\n    }\n  ],\n  \"progress\": 0,\n  \"createdAt\": \"2024-12-01T10:00:00.000Z\",\n  \"updatedAt\": \"2024-12-01T10:00:00.000Z\"\n}"
+            },
+            {
+              "name": "Validation Error",
+              "originalRequest": {
+                "method": "POST",
+                "header": [
+                  { "key": "Content-Type", "value": "application/json" },
+                  { "key": "Authorization", "value": "Bearer {{token}}" }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"description\": \"Build a modern e-commerce platform\",\n  \"assignedTo\": [\"invalid-user-id\"]\n}"
+                },
+                "url": "{{base_url}}/api/projects"
+              },
+              "status": "Bad Request",
+              "code": 400,
+              "_postman_previewlanguage": "json",
+              "header": [
+                { "key": "Content-Type", "value": "application/json" }
+              ],
+              "cookie": [],
+              "body": "{\n  \"error\": \"Missing required field\",\n  \"message\": \"Project title is required\"\n}"
+            }
+          ]
+        },
+        {
+          "name": "Update Project",
+          "request": {
+            "method": "PUT",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"title\": \"Updated E-commerce Platform\",\n  \"description\": \"Updated description with new features\",\n  \"status\": \"Active\",\n  \"priority\": \"Critical\",\n  \"teamMembers\": [\n    {\n      \"user\": \"507f1f77bcf86cd799439012\",\n      \"role\": \"lead-developer\"\n    },\n    {\n      \"user\": \"507f1f77bcf86cd799439013\",\n      \"role\": \"senior-designer\"\n    }\n  ]\n}"
+            },
+            "url": "{{base_url}}/api/projects/{{project_id}}",
+            "description": "Update project details with team member management.\n\n**Features:**\n- Validates all user IDs exist before updating\n- Prevents duplicate team members\n- Creates notifications for all team members\n- Only project creator or admin can update\n\n**All fields are optional** - only send the fields you want to update"
+          },
+          "response": [
+            {
+              "name": "Success Response",
+              "originalRequest": {
+                "method": "PUT",
+                "header": [
+                  { "key": "Content-Type", "value": "application/json" },
+                  { "key": "Authorization", "value": "Bearer {{token}}" }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"title\": \"Updated E-commerce Platform\",\n  \"description\": \"Updated description with new features\",\n  \"status\": \"Active\",\n  \"priority\": \"Critical\",\n  \"teamMembers\": [\n    {\n      \"user\": \"507f1f77bcf86cd799439012\",\n      \"role\": \"lead-developer\"\n    },\n    {\n      \"user\": \"507f1f77bcf86cd799439013\",\n      \"role\": \"senior-designer\"\n    }\n  ]\n}"
+                },
+                "url": "{{base_url}}/api/projects/{{project_id}}"
+              },
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "header": [
+                { "key": "Content-Type", "value": "application/json" }
+              ],
+              "cookie": [],
+              "body": "{\n  \"_id\": \"507f1f77bcf86cd799439031\",\n  \"title\": \"Updated E-commerce Platform\",\n  \"description\": \"Updated description with new features\",\n  \"status\": \"Active\",\n  \"priority\": \"Critical\",\n  \"createdBy\": {\n    \"_id\": \"507f1f77bcf86cd799439011\",\n    \"name\": \"John Doe\",\n    \"email\": \"john@example.com\"\n  },\n  \"assignedTo\": [\n    {\n      \"_id\": \"507f1f77bcf86cd799439011\",\n      \"name\": \"John Doe\",\n      \"email\": \"john@example.com\"\n    }\n  ],\n  \"teamMembers\": [\n    {\n      \"user\": {\n        \"_id\": \"507f1f77bcf86cd799439012\",\n        \"name\": \"Jane Smith\",\n        \"email\": \"jane@example.com\"\n      },\n      \"role\": \"lead-developer\"\n    },\n    {\n      \"user\": {\n        \"_id\": \"507f1f77bcf86cd799439013\",\n        \"name\": \"Bob Wilson\",\n        \"email\": \"bob@example.com\"\n      },\n      \"role\": \"senior-designer\"\n    }\n  ],\n  \"updatedAt\": \"2024-12-01T15:00:00.000Z\"\n}"
+            }
+          ]
+        },
+        {
+          "name": "Delete Project",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "url": "{{base_url}}/api/projects/{{project_id}}",
+            "description": "Delete a project and all associated tasks.\n\n**Features:**\n- Deletes all associated tasks (handles mixed projectId formats)\n- Removes project files from storage\n- Creates notifications for team members\n- Only project creator or admin can delete\n\n**Warning:** This action is irreversible!"
+          },
+          "response": [
+            {
+              "name": "Success Response",
+              "originalRequest": {
+                "method": "DELETE",
+                "header": [
+                  { "key": "Authorization", "value": "Bearer {{token}}" }
+                ],
+                "url": "{{base_url}}/api/projects/{{project_id}}"
+              },
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "header": [
+                { "key": "Content-Type", "value": "application/json" }
+              ],
+              "cookie": [],
+              "body": "{\n  \"message\": \"Project deleted successfully\",\n  \"deletedProject\": {\n    \"_id\": \"507f1f77bcf86cd799439031\",\n    \"title\": \"E-commerce Platform\",\n    \"deletedTasks\": 5\n  }\n}"
+            }
+          ]
+        },
+        {
+          "name": "Add Team Member",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"userId\": \"507f1f77bcf86cd799439014\",\n  \"role\": \"developer\"\n}"
+            },
+            "url": "{{base_url}}/api/projects/{{project_id}}/team-members",
+            "description": "Add a single team member to a project.\n\n**Features:**\n- Validates user exists before adding\n- Prevents duplicate team members\n- Creates notification for added user\n- Only project creator or admin can add members\n\n**Required Fields:** userId\n**Optional Fields:** role (defaults to 'member')"
+          },
+          "response": [
+            {
+              "name": "Success Response",
+              "originalRequest": {
+                "method": "POST",
+                "header": [
+                  { "key": "Content-Type", "value": "application/json" },
+                  { "key": "Authorization", "value": "Bearer {{token}}" }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"userId\": \"507f1f77bcf86cd799439014\",\n  \"role\": \"developer\"\n}"
+                },
+                "url": "{{base_url}}/api/projects/{{project_id}}/team-members"
+              },
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "header": [
+                { "key": "Content-Type", "value": "application/json" }
+              ],
+              "cookie": [],
+              "body": "{\n  \"message\": \"Team member added successfully\",\n  \"addedMember\": {\n    \"user\": {\n      \"_id\": \"507f1f77bcf86cd799439014\",\n      \"name\": \"Alice Johnson\",\n      \"email\": \"alice@example.com\"\n    },\n    \"role\": \"developer\"\n  }\n}"
+            }
+          ]
+        },
+        {
+          "name": "Remove Team Member",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "url": "{{base_url}}/api/projects/{{project_id}}/team-members/{{user_id}}",
+            "description": "Remove a team member from a project.\n\n**Features:**\n- Validates user is a team member before removing\n- Creates notification for removed user\n- Only project creator or admin can remove members\n\n**Parameters:**\n- `{{project_id}}`: Project ID\n- `{{user_id}}`: User ID to remove"
+          },
+          "response": [
+            {
+              "name": "Success Response",
+              "originalRequest": {
+                "method": "DELETE",
+                "header": [
+                  { "key": "Authorization", "value": "Bearer {{token}}" }
+                ],
+                "url": "{{base_url}}/api/projects/{{project_id}}/team-members/{{user_id}}"
+              },
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "header": [
+                { "key": "Content-Type", "value": "application/json" }
+              ],
+              "cookie": [],
+              "body": "{\n  \"message\": \"Team member removed successfully\",\n  \"removedMember\": {\n    \"user\": {\n      \"_id\": \"507f1f77bcf86cd799439014\",\n      \"name\": \"Alice Johnson\",\n      \"email\": \"alice@example.com\"\n    },\n    \"role\": \"developer\"\n  }\n}"
+            }
+          ]
+        },
+        {
+          "name": "Update Team Member Role",
+          "request": {
+            "method": "PUT",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"role\": \"senior-developer\"\n}"
+            },
+            "url": "{{base_url}}/api/projects/{{project_id}}/team-members/{{user_id}}",
+            "description": "Update a team member's role in a project.\n\n**Features:**\n- Validates user is a team member before updating\n- Creates notification for role change\n- Only project creator or admin can update roles\n\n**Parameters:**\n- `{{project_id}}`: Project ID\n- `{{user_id}}`: User ID to update\n\n**Required Fields:** role"
+          },
+          "response": [
+            {
+              "name": "Success Response",
+              "originalRequest": {
+                "method": "PUT",
+                "header": [
+                  { "key": "Content-Type", "value": "application/json" },
+                  { "key": "Authorization", "value": "Bearer {{token}}" }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"role\": \"senior-developer\"\n}"
+                },
+                "url": "{{base_url}}/api/projects/{{project_id}}/team-members/{{user_id}}"
+              },
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "header": [
+                { "key": "Content-Type", "value": "application/json" }
+              ],
+              "cookie": [],
+              "body": "{\n  \"message\": \"Team member role updated successfully\",\n  \"updatedMember\": {\n    \"user\": {\n      \"_id\": \"507f1f77bcf86cd799439014\",\n      \"name\": \"Alice Johnson\",\n      \"email\": \"alice@example.com\"\n    },\n    \"role\": \"senior-developer\"\n  }\n}"
+            }
+          ]
+        },
+        {
+          "name": "Bulk Add Team Members",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"teamMembers\": [\n    {\n      \"userId\": \"507f1f77bcf86cd799439014\",\n      \"role\": \"developer\"\n    },\n    {\n      \"userId\": \"507f1f77bcf86cd799439015\",\n      \"role\": \"tester\"\n    },\n    {\n      \"userId\": \"507f1f77bcf86cd799439016\",\n      \"role\": \"designer\"\n    }\n  ]\n}"
+            },
+            "url": "{{base_url}}/api/projects/{{project_id}}/team-members/bulk",
+            "description": "Add multiple team members to a project at once.\n\n**Features:**\n- Validates all user IDs exist before adding\n- Prevents duplicate team members\n- Skips users already in the team\n- Creates notifications for all added users\n- Only project creator or admin can add members\n\n**Required Fields:** teamMembers (array)\n**Each team member object:**\n- `userId`: User ID (required)\n- `role`: Role (optional, defaults to 'member')"
+          },
+          "response": [
+            {
+              "name": "Success Response",
+              "originalRequest": {
+                "method": "POST",
+                "header": [
+                  { "key": "Content-Type", "value": "application/json" },
+                  { "key": "Authorization", "value": "Bearer {{token}}" }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"teamMembers\": [\n    {\n      \"userId\": \"507f1f77bcf86cd799439014\",\n      \"role\": \"developer\"\n    },\n    {\n      \"userId\": \"507f1f77bcf86cd799439015\",\n      \"role\": \"tester\"\n    },\n    {\n      \"userId\": \"507f1f77bcf86cd799439016\",\n      \"role\": \"designer\"\n    }\n  ]\n}"
+                },
+                "url": "{{base_url}}/api/projects/{{project_id}}/team-members/bulk"
+              },
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "header": [
+                { "key": "Content-Type", "value": "application/json" }
+              ],
+              "cookie": [],
+              "body": "{\n  \"message\": \"Successfully added 3 team member(s)\",\n  \"addedMembers\": [\n    {\n      \"_id\": \"507f1f77bcf86cd799439014\",\n      \"name\": \"Alice Johnson\",\n      \"email\": \"alice@example.com\",\n      \"role\": \"developer\"\n    },\n    {\n      \"_id\": \"507f1f77bcf86cd799439015\",\n      \"name\": \"Charlie Brown\",\n      \"email\": \"charlie@example.com\",\n      \"role\": \"tester\"\n    },\n    {\n      \"_id\": \"507f1f77bcf86cd799439016\",\n      \"name\": \"Diana Prince\",\n      \"email\": \"diana@example.com\",\n      \"role\": \"designer\"\n    }\n  ],\n  \"totalTeamMembers\": 5\n}"
+            }
+          ]
         }
       ]
     },
