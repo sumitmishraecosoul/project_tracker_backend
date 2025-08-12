@@ -483,7 +483,7 @@
               "raw": "{\n  \"status\": \"In Progress\",\n  \"actualHours\": 3,\n  \"remark\": \"Started working on authentication flow\",\n  \"startDate\": \"2024-12-01\"\n}"
             },
             "url": "{{base_url}}/api/tasks/{{task_id}}",
-            "description": "Update any task field with flexible updates.\n\n**Common Update Examples:**\n- **Start Work**: `{\"status\": \"In Progress\", \"startDate\": \"2024-12-01\"}`\n- **Add Roadblock**: `{\"status\": \"Blocked\", \"roadBlock\": \"Need API docs\", \"supportNeeded\": \"Backend specs\"}`\n- **Complete Task**: `{\"status\": \"Completed\", \"actualHours\": 8, \"remark\": \"Successfully completed\"}`\n- **Reassign Task**: `{\"assignedTo\": \"jane@example.com\"}` (supports ID, email, or name)\n- **Add Attachments**: `{\"attachments\": [\"docs.pdf\", \"screenshots.zip\"]}`\n- **Link Related Tasks**: `{\"relatedTasks\": [\"TASK-0002\", \"TASK-0003\"], \"parentTask\": \"TASK-0001\"}`\n- **Update Labels**: `{\"labels\": [\"frontend\", \"auth\", \"completed\"]}`\n\n**All fields are optional** - only send the fields you want to update."
+            "description": "Update any task field with flexible updates.\n\n**Important:** The task_id parameter must be the MongoDB ObjectId (_id field), not the custom task ID (id field).\n\n**Example:**\n- ✅ Correct: /api/tasks/507f1f77bcf86cd799439021 (using _id)\n- ❌ Wrong: /api/tasks/TASK-0001 (using custom id)\n\n**Common Update Examples:**\n- **Start Work**: `{\"status\": \"In Progress\", \"startDate\": \"2024-12-01\"}`\n- **Add Roadblock**: `{\"status\": \"Blocked\", \"roadBlock\": \"Need API docs\", \"supportNeeded\": \"Backend specs\"}`\n- **Complete Task**: `{\"status\": \"Completed\", \"actualHours\": 8, \"remark\": \"Successfully completed\"}`\n- **Reassign Task**: `{\"assignedTo\": \"jane@example.com\"}` (supports ID, email, or name)\n- **Add Attachments**: `{\"attachments\": [\"docs.pdf\", \"screenshots.zip\"]}`\n- **Link Related Tasks**: `{\"relatedTasks\": [\"TASK-0002\", \"TASK-0003\"], \"parentTask\": \"TASK-0001\"}`\n- **Update Labels**: `{\"labels\": [\"frontend\", \"auth\", \"completed\"]}`\n\n**All fields are optional** - only send the fields you want to update."
           },
           "response": [
             {
@@ -516,7 +516,8 @@
           "request": {
             "method": "GET",
             "header": [ { "key": "Authorization", "value": "Bearer {{token}}" } ],
-            "url": "{{base_url}}/api/tasks/{{task_id}}"
+            "url": "{{base_url}}/api/tasks/{{task_id}}",
+            "description": "Get a specific task by its MongoDB ObjectId (_id field).\n\n**Important:** The task_id parameter must be the MongoDB ObjectId (_id field), not the custom task ID (id field).\n\n**Example:**\n- ✅ Correct: /api/tasks/507f1f77bcf86cd799439021 (using _id)\n- ❌ Wrong: /api/tasks/TASK-0001 (using custom id)"
           },
           "response": [
             {
@@ -558,7 +559,8 @@
           "request": {
             "method": "DELETE",
             "header": [ { "key": "Authorization", "value": "Bearer {{token}}" } ],
-            "url": "{{base_url}}/api/tasks/{{task_id}}"
+            "url": "{{base_url}}/api/tasks/{{task_id}}",
+            "description": "Delete a specific task by its MongoDB ObjectId (_id field).\n\n**Important:** The task_id parameter must be the MongoDB ObjectId (_id field), not the custom task ID (id field).\n\n**Example:**\n- ✅ Correct: /api/tasks/507f1f77bcf86cd799439021 (using _id)\n- ❌ Wrong: /api/tasks/TASK-0001 (using custom id)"
           },
           "response": [
             {

@@ -493,6 +493,12 @@ Authorization: Bearer <token>
 Content-Type: application/json
 ```
 
+**Important:** The `{task_id}` parameter must be the MongoDB ObjectId (`_id` field), not the custom task ID (`id` field).
+
+**Example:**
+- ✅ Correct: `PUT /api/tasks/507f1f77bcf86cd799439021` (using `_id`)
+- ❌ Wrong: `PUT /api/tasks/TASK-0001` (using custom `id`)
+
 **Request Body:**
 ```json
 {
@@ -544,6 +550,12 @@ Content-Type: application/json
 Authorization: Bearer <token>
 ```
 
+**Important:** The `{task_id}` parameter must be the MongoDB ObjectId (`_id` field), not the custom task ID (`id` field).
+
+**Example:**
+- ✅ Correct: `GET /api/tasks/507f1f77bcf86cd799439021` (using `_id`)
+- ❌ Wrong: `GET /api/tasks/TASK-0001` (using custom `id`)
+
 **Success Response (200):**
 ```json
 {
@@ -593,11 +605,33 @@ Authorization: Bearer <token>
 Authorization: Bearer <token>
 ```
 
+**Important:** The `{task_id}` parameter must be the MongoDB ObjectId (`_id` field), not the custom task ID (`id` field).
+
+**Example:**
+- ✅ Correct: `DELETE /api/tasks/507f1f77bcf86cd799439021` (using `_id`)
+- ❌ Wrong: `DELETE /api/tasks/TASK-0001` (using custom `id`)
+
 **Success Response (200):**
 ```json
 {
   "message": "Task deleted successfully",
   "deletedTaskId": "TASK-0001"
+}
+```
+
+**Error Response (400 - Invalid ID Format):**
+```json
+{
+  "error": "Invalid task ID format",
+  "message": "Task ID must be a valid ObjectId"
+}
+```
+
+**Error Response (404 - Task Not Found):**
+```json
+{
+  "error": "Task not found",
+  "message": "No task found with the provided ID"
 }
 ```
 
