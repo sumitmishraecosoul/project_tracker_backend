@@ -85,16 +85,31 @@ const getProjectById = async (req, res) => {
       .populate('attachments.uploadedBy', 'name email');
 
     if (!project) {
-      return res.status(404).json({ message: 'Project not found' });
+      return res.status(404).json({ 
+        error: 'Project not found',
+        message: 'No project found with the provided ID' 
+      });
     }
 
-    const tasks = await Task.find({ projectId: project._id })
+    // Handle mixed projectId formats - search for both project ID and project title
+    const tasks = await Task.find({ 
+      $or: [
+        { projectId: project._id.toString() },
+        { projectId: project._id },
+        { projectId: project.title }
+      ]
+    })
       .populate('assignedTo', 'name email')
-      .populate('createdBy', 'name email');
+      .populate('reporter', 'name email')
+      .sort({ createdAt: -1 });
 
     res.json({ project, tasks });
   } catch (error) {
-    res.status(500).json({ message: error.message });
+    console.error('Error fetching project:', error);
+    res.status(500).json({ 
+      error: 'Failed to fetch project',
+      message: error.message 
+    });
   }
 };
 
@@ -232,14 +247,35 @@ const uploadProjectDocument = async (req, res) => {
 // Get project tasks
 const getProjectTasks = async (req, res) => {
   try {
-    const tasks = await Task.find({ projectId: req.params.id })
+    // First, get the project to access both ID and title
+    const project = await Project.findById(req.params.id);
+    
+    if (!project) {
+      return res.status(404).json({ 
+        error: 'Project not found',
+        message: 'No project found with the provided ID' 
+      });
+    }
+
+    // Handle mixed projectId formats - search for both project ID and project title
+    const tasks = await Task.find({ 
+      $or: [
+        { projectId: project._id.toString() },
+        { projectId: project._id },
+        { projectId: project.title }
+      ]
+    })
       .populate('assignedTo', 'name email')
-      .populate('createdBy', 'name email')
+      .populate('reporter', 'name email')
       .sort({ createdAt: -1 });
 
     res.json(tasks);
   } catch (error) {
-    res.status(500).json({ message: error.message });
+    console.error('Error fetching project tasks:', error);
+    res.status(500).json({ 
+      error: 'Failed to fetch project tasks',
+      message: error.message 
+    });
   }
 };
 

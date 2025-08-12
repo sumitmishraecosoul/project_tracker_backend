@@ -7,7 +7,8 @@
     "dev": "nodemon server.js",
     "migrate:fix-task-users": "node migration-fix-task-users.js",
     "migrate:reset-task-counter": "node reset-task-counter.js",
-    "migrate:all": "npm run migrate:reset-task-counter && npm run migrate:fix-task-users",
+    "migrate:standardize-project-ids": "node migration-standardize-project-ids.js",
+    "migrate:all": "npm run migrate:reset-task-counter && npm run migrate:fix-task-users && npm run migrate:standardize-project-ids",
     "test:task-creation": "node test-task-creation.js"
   },
   "dependencies": {
