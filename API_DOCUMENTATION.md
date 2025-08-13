@@ -181,9 +181,128 @@ Authorization: Bearer <your_jwt_token>
 
 ---
 
-## 3. Projects Management
+## 3. Dashboard & Analytics
 
-### 3.1 Get All Projects
+### 3.1 Get Dashboard Summary
+**GET** `/api/dashboard/summary`
+
+**Description:** Get comprehensive dashboard data in a single response for optimal performance. Returns aggregated statistics including project counts, task counts, team member counts, recent projects, and task progress summary.
+
+**Authorization:** Bearer <token>
+
+**Success Response (200):**
+```json
+{
+  "activeProjectsCount": 2,
+  "totalTasksCount": 6,
+  "inProgressTasksCount": 2,
+  "completedTasksCount": 3,
+  "totalTeamMembersCount": 5,
+  "recentProjects": [
+    {
+      "_id": "507f1f77bcf86cd799439031",
+      "title": "E-commerce Website Development",
+      "description": "Complete online store with payment integration",
+      "status": "Active",
+      "updatedAt": "2024-12-01T10:00:00.000Z"
+    },
+    {
+      "_id": "507f1f77bcf86cd799439032",
+      "title": "Mobile App Development",
+      "description": "Cross-platform mobile application",
+      "status": "Active",
+      "updatedAt": "2024-12-01T09:00:00.000Z"
+    }
+  ],
+  "taskProgress": {
+    "completed": 3,
+    "inProgress": 2,
+    "total": 6
+  },
+  "totalProjectsCount": 3,
+  "pendingTasksCount": 1,
+  "overdueTasksCount": 0
+}
+```
+
+**Error Response (401):**
+```json
+{
+  "error": "Access denied",
+  "message": "No token provided"
+}
+```
+
+### 3.2 Get Dashboard Stats
+**GET** `/api/dashboard`
+
+**Description:** Get basic dashboard statistics including project and task counts.
+
+**Authorization:** Bearer <token>
+
+**Success Response (200):**
+```json
+{
+  "totalProjects": 3,
+  "totalTasks": 6,
+  "totalUsers": 5,
+  "totalUserTasks": 4,
+  "activeProjects": 2,
+  "completedTasks": 3,
+  "pendingTasks": 2,
+  "overdueTasks": 1
+}
+```
+
+### 3.3 Get Projects Summary
+**GET** `/api/dashboard/projects-summary`
+
+**Description:** Get project statistics grouped by status and priority.
+
+**Authorization:** Bearer <token>
+
+**Success Response (200):**
+```json
+{
+  "statusSummary": [
+    { "_id": "Active", "count": 2 },
+    { "_id": "Completed", "count": 1 }
+  ],
+  "prioritySummary": [
+    { "_id": "High", "count": 1 },
+    { "_id": "Medium", "count": 2 }
+  ]
+}
+```
+
+### 3.4 Get Tasks Summary
+**GET** `/api/dashboard/tasks-summary`
+
+**Description:** Get task statistics grouped by status and priority.
+
+**Authorization:** Bearer <token>
+
+**Success Response (200):**
+```json
+{
+  "statusSummary": [
+    { "_id": "Completed", "count": 3 },
+    { "_id": "In Progress", "count": 2 },
+    { "_id": "To Do", "count": 1 }
+  ],
+  "prioritySummary": [
+    { "_id": "High", "count": 2 },
+    { "_id": "Medium", "count": 3 },
+    { "_id": "Low", "count": 1 }
+  ]
+}
+```
+
+---
+
+## 4. Projects Management
+
+### 4.1 Get All Projects
 **GET** `/api/projects?page=1&limit=10&status=Active&priority=High&search=ecommerce`
 
 **Query Parameters:**
@@ -238,7 +357,7 @@ Authorization: Bearer <your_jwt_token>
 }
 ```
 
-### 3.2 Get Project By ID
+### 4.2 Get Project By ID
 **GET** `/api/projects/{projectId}`
 
 **Description:** Returns project details with all associated tasks. Handles mixed projectId formats (ObjectId or string title).
@@ -308,7 +427,7 @@ Authorization: Bearer <your_jwt_token>
 }
 ```
 
-### 3.3 Get Project Tasks
+### 4.3 Get Project Tasks
 **GET** `/api/projects/{projectId}/tasks`
 
 **Description:** Returns all tasks associated with a specific project. Handles mixed projectId formats (ObjectId or string title).
@@ -348,7 +467,7 @@ Authorization: Bearer <your_jwt_token>
 ]
 ```
 
-### 3.4 Create Project
+### 4.4 Create Project
 **POST** `/api/projects`
 
 **Authorization:** Bearer <token>
@@ -433,7 +552,7 @@ Authorization: Bearer <your_jwt_token>
 }
 ```
 
-### 3.5 Update Project
+### 4.5 Update Project
 **PUT** `/api/projects/{projectId}`
 
 **Authorization:** Bearer <token>
@@ -510,7 +629,7 @@ Authorization: Bearer <your_jwt_token>
 }
 ```
 
-### 3.6 Delete Project
+### 4.6 Delete Project
 **DELETE** `/api/projects/{projectId}`
 
 **Authorization:** Bearer <token>
@@ -537,7 +656,7 @@ Authorization: Bearer <your_jwt_token>
 }
 ```
 
-### 3.7 Add Team Member
+### 4.7 Add Team Member
 **POST** `/api/projects/{projectId}/team-members`
 
 **Authorization:** Bearer <token>
@@ -576,7 +695,7 @@ Authorization: Bearer <your_jwt_token>
 }
 ```
 
-### 3.8 Remove Team Member
+### 4.8 Remove Team Member
 **DELETE** `/api/projects/{projectId}/team-members/{userId}`
 
 **Authorization:** Bearer <token>
@@ -607,7 +726,7 @@ Authorization: Bearer <your_jwt_token>
 }
 ```
 
-### 3.9 Update Team Member Role
+### 4.9 Update Team Member Role
 **PUT** `/api/projects/{projectId}/team-members/{userId}`
 
 **Authorization:** Bearer <token>
@@ -647,7 +766,7 @@ Authorization: Bearer <your_jwt_token>
 }
 ```
 
-### 3.10 Bulk Add Team Members
+### 4.10 Bulk Add Team Members
 **POST** `/api/projects/{projectId}/team-members/bulk`
 
 **Authorization:** Bearer <token>
@@ -716,9 +835,9 @@ Authorization: Bearer <your_jwt_token>
 
 ---
 
-## 4. Tasks Management
+## 5. Tasks Management
 
-### 4.1 Get All Tasks
+### 5.1 Get All Tasks
 **GET** `/api/tasks`
 
 **Authorization:** Bearer <token>
@@ -758,7 +877,7 @@ Authorization: Bearer <your_jwt_token>
 ]
 ```
 
-### 4.2 Get Task By ID
+### 5.2 Get Task By ID
 **GET** `/api/tasks/{taskId}`
 
 **Authorization:** Bearer <token>
@@ -802,7 +921,7 @@ Authorization: Bearer <your_jwt_token>
 }
 ```
 
-### 4.3 Create Task
+### 5.3 Create Task
 **POST** `/api/tasks`
 
 **Authorization:** Bearer <token>
@@ -870,7 +989,7 @@ Authorization: Bearer <your_jwt_token>
 }
 ```
 
-### 4.4 Update Task
+### 5.4 Update Task
 **PUT** `/api/tasks/{taskId}`
 
 **Authorization:** Bearer <token>
@@ -936,7 +1055,7 @@ Authorization: Bearer <your_jwt_token>
 }
 ```
 
-### 4.5 Delete Task
+### 5.5 Delete Task
 **DELETE** `/api/tasks/{taskId}`
 
 **Authorization:** Bearer <token>

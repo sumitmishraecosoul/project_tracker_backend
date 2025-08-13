@@ -874,6 +874,81 @@
       ]
     },
     {
+      "name": "Dashboard & Analytics",
+      "item": [
+        {
+          "name": "Get Dashboard Summary",
+          "request": {
+            "method": "GET",
+            "header": [ { "key": "Authorization", "value": "Bearer {{token}}" } ],
+            "url": "{{base_url}}/api/dashboard/summary",
+            "description": "Get comprehensive dashboard data in a single response for optimal performance. Returns aggregated statistics including project counts, task counts, team member counts, recent projects, and task progress summary."
+          },
+          "response": [
+            {
+              "name": "Success Response",
+              "originalRequest": {
+                "method": "GET",
+                "header": [ { "key": "Authorization", "value": "Bearer {{token}}" } ],
+                "url": "{{base_url}}/api/dashboard/summary"
+              },
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "header": [
+                { "key": "Content-Type", "value": "application/json" }
+              ],
+              "cookie": [],
+              "body": "{\n  \"activeProjectsCount\": 2,\n  \"totalTasksCount\": 6,\n  \"inProgressTasksCount\": 2,\n  \"completedTasksCount\": 3,\n  \"totalTeamMembersCount\": 5,\n  \"recentProjects\": [\n    {\n      \"_id\": \"507f1f77bcf86cd799439031\",\n      \"title\": \"E-commerce Website Development\",\n      \"description\": \"Complete online store with payment integration\",\n      \"status\": \"Active\",\n      \"updatedAt\": \"2024-12-01T10:00:00.000Z\"\n    },\n    {\n      \"_id\": \"507f1f77bcf86cd799439032\",\n      \"title\": \"Mobile App Development\",\n      \"description\": \"Cross-platform mobile application\",\n      \"status\": \"Active\",\n      \"updatedAt\": \"2024-12-01T09:00:00.000Z\"\n    }\n  ],\n  \"taskProgress\": {\n    \"completed\": 3,\n    \"inProgress\": 2,\n    \"total\": 6\n  },\n  \"totalProjectsCount\": 3,\n  \"pendingTasksCount\": 1,\n  \"overdueTasksCount\": 0\n}"
+            },
+            {
+              "name": "Unauthorized Error",
+              "originalRequest": {
+                "method": "GET",
+                "header": [],
+                "url": "{{base_url}}/api/dashboard/summary"
+              },
+              "status": "Unauthorized",
+              "code": 401,
+              "_postman_previewlanguage": "json",
+              "header": [
+                { "key": "Content-Type", "value": "application/json" }
+              ],
+              "cookie": [],
+              "body": "{\n  \"error\": \"Access denied\",\n  \"message\": \"No token provided\"\n}"
+            }
+          ]
+        },
+        {
+          "name": "Get Dashboard Stats",
+          "request": {
+            "method": "GET",
+            "header": [ { "key": "Authorization", "value": "Bearer {{token}}" } ],
+            "url": "{{base_url}}/api/dashboard",
+            "description": "Get basic dashboard statistics including project and task counts."
+          }
+        },
+        {
+          "name": "Get Projects Summary",
+          "request": {
+            "method": "GET",
+            "header": [ { "key": "Authorization", "value": "Bearer {{token}}" } ],
+            "url": "{{base_url}}/api/dashboard/projects-summary",
+            "description": "Get project statistics grouped by status and priority."
+          }
+        },
+        {
+          "name": "Get Tasks Summary",
+          "request": {
+            "method": "GET",
+            "header": [ { "key": "Authorization", "value": "Bearer {{token}}" } ],
+            "url": "{{base_url}}/api/dashboard/tasks-summary",
+            "description": "Get task statistics grouped by status and priority."
+          }
+        }
+      ]
+    },
+    {
       "name": "Migration & Maintenance",
       "item": [
         {
