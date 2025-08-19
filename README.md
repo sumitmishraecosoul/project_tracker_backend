@@ -20,7 +20,7 @@ A robust, scalable, and feature-rich RESTful API for comprehensive project and t
 ### 📋 Task Management System
 - **Smart Task Creation**: Auto-generated sequential task IDs (TASK-0001, TASK-0002, etc.)
 - **Advanced Task Assignment**: Assign tasks to team members with reporter tracking
-- **Task Status Workflow**: Comprehensive status management (To Do, In Progress, Completed)
+- **Task Status Workflow**: Comprehensive status management (Yet to Start, In Progress, Completed, Blocked, On Hold, Cancelled)
 - **Priority Management**: High, Medium, Low priority levels with visual indicators
 - **Due Date Tracking**: ETA management with overdue task detection
 - **Task Filtering**: Get tasks by project, status, priority, or assignee

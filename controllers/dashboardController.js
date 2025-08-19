@@ -36,7 +36,7 @@ const getDashboardSummary = async (req, res) => {
 
     // Get additional stats for completeness
     const totalProjectsCount = await Project.countDocuments();
-    const pendingTasksCount = await Task.countDocuments({ status: 'To Do' });
+    const pendingTasksCount = await Task.countDocuments({ status: 'Yet to Start' });
     const overdueTasksCount = await Task.countDocuments({
       eta: { $lt: new Date() },
       status: { $ne: 'Completed' }
@@ -77,7 +77,7 @@ const getDashboardStats = async (req, res) => {
     const activeProjects = await Project.countDocuments({ status: 'Active' });
     const completedTasks = await Task.countDocuments({ status: 'Completed' });
     const pendingTasks = await Task.countDocuments({ 
-      status: { $in: ['To Do', 'In Progress'] } 
+      status: { $in: ['Yet to Start', 'In Progress'] } 
     });
     
     const overdueTasks = await Task.countDocuments({

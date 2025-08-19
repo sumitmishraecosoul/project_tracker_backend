@@ -8,6 +8,7 @@
     "migrate:fix-task-users": "node migration-fix-task-users.js",
     "migrate:reset-task-counter": "node reset-task-counter.js",
     "migrate:standardize-project-ids": "node migration-standardize-project-ids.js",
+    "migrate:fix-task-status-type": "node migration-fix-task-status-and-type.js",
     "migrate:all": "npm run migrate:reset-task-counter && npm run migrate:fix-task-users && npm run migrate:standardize-project-ids",
     "test:task-creation": "node test-task-creation.js"
   },

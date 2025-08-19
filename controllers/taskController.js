@@ -36,12 +36,39 @@ const validateAndGetUserId = async (userIdentifier) => {
 
 exports.getAllTasks = async (req, res) => {
   try {
-    const tasks = await Task.find()
+    const { status, taskType, view } = req.query;
+
+    const filter = {};
+
+    if (status) {
+      filter.status = status;
+    }
+
+    if (taskType) {
+      const normalizedTaskType = String(taskType).trim().toLowerCase();
+      if (normalizedTaskType !== 'all' && normalizedTaskType !== 'all tasks') {
+        filter.taskType = taskType;
+      }
+    }
+
+    if (view) {
+      const normalized = String(view).trim().toLowerCase();
+      if (normalized === 'all' || normalized === 'all tasks') {
+        // no-op
+      } else if (normalized === 'pending' || normalized === 'pending tasks') {
+        filter.status = { $in: ['Yet to Start', 'In Progress'] };
+      } else if (normalized === 'inprogress' || normalized === 'in progress' || normalized === 'in progress task' || normalized === 'in progress tasks') {
+        filter.status = 'In Progress';
+      } else if (normalized === 'completed' || normalized === 'completed task' || normalized === 'completed tasks') {
+        filter.status = 'Completed';
+      }
+    }
+
+    const tasks = await Task.find(filter)
       .populate('assignedTo', 'name email')
       .populate('reporter', 'name email')
       .sort({ createdAt: -1 });
     
-    // Return array directly, not wrapped in data/items
     res.json(tasks);
   } catch (err) {
     console.error('Error fetching tasks:', err);

@@ -288,7 +288,7 @@ Authorization: Bearer <your_jwt_token>
   "statusSummary": [
     { "_id": "Completed", "count": 3 },
     { "_id": "In Progress", "count": 2 },
-    { "_id": "To Do", "count": 1 }
+    { "_id": "Yet to Start", "count": 1 }
   ],
   "prioritySummary": [
     { "_id": "High", "count": 2 },
@@ -406,7 +406,7 @@ Authorization: Bearer <your_jwt_token>
       "projectId": "507f1f77bcf86cd799439031",
       "task": "Implement User Authentication",
       "description": "Create login and registration functionality",
-      "taskType": "Feature",
+      "taskType": "Adhoc",
       "priority": "High",
       "status": "In Progress",
       "assignedTo": {
@@ -441,7 +441,7 @@ Authorization: Bearer <your_jwt_token>
     "projectId": "507f1f77bcf86cd799439031",
     "task": "Implement User Authentication",
     "description": "Create login and registration functionality with JWT tokens",
-    "taskType": "Feature",
+      "taskType": "Adhoc",
     "priority": "High",
     "status": "In Progress",
     "assignedTo": {
@@ -851,7 +851,7 @@ Authorization: Bearer <your_jwt_token>
     "projectId": "PROJ-001",
     "task": "Implement User Authentication",
     "description": "Create login and registration functionality with JWT tokens",
-    "taskType": "Feature",
+    "taskType": "Adhoc",
     "priority": "High",
     "status": "In Progress",
     "assignedTo": {
@@ -896,7 +896,7 @@ Authorization: Bearer <your_jwt_token>
   "projectId": "PROJ-001",
   "task": "Implement User Authentication",
   "description": "Create login and registration functionality with JWT tokens",
-  "taskType": "Feature",
+  "taskType": "Adhoc",
   "priority": "High",
   "status": "In Progress",
   "assignedTo": {
@@ -944,9 +944,9 @@ Authorization: Bearer <your_jwt_token>
   "projectId": "PROJ-001",
   "task": "Implement User Authentication",
   "description": "Create login and registration functionality with JWT tokens",
-  "taskType": "Feature",
+  "taskType": "Adhoc",
   "priority": "High",
-  "status": "To Do",
+  "status": "Yet to Start",
   "assignedTo": "507f1f77bcf86cd799439011",
   "reporter": "507f1f77bcf86cd799439012",
   "eta": "2024-12-31",
@@ -967,9 +967,9 @@ Authorization: Bearer <your_jwt_token>
   "projectId": "PROJ-001",
   "task": "Implement User Authentication",
   "description": "Create login and registration functionality with JWT tokens",
-  "taskType": "Feature",
+  "taskType": "Adhoc",
   "priority": "High",
-  "status": "To Do",
+  "status": "Yet to Start",
   "assignedTo": {
     "_id": "507f1f77bcf86cd799439011",
     "name": "John Doe",
@@ -1031,7 +1031,7 @@ Authorization: Bearer <your_jwt_token>
   "projectId": "PROJ-001",
   "task": "Implement User Authentication",
   "description": "Create login and registration functionality with JWT tokens",
-  "taskType": "Feature",
+  "taskType": "Adhoc",
   "priority": "High",
   "status": "In Progress",
   "assignedTo": {
@@ -1147,9 +1147,9 @@ Authorization: Bearer <your_jwt_token>
 
 ### Optional Fields
 - `description`: Task description (string)
-- `taskType`: Type of task - "Feature", "Bug", "Documentation", "Testing" (string)
+- `taskType`: Type of task - "Daily", "Weekly", "Monthly", "Adhoc", "All Tasks" (string; passing "All Tasks" or "All" applies no type filter on list APIs)
 - `priority`: Priority level - "Low", "Medium", "High", "Critical" (string)
-- `status`: Task status - "To Do", "In Progress", "Review", "Completed", "Blocked" (string)
+- `status`: Task status - "Yet to Start", "In Progress", "Completed", "Blocked", "On Hold", "Cancelled" (string)
 - `startDate`: When work started (date string)
 - `estimatedHours`: Estimated hours to complete (number)
 - `actualHours`: Actual hours spent (number)

@@ -22,8 +22,8 @@ const taskSchema = new mongoose.Schema(
     },
     taskType: {
       type: String,
-      enum: ['Feature', 'Bug', 'Enhancement', 'Documentation', 'Research'],
-      default: 'Feature'
+      enum: ['Daily', 'Weekly', 'Monthly', 'Adhoc'],
+      default: 'Daily'
     },
     priority: {
       type: String,
@@ -32,8 +32,8 @@ const taskSchema = new mongoose.Schema(
     },
     status: {
       type: String,
-      enum: ['To Do', 'In Progress', 'Completed', 'Blocked', 'On Hold'],
-      default: 'To Do'
+      enum: ['Yet to Start', 'In Progress', 'Completed', 'Blocked', 'On Hold', 'Cancelled'],
+      default: 'Yet to Start'
     },
     assignedTo: {
       type: mongoose.Schema.Types.ObjectId,
