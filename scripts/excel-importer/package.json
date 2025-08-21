@@ -1,0 +1,17 @@
+{
+  "name": "excel-employee-importer",
+  "private": true,
+  "version": "0.0.1",
+  "main": "import-employees-from-excel.js",
+  "scripts": {
+    "start": "node import-employees-from-excel.js"
+  },
+  "dependencies": {
+    "bcryptjs": "^2.4.3",
+    "dotenv": "^16.3.1",
+    "mongoose": "^7.6.1",
+    "xlsx": "^0.18.5"
+  }
+}
+
+

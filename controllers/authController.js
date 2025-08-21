@@ -5,7 +5,10 @@ const jwt = require('jsonwebtoken');
 // Signup controller
 exports.signup = async (req, res) => {
   try {
-    const { name, email, password } = req.body;
+    const { name: rawName, fullName, email: rawEmail, workEmail, password, role, department, manager, employeeNumber, jobTitle, location } = req.body;
+
+    const name = rawName || fullName;
+    const email = rawEmail || workEmail;
 
     // Check if user already exists
     const existingUser = await User.findOne({ email });
@@ -15,10 +18,29 @@ exports.signup = async (req, res) => {
     const hashedPassword = await bcrypt.hash(password, 10);
 
     // Create user
-    const user = await User.create({ name, email, password: hashedPassword });
+    const user = await User.create({ 
+      name, 
+      email, 
+      password: hashedPassword,
+      role: role || undefined,
+      department: department || undefined,
+      manager: manager || null,
+      employeeNumber: employeeNumber || null,
+      jobTitle: jobTitle || null,
+      location: location || null
+    });
 
-    res.status(201).json({ message: 'User created successfully', user });
+    const { password: _, ...safeUser } = user.toObject();
+    res.status(201).json({ message: 'User created successfully', user: safeUser });
   } catch (err) {
+    if (err.code === 11000 && err.keyPattern) {
+      if (err.keyPattern.email) {
+        return res.status(409).json({ message: 'Signup failed', error: 'Email already exists' });
+      }
+      if (err.keyPattern.employeeNumber) {
+        return res.status(409).json({ message: 'Signup failed', error: 'Employee Number already exists' });
+      }
+    }
     res.status(500).json({ message: 'Signup failed', error: err.message });
   }
 };
@@ -39,7 +61,8 @@ exports.login = async (req, res) => {
     // Create token
     const token = jwt.sign({ userId: user._id }, process.env.JWT_SECRET, { expiresIn: '1d' });
 
-    res.status(200).json({ token, user });
+    const { password: _, ...safeUser } = user.toObject();
+    res.status(200).json({ token, user: safeUser });
   } catch (err) {
     res.status(500).json({ message: 'Login failed', error: err.message });
   }

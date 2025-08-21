@@ -163,6 +163,8 @@ http://localhost:5000/api
 - `GET /users/:id` - Get user by ID
 - `PUT /users/:id` - Update user
 - `DELETE /users/:id` - Delete user
+ - `GET /users/helpers/assignable-users` - Get assignable users per RBAC
+ - `GET /users/helpers/my-team` - Get your team (managers) or list managers (admin)
 
 ## 🔧 Key Features in Detail
 
@@ -173,6 +175,14 @@ The system automatically generates sequential task IDs (TASK-0001, TASK-0002, et
 All user references (assignedTo, reporter) are stored as ObjectIds with automatic population of user details (name, email) in responses.
 
 ### Comprehensive Error Handling
+### Role-Based Access Control (RBAC)
+- **Admin**: full access to all projects and tasks; can assign to any user
+- **Manager**: sees projects/tasks for self and direct reports; can assign tasks to any user; cross-team assignments are automatically marked as `Adhoc`
+- **Team Member**: sees only own projects/tasks; can only create tasks for self; cannot reassign to others
+
+New helper endpoints:
+- `GET /api/users/helpers/assignable-users`: list all users with an `assignable` flag per current user's permissions
+- `GET /api/users/helpers/my-team`: managers get direct reports; admin gets list of managers; others get []
 Standardized error responses with proper HTTP status codes and detailed error messages for better debugging and user experience.
 
 ### Performance Optimizations

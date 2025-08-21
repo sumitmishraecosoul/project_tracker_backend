@@ -17,7 +17,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"name\": \"John Doe\",\n  \"email\": \"john@example.com\",\n  \"password\": \"password123\",\n  \"role\": \"developer\",\n  \"department\": \"Engineering\"\n}"
+              "raw": "{\n  \"name\": \"John Doe\",\n  \"email\": \"john@example.com\",\n  \"password\": \"password123\",\n  \"role\": \"employee\",\n  \"department\": \"India E-commerce\",\n  \"employeeNumber\": \"EMP-1001\",\n  \"jobTitle\": \"Software Engineer\",\n  \"location\": \"Bengaluru\"\n}"
             },
             "url": "{{base_url}}/api/auth/register"
           },
@@ -31,7 +31,7 @@
                 ],
                 "body": {
                   "mode": "raw",
-                  "raw": "{\n  \"name\": \"John Doe\",\n  \"email\": \"john@example.com\",\n  \"password\": \"password123\",\n  \"role\": \"developer\",\n  \"department\": \"Engineering\"\n}"
+                  "raw": "{\n  \"name\": \"John Doe\",\n  \"email\": \"john@example.com\",\n  \"password\": \"password123\",\n  \"role\": \"employee\",\n  \"department\": \"India E-commerce\",\n  \"employeeNumber\": \"EMP-1001\",\n  \"jobTitle\": \"Software Engineer\",\n  \"location\": \"Bengaluru\"\n}"
                 },
                 "url": "{{base_url}}/api/auth/register"
               },
@@ -102,14 +102,14 @@
                 { "key": "Content-Type", "value": "application/json" }
               ],
               "cookie": [],
-              "body": "{\n  \"token\": \"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...\",\n  \"user\": {\n    \"_id\": \"507f1f77bcf86cd799439011\",\n    \"name\": \"John Doe\",\n    \"email\": \"john@example.com\",\n    \"role\": \"developer\",\n    \"department\": \"Engineering\"\n  }\n}"
+              "body": "{\n  \"token\": \"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...\",\n  \"user\": {\n    \"_id\": \"507f1f77bcf86cd799439011\",\n    \"name\": \"John Doe\",\n    \"email\": \"john@example.com\",\n    \"role\": \"employee\",\n    \"department\": \"India E-commerce\"\n  }\n}"
             }
           ]
         }
       ]
     },
     {
-      "name": "Users Management",
+      "name": "Users Management (RBAC Helpers)",
       "item": [
         {
           "name": "Get All Users",
@@ -133,7 +133,7 @@
                 { "key": "Content-Type", "value": "application/json" }
               ],
               "cookie": [],
-              "body": "[\n  {\n    \"_id\": \"507f1f77bcf86cd799439011\",\n    \"name\": \"John Doe\",\n    \"email\": \"john@example.com\",\n    \"role\": \"developer\",\n    \"department\": \"Engineering\",\n    \"isActive\": true,\n    \"createdAt\": \"2024-12-01T10:00:00.000Z\",\n    \"updatedAt\": \"2024-12-01T10:00:00.000Z\"\n  },\n  {\n    \"_id\": \"507f1f77bcf86cd799439012\",\n    \"name\": \"Jane Smith\",\n    \"email\": \"jane@example.com\",\n    \"role\": \"manager\",\n    \"department\": \"Product\",\n    \"isActive\": true,\n    \"createdAt\": \"2024-12-01T11:00:00.000Z\",\n    \"updatedAt\": \"2024-12-01T11:00:00.000Z\"\n  }\n]"
+              "body": "[\n  {\n    \"_id\": \"507f1f77bcf86cd799439011\",\n    \"name\": \"John Doe\",\n    \"email\": \"john@example.com\",\n    \"role\": \"employee\",\n    \"department\": \"India E-commerce\",\n    \"isActive\": true,\n    \"createdAt\": \"2024-12-01T10:00:00.000Z\",\n    \"updatedAt\": \"2024-12-01T10:00:00.000Z\"\n  },\n  {\n    \"_id\": \"507f1f77bcf86cd799439012\",\n    \"name\": \"Jane Smith\",\n    \"email\": \"jane@example.com\",\n    \"role\": \"manager\",\n    \"department\": \"Retail E-commerce\",\n    \"isActive\": true,\n    \"createdAt\": \"2024-12-01T11:00:00.000Z\",\n    \"updatedAt\": \"2024-12-01T11:00:00.000Z\"\n  }\n]"
             }
           ]
         },
@@ -147,7 +147,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"name\": \"Jane Smith\",\n  \"email\": \"jane@example.com\",\n  \"password\": \"password123\",\n  \"role\": \"developer\",\n  \"department\": \"Engineering\"\n}"
+              "raw": "{\n  \"name\": \"Jane Smith\",\n  \"email\": \"jane@example.com\",\n  \"password\": \"password123\",\n  \"role\": \"employee\",\n  \"department\": \"Retail E-commerce\",\n  \"employeeNumber\": \"EMP-2001\",\n  \"jobTitle\": \"UI Designer\",\n  \"location\": \"Delhi\",\n  \"manager\": \"{{user_id}}\"\n}"
             },
             "url": "{{base_url}}/api/users"
           },
@@ -173,9 +173,25 @@
                 { "key": "Content-Type", "value": "application/json" }
               ],
               "cookie": [],
-              "body": "{\n  \"_id\": \"507f1f77bcf86cd799439012\",\n  \"name\": \"Jane Smith\",\n  \"email\": \"jane@example.com\",\n  \"role\": \"developer\",\n  \"department\": \"Engineering\",\n  \"isActive\": true,\n  \"emailVerified\": false,\n  \"createdAt\": \"2024-12-01T11:00:00.000Z\",\n  \"updatedAt\": \"2024-12-01T11:00:00.000Z\"\n}"
+              "body": "{\n  \"_id\": \"507f1f77bcf86cd799439012\",\n  \"name\": \"Jane Smith\",\n  \"email\": \"jane@example.com\",\n  \"role\": \"employee\",\n  \"department\": \"Retail E-commerce\",\n  \"isActive\": true,\n  \"emailVerified\": false,\n  \"createdAt\": \"2024-12-01T11:00:00.000Z\",\n  \"updatedAt\": \"2024-12-01T11:00:00.000Z\"\n}"
             }
           ]
+        },
+        {
+          "name": "Get Assignable Users",
+          "request": {
+            "method": "GET",
+            "header": [ { "key": "Authorization", "value": "Bearer {{token}}" } ],
+            "url": "{{base_url}}/api/users/helpers/assignable-users"
+          }
+        },
+        {
+          "name": "Get My Team",
+          "request": {
+            "method": "GET",
+            "header": [ { "key": "Authorization", "value": "Bearer {{token}}" } ],
+            "url": "{{base_url}}/api/users/helpers/my-team"
+          }
         }
       ]
     },
@@ -183,19 +199,19 @@
       "name": "Projects Management",
       "item": [
         {
-          "name": "Get All Projects",
+          "name": "Get All Projects (RBAC)",
           "request": {
             "method": "GET",
-            "header": [],
-            "url": "{{base_url}}/api/projects?page=1&limit=10&status=Active"
+            "header": [ { "key": "Authorization", "value": "Bearer {{token}}" } ],
+            "url": "{{base_url}}/api/projects?page=1&limit=10&status=Active&department=India%20E-commerce"
           },
           "response": [
             {
               "name": "Success Response",
               "originalRequest": {
                 "method": "GET",
-                "header": [],
-                "url": "{{base_url}}/api/projects?page=1&limit=10&status=Active"
+                "header": [ { "key": "Authorization", "value": "Bearer {{token}}" } ],
+                "url": "{{base_url}}/api/projects?page=1&limit=10&status=Active&department=India%20E-commerce"
               },
               "status": "OK",
               "code": 200,
@@ -209,10 +225,10 @@
           ]
         },
         {
-          "name": "Get Project By ID",
+          "name": "Get Project By ID (RBAC)",
           "request": {
             "method": "GET",
-            "header": [],
+            "header": [ { "key": "Authorization", "value": "Bearer {{token}}" } ],
             "url": "{{base_url}}/api/projects/{{project_id}}"
           },
           "response": [
@@ -220,7 +236,7 @@
               "name": "Success Response",
               "originalRequest": {
                 "method": "GET",
-                "header": [],
+                "header": [ { "key": "Authorization", "value": "Bearer {{token}}" } ],
                 "url": "{{base_url}}/api/projects/{{project_id}}"
               },
               "status": "OK",
@@ -235,10 +251,10 @@
           ]
         },
         {
-          "name": "Get Project Tasks",
+          "name": "Get Project Tasks (RBAC)",
           "request": {
             "method": "GET",
-            "header": [],
+            "header": [ { "key": "Authorization", "value": "Bearer {{token}}" } ],
             "url": "{{base_url}}/api/projects/{{project_id}}/tasks",
             "description": "Get all tasks associated with a specific project. Returns an array of tasks with populated user details for assignedTo and reporter fields."
           },
@@ -247,7 +263,7 @@
               "name": "Success Response",
               "originalRequest": {
                 "method": "GET",
-                "header": [],
+                "header": [ { "key": "Authorization", "value": "Bearer {{token}}" } ],
                 "url": "{{base_url}}/api/projects/{{project_id}}/tasks"
               },
               "status": "OK",
@@ -333,7 +349,7 @@
               "raw": "{\n  \"title\": \"E-commerce Platform\",\n  \"description\": \"Build a modern e-commerce platform with React and Node.js\",\n  \"status\": \"Active\",\n  \"priority\": \"High\",\n  \"startDate\": \"2024-01-01\",\n  \"dueDate\": \"2024-12-31\",\n  \"assignedTo\": [\"507f1f77bcf86cd799439011\"],\n  \"teamMembers\": [\n    {\n      \"user\": \"507f1f77bcf86cd799439012\",\n      \"role\": \"developer\"\n    },\n    {\n      \"user\": \"507f1f77bcf86cd799439013\",\n      \"role\": \"designer\"\n    }\n  ]\n}"
             },
             "url": "{{base_url}}/api/projects",
-            "description": "Create a new project with team members and assigned users.\n\n**Features:**\n- Validates all user IDs exist before creating project\n- Prevents duplicate team members\n- Creates notifications for all team members\n- Supports team member roles\n\n**Required Fields:** title\n**Optional Fields:** description, status, priority, startDate, dueDate, assignedTo, teamMembers"
+            "description": "Create a new project with team members and assigned users.\n\n**Features:**\n- Validates all user IDs exist before creating project\n- Prevents duplicate team members\n- Creates notifications for all team members\n- Supports team member roles\n\n**Department Rules:**\n- Managers/Admins: Can add team members from any department\n- Employees: Can only add team members from their own department\n\n**Required Fields:** title\n**Optional Fields:** description, status, priority, startDate, dueDate, assignedTo, teamMembers"
           },
           "response": [
             {
@@ -397,7 +413,7 @@
               "raw": "{\n  \"title\": \"Updated E-commerce Platform\",\n  \"description\": \"Updated description with new features\",\n  \"status\": \"Active\",\n  \"priority\": \"Critical\",\n  \"teamMembers\": [\n    {\n      \"user\": \"507f1f77bcf86cd799439012\",\n      \"role\": \"lead-developer\"\n    },\n    {\n      \"user\": \"507f1f77bcf86cd799439013\",\n      \"role\": \"senior-designer\"\n    }\n  ]\n}"
             },
             "url": "{{base_url}}/api/projects/{{project_id}}",
-            "description": "Update project details with team member management.\n\n**Features:**\n- Validates all user IDs exist before updating\n- Prevents duplicate team members\n- Creates notifications for all team members\n- Only project creator or admin can update\n\n**All fields are optional** - only send the fields you want to update"
+            "description": "Update project details with team member management.\n\n**Features:**\n- Validates all user IDs exist before updating\n- Prevents duplicate team members\n- Creates notifications for all team members\n- Only project creator or admin can update\n\n**Department Rules:**\n- Managers/Admins: Can add team members from any department\n- Employees: Can only add team members from their own department\n\n**All fields are optional** - only send the fields you want to update"
           },
           "response": [
             {
@@ -620,7 +636,7 @@
           "request": {
             "method": "GET",
             "header": [ { "key": "Authorization", "value": "Bearer {{token}}" } ],
-            "url": "{{base_url}}/api/tasks"
+            "url": "{{base_url}}/api/tasks?department=India%20E-commerce"
           },
           "response": [
             {
@@ -628,7 +644,7 @@
               "originalRequest": {
                 "method": "GET",
                 "header": [ { "key": "Authorization", "value": "Bearer {{token}}" } ],
-                "url": "{{base_url}}/api/tasks"
+                "url": "{{base_url}}/api/tasks?department=India%20E-commerce"
               },
               "status": "OK",
               "code": 200,

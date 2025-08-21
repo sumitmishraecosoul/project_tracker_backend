@@ -19,13 +19,50 @@ const userSchema = new mongoose.Schema({
   },
   role: {
     type: String,
-    enum: ['admin', 'manager', 'developer', 'tester', 'designer', 'analyst'],
-    default: 'developer'
+    enum: ['admin', 'manager', 'employee'],
+    default: 'employee'
+  },
+  employeeNumber: {
+    type: String,
+    unique: true,
+    sparse: true,
+    trim: true,
+    default: null
+  },
+  manager: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'User',
+    default: null
   },
   department: {
     type: String,
-    enum: ['Engineering', 'Design', 'QA', 'Product', 'Marketing', 'Sales', 'HR', 'Finance'],
-    default: 'Engineering'
+    enum: [
+      'Supply Chain-Operations',
+      'Human Resources and Administration',
+      'New Product Design',
+      'India E-commerce',
+      'Supply Chain',
+      'Data Analytics',
+      'E-commerce',
+      'Retail E-commerce',
+      'Finance & Accounts',
+      'Zonal Sales (India)- HORECA',
+      'Zonal Sales (India)',
+      'Supply Chain & Operation',
+      'Zonal Sales',
+      'Digital Marketing'
+    ],
+    default: 'India E-commerce'
+  },
+  jobTitle: {
+    type: String,
+    trim: true,
+    default: null
+  },
+  location: {
+    type: String,
+    trim: true,
+    default: null
   },
   avatarUrl: {
     type: String,
@@ -52,7 +89,18 @@ const userSchema = new mongoose.Schema({
     default: null
   }
 }, {
-  timestamps: true
+  timestamps: true,
+  toJSON: { virtuals: true },
+  toObject: { virtuals: true }
 });
+
+// Virtuals for alternate field names
+userSchema.virtual('fullName')
+  .get(function() { return this.name; })
+  .set(function(v) { this.name = v; });
+
+userSchema.virtual('workEmail')
+  .get(function() { return this.email; })
+  .set(function(v) { this.email = v; });
 
 module.exports = mongoose.model('User', userSchema);

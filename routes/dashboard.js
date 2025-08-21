@@ -8,5 +8,6 @@ router.get('/', auth, dashboardController.getDashboardStats);
 router.get('/summary', auth, dashboardController.getDashboardSummary);
 router.get('/projects-summary', auth, dashboardController.getProjectsSummary);
 router.get('/tasks-summary', auth, dashboardController.getTasksSummary);
+router.get('/departments', auth, dashboardController.getAllDepartments);
 
 module.exports = router;

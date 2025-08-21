@@ -5,9 +5,15 @@ const {
   getUserById,
   createUser,
   updateUser,
-  deleteUser
+  deleteUser,
+  getAssignableUsers,
+  getMyTeam
 } = require('../controllers/userController');
 const auth = require('../middleware/auth');
+
+// Helper endpoints should be declared BEFORE dynamic :id route
+router.get('/helpers/assignable-users', auth, getAssignableUsers);
+router.get('/helpers/my-team', auth, getMyTeam);
 
 router.get('/', auth, getAllUsers);
 router.get('/:id', auth, getUserById);

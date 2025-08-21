@@ -31,6 +31,26 @@ const projectSchema = new mongoose.Schema({
     ref: 'User',
     required: true
   },
+  department: {
+    type: String,
+    enum: [
+      'Supply Chain-Operations',
+      'Human Resources and Administration',
+      'New Product Design',
+      'India E-commerce',
+      'Supply Chain',
+      'Data Analytics',
+      'E-commerce',
+      'Retail E-commerce',
+      'Finance & Accounts',
+      'Zonal Sales (India)- HORECA',
+      'Zonal Sales (India)',
+      'Supply Chain & Operation',
+      'Zonal Sales',
+      'Digital Marketing'
+    ],
+    required: true
+  },
   assignedTo: [{
     type: mongoose.Schema.Types.ObjectId,
     ref: 'User'

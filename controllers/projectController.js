@@ -36,6 +36,70 @@ const upload = multer({
   }
 });
 
+// Utility to fetch a manager's team (direct reports + self)
+const getDepartmentUserIds = async (department) => {
+  const users = await User.find({ department, isActive: true }).select('_id');
+  return users.map(u => u._id.toString());
+};
+
+// Check if a user can view a project
+const canViewProject = async (user, project) => {
+  if (!user || !project) return false;
+  if (user.role === 'admin') return true;
+  const userId = (user.id || user._id)?.toString();
+  
+  if (!userId) return false;
+
+  const extractId = (val) => {
+    if (!val) return null;
+    if (val._id) return val._id.toString();
+    return val.toString();
+  };
+
+  const createdById = extractId(project.createdBy);
+  if (createdById === userId) return true;
+
+  const assignedIds = (project.assignedTo || []).map(extractId).filter(Boolean);
+  if (assignedIds.includes(userId)) return true;
+
+  const teamMemberIds = (project.teamMembers || []).map(tm => extractId(tm.user)).filter(Boolean);
+  if (teamMemberIds.includes(userId)) return true;
+  
+  // Department-based access for managers and employees
+  if (user.role === 'manager' || user.role === 'employee') {
+    // Check if project belongs to user's department
+    if (project.department === user.department) return true;
+    
+    const deptIds = await getDepartmentUserIds(user.department);
+    if (createdById && deptIds.includes(createdById)) return true;
+    if (assignedIds.some(id => deptIds.includes(id))) return true;
+    if (teamMemberIds.some(id => deptIds.includes(id))) return true;
+  }
+  return false;
+};
+
+// Check if a user can edit/delete a project
+const canEditProject = async (user, project) => {
+  if (!user || !project) return false;
+  if (user.role === 'admin') return true;
+  
+  const userId = (user.id || user._id)?.toString();
+  const createdById = project.createdBy?.toString();
+  
+  if (!userId || !createdById) return false;
+  
+  // Project creator can always edit/delete
+  if (createdById === userId) return true;
+  
+  // Managers can only edit/delete projects from their own department
+  if (user.role === 'manager') {
+    return project.department === user.department;
+  }
+  
+  // Employees cannot edit/delete any projects
+  return false;
+};
+
 // Get all projects with pagination and filtering
 const getAllProjects = async (req, res) => {
   try {
@@ -54,18 +118,90 @@ const getAllProjects = async (req, res) => {
       ];
     }
 
+    // Set default department for admin (their own department or "All Departments")
+    let selectedDepartment = req.query.department;
+    if (req.user?.role === 'admin' && !selectedDepartment) {
+      selectedDepartment = req.user.department || 'All Departments';
+    }
+
+    // RBAC scoping
+    if (req.user?.role !== 'admin') {
+      const userId = (req.user?.id || req.user?._id)?.toString();
+      if (!userId) {
+        return res.status(401).json({ 
+          error: 'Unauthorized',
+          message: 'User authentication required' 
+        });
+      }
+      
+      if (req.user?.role === 'manager' || req.user?.role === 'employee') {
+        const deptIds = await getDepartmentUserIds(req.user.department);
+        filter.$and = (filter.$and || []);
+        filter.$and.push({
+          $or: [
+            { createdBy: { $in: deptIds } },
+            { assignedTo: { $in: deptIds } },
+            { 'teamMembers.user': { $in: deptIds } }
+          ]
+        });
+      } else {
+        const me = req.user.id || req.user._id;
+        filter.$and = (filter.$and || []);
+        filter.$and.push({
+          $or: [
+            { createdBy: me },
+            { assignedTo: { $in: [me] } },
+            { 'teamMembers.user': me }
+          ]
+        });
+      }
+    } else if (selectedDepartment && selectedDepartment !== 'All Departments') {
+      // Admin department filter
+      const deptIds = await getDepartmentUserIds(selectedDepartment);
+      filter.$and = (filter.$and || []);
+      filter.$and.push({
+        $or: [
+          { createdBy: { $in: deptIds } },
+          { assignedTo: { $in: deptIds } },
+          { 'teamMembers.user': { $in: deptIds } }
+        ]
+      });
+    }
+
     const projects = await Project.find(filter)
-      .populate('createdBy', 'name email')
+      .populate('createdBy', 'name email department')
       .populate('assignedTo', 'name email')
       .populate('teamMembers.user', 'name email')
       .sort({ createdAt: -1 })
       .skip(skip)
       .limit(limit);
 
+    // Add active member count to each project
+    const projectsWithDetails = projects.map(project => {
+      const allMembers = [
+        ...(project.assignedTo || []),
+        ...(project.teamMembers || []).map(tm => tm.user).filter(Boolean)
+      ];
+      
+      // Count unique active members with null safety
+      const uniqueMemberIds = [...new Set(allMembers.map(member => {
+        if (!member) return null;
+        return typeof member === 'object' && member._id ? member._id.toString() : member.toString();
+      }).filter(Boolean))];
+      
+      const activeMembersCount = uniqueMemberIds.length;
+      
+      return {
+        ...project.toObject(),
+        activeMembersCount,
+        department: project.department || project.createdBy?.department || 'Unknown'
+      };
+    });
+
     const total = await Project.countDocuments(filter);
 
     res.json({
-      projects,
+      projects: projectsWithDetails,
       currentPage: page,
       totalPages: Math.ceil(total / limit),
       totalProjects: total
@@ -79,7 +215,7 @@ const getAllProjects = async (req, res) => {
 const getProjectById = async (req, res) => {
   try {
     const project = await Project.findById(req.params.id)
-      .populate('createdBy', 'name email')
+      .populate('createdBy', 'name email department')
       .populate('assignedTo', 'name email')
       .populate('teamMembers.user', 'name email')
       .populate('attachments.uploadedBy', 'name email');
@@ -89,6 +225,11 @@ const getProjectById = async (req, res) => {
         error: 'Project not found',
         message: 'No project found with the provided ID' 
       });
+    }
+
+    const allowed = await canViewProject(req.user, project);
+    if (!allowed) {
+      return res.status(403).json({ error: 'Access denied', message: 'Not authorized to view this project' });
     }
 
     // Handle mixed projectId formats - search for both project ID and project title
@@ -126,7 +267,7 @@ const createProject = async (req, res) => {
       });
     }
 
-    // Validate team members if provided
+    // Validate team members if provided (department-restricted unless admin)
     if (teamMembers && Array.isArray(teamMembers)) {
       const teamMemberIds = teamMembers.map(tm => tm.user).filter(Boolean);
       
@@ -152,9 +293,15 @@ const createProject = async (req, res) => {
           });
         }
       }
+      // Department restriction only for employees: managers/admins can add cross-department
+      if (req.user.role === 'employee' && teamMemberIds.length > 0) {
+        const users = await User.find({ _id: { $in: teamMemberIds } }).select('_id department');
+        const invalid = users.find(u => u.department !== req.user.department);
+        // Note: Managers and admins can add cross-department; employees are validated above
+      }
     }
 
-    // Validate assignedTo if provided
+    // Validate assignedTo if provided (department-restricted unless admin)
     if (assignedTo && Array.isArray(assignedTo)) {
       const assignedToIds = assignedTo.filter(Boolean);
       
@@ -170,6 +317,11 @@ const createProject = async (req, res) => {
           });
         }
       }
+      if (req.user.role === 'employee' && assignedToIds.length > 0) {
+        const users = await User.find({ _id: { $in: assignedToIds } }).select('_id department');
+        const invalid = users.find(u => u.department !== req.user.department);
+        // Note: Managers and admins can assign cross-department; employees are validated above
+      }
     }
 
     const projectData = {
@@ -179,6 +331,7 @@ const createProject = async (req, res) => {
       priority,
       startDate: startDate ? new Date(startDate) : null,
       dueDate: dueDate ? new Date(dueDate) : null,
+      department: req.user.department, // Add department from the creator
       assignedTo,
       teamMembers,
       createdBy: req.user.id
@@ -239,10 +392,11 @@ const updateProject = async (req, res) => {
     }
 
     // Check if user has permission to update
-    if (project.createdBy.toString() !== req.user.id && req.user.role !== 'admin') {
+    const canUpdate = await canEditProject(req.user, project);
+    if (!canUpdate) {
       return res.status(403).json({ 
         error: 'Access denied',
-        message: 'Not authorized to update this project' 
+        message: 'Not authorized to update this project. Only admins, project creators, and managers from the same department can edit projects.' 
       });
     }
 
@@ -337,10 +491,11 @@ const deleteProject = async (req, res) => {
       });
     }
 
-    if (project.createdBy.toString() !== req.user.id && req.user.role !== 'admin') {
+    const canDelete = await canEditProject(req.user, project);
+    if (!canDelete) {
       return res.status(403).json({ 
         error: 'Access denied',
-        message: 'Not authorized to delete this project' 
+        message: 'Not authorized to delete this project. Only admins, project creators, and managers from the same department can delete projects.' 
       });
     }
 
@@ -443,6 +598,11 @@ const getProjectTasks = async (req, res) => {
       });
     }
 
+    const allowed = await canViewProject(req.user, project);
+    if (!allowed) {
+      return res.status(403).json({ error: 'Access denied', message: 'Not authorized to view this project' });
+    }
+
     // Handle mixed projectId formats - search for both project ID and project title
     const tasks = await Task.find({ 
       $or: [
@@ -479,7 +639,15 @@ const addTeamMember = async (req, res) => {
     }
 
     // Check if user has permission to add team members
-    if (project.createdBy.toString() !== req.user.id && req.user.role !== 'admin') {
+    const requesterId = (req.user.id || req.user._id).toString();
+    let canModifyTeam = req.user.role === 'admin' || project.createdBy.toString() === requesterId;
+    if (!canModifyTeam && req.user.role === 'manager') {
+      const teamIds = await getManagerTeamUserIds(requesterId);
+      if (teamIds.includes(project.createdBy.toString())) {
+        canModifyTeam = true;
+      }
+    }
+    if (!canModifyTeam) {
       return res.status(403).json({ 
         error: 'Access denied',
         message: 'Not authorized to modify team members for this project' 
@@ -566,7 +734,15 @@ const removeTeamMember = async (req, res) => {
     }
 
     // Check if user has permission to remove team members
-    if (project.createdBy.toString() !== req.user.id && req.user.role !== 'admin') {
+    const requesterId = (req.user.id || req.user._id).toString();
+    let canModifyTeam = req.user.role === 'admin' || project.createdBy.toString() === requesterId;
+    if (!canModifyTeam && req.user.role === 'manager') {
+      const teamIds = await getManagerTeamUserIds(requesterId);
+      if (teamIds.includes(project.createdBy.toString())) {
+        canModifyTeam = true;
+      }
+    }
+    if (!canModifyTeam) {
       return res.status(403).json({ 
         error: 'Access denied',
         message: 'Not authorized to modify team members for this project' 
@@ -640,7 +816,15 @@ const updateTeamMemberRole = async (req, res) => {
     }
 
     // Check if user has permission to update team members
-    if (project.createdBy.toString() !== req.user.id && req.user.role !== 'admin') {
+    const requesterId = (req.user.id || req.user._id).toString();
+    let canModifyTeam = req.user.role === 'admin' || project.createdBy.toString() === requesterId;
+    if (!canModifyTeam && req.user.role === 'manager') {
+      const teamIds = await getManagerTeamUserIds(requesterId);
+      if (teamIds.includes(project.createdBy.toString())) {
+        canModifyTeam = true;
+      }
+    }
+    if (!canModifyTeam) {
       return res.status(403).json({ 
         error: 'Access denied',
         message: 'Not authorized to modify team members for this project' 

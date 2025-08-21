@@ -1,5 +1,6 @@
 const Task = require('../models/Task');
 const User = require('../models/User');
+const Project = require('../models/Project');
 const mongoose = require('mongoose');
 
 // Helper function to validate and convert user identifier to ObjectId
@@ -34,6 +35,99 @@ const validateAndGetUserId = async (userIdentifier) => {
   return user._id;
 };
 
+// Utility: get all userIds in the same department as the given userId
+const getDepartmentUserIds = async (department) => {
+  const users = await User.find({ department, isActive: true }).select('_id');
+  return users.map(u => u._id.toString());
+};
+
+// Permission checks
+const canViewTask = async (user, task) => {
+  if (!user) return false;
+  if (user.role === 'admin') return true;
+  const assignedId = task.assignedTo?.toString();
+  const reporterId = task.reporter?.toString();
+  const userId = user._id?.toString() || user.id?.toString();
+  if (assignedId === userId || reporterId === userId) return true;
+  if (user.role === 'manager' || user.role === 'employee') {
+    const deptUserIds = await getDepartmentUserIds(user.department);
+    if (assignedId && deptUserIds.includes(assignedId)) return true;
+    if (reporterId && deptUserIds.includes(reporterId)) return true;
+    // Project-level permission: if project has participants in same department
+    if (task.projectId) {
+      let project = null;
+      if (mongoose.Types.ObjectId.isValid(task.projectId)) {
+        project = await Project.findById(task.projectId).select('createdBy teamMembers.user assignedTo department');
+      }
+      if (!project) {
+        project = await Project.findOne({ title: task.projectId }).select('createdBy teamMembers.user assignedTo department');
+      }
+      if (project) {
+        const createdById = project.createdBy?.toString();
+        const projectAssignedIds = (project.assignedTo || []).map(id => id.toString());
+        const projectTeamIds = (project.teamMembers || []).map(tm => tm.user?.toString());
+        if (
+          (createdById && deptUserIds.includes(createdById)) ||
+          projectAssignedIds.some(id => deptUserIds.includes(id)) ||
+          projectTeamIds.some(id => deptUserIds.includes(id)) ||
+          project.department === user.department
+        ) {
+          return true;
+        }
+      }
+    }
+  }
+  return false;
+};
+
+// Check if a user can edit/delete a task
+const canEditTask = async (user, task) => {
+  if (!user) return false;
+  if (user.role === 'admin') return true;
+  
+  const userId = user._id?.toString() || user.id?.toString();
+  const reporterId = task.reporter?.toString();
+  const assignedId = task.assignedTo?.toString();
+  
+  // Task reporter can always edit/delete
+  if (reporterId === userId) return true;
+  
+  // Task assignee can edit/delete their own tasks
+  if (assignedId === userId) return true;
+  
+  if (user.role === 'manager') {
+    // Managers can edit/delete tasks from their own department
+    // Check if task belongs to a project from their department
+    if (task.projectId) {
+      let project = null;
+      if (mongoose.Types.ObjectId.isValid(task.projectId)) {
+        project = await Project.findById(task.projectId).select('department');
+      }
+      if (!project) {
+        project = await Project.findOne({ title: task.projectId }).select('department');
+      }
+      if (project && project.department === user.department) {
+        return true;
+      }
+    }
+    
+    // Check if task is assigned to someone in their department
+    const deptUserIds = await getDepartmentUserIds(user.department);
+    if (assignedId && deptUserIds.includes(assignedId)) {
+      return true;
+    }
+  }
+  
+  if (user.role === 'employee') {
+    // Employees can only edit/delete tasks assigned to them or created by them
+    if (assignedId === userId || reporterId === userId) {
+      return true;
+    }
+  }
+  
+  return false;
+};
+
 exports.getAllTasks = async (req, res) => {
   try {
     const { status, taskType, view } = req.query;
@@ -64,6 +158,36 @@ exports.getAllTasks = async (req, res) => {
       }
     }
 
+    // Set default department for admin (their own department or "All Departments")
+    let selectedDepartment = req.query.department;
+    if (req.user?.role === 'admin' && !selectedDepartment) {
+      selectedDepartment = req.user.department || 'All Departments';
+    }
+
+    // RBAC filtering
+    if (req.user.role === 'admin') {
+      // Optional department scope for admins
+      if (selectedDepartment && selectedDepartment !== 'All Departments') {
+        const deptUserIds = await getDepartmentUserIds(selectedDepartment);
+        filter.$and = (filter.$and || []);
+        filter.$and.push({
+          $or: [
+            { assignedTo: { $in: deptUserIds } },
+            { reporter: { $in: deptUserIds } }
+          ]
+        });
+      }
+    } else if (req.user.role === 'manager' || req.user.role === 'employee') {
+      const deptUserIds = await getDepartmentUserIds(req.user.department);
+      filter.$or = [
+        { assignedTo: { $in: deptUserIds } },
+        { reporter: { $in: deptUserIds } }
+      ];
+    } else {
+      const me = req.user.id || req.user._id;
+      filter.$or = [{ assignedTo: me }, { reporter: me }];
+    }
+
     const tasks = await Task.find(filter)
       .populate('assignedTo', 'name email')
       .populate('reporter', 'name email')
@@ -90,6 +214,10 @@ exports.getTaskById = async (req, res) => {
         error: 'Task not found',
         message: 'No task found with the provided ID' 
       });
+    }
+    const allowed = await canViewTask(req.user, task);
+    if (!allowed) {
+      return res.status(403).json({ error: 'Access denied', message: 'Not authorized to view this task' });
     }
     res.json(task);
   } catch (err) {
@@ -142,12 +270,66 @@ exports.createTask = async (req, res) => {
         message: userError.message 
       });
     }
+
+    // RBAC checks for creation
+    const requesterId = (req.user.id || req.user._id).toString();
+    const requesterRole = req.user.role;
+    
+    if (requesterRole === 'employee') {
+      // Employees can create tasks but with department restrictions
+      const assignee = await User.findById(assignedToId).select('department');
+      const reporter = await User.findById(reporterId).select('department');
+      
+      // Employee can only assign to users in their own department
+      if (assignee && assignee.department !== req.user.department) {
+        return res.status(403).json({ 
+          error: 'Access denied', 
+          message: 'You can only assign tasks to users in your department' 
+        });
+      }
+      
+      // Employee can only set reporter as themselves or users in their department
+      if (reporter && reporter.department !== req.user.department) {
+        return res.status(403).json({ 
+          error: 'Access denied', 
+          message: 'You can only set reporter as yourself or users in your department' 
+        });
+      }
+    } else if (requesterRole === 'manager') {
+      // Managers can create tasks within their department
+      const assignee = await User.findById(assignedToId).select('department');
+      const reporter = await User.findById(reporterId).select('department');
+      
+      if (assignee && assignee.department !== req.user.department) {
+        return res.status(403).json({ 
+          error: 'Access denied', 
+          message: 'You can only assign tasks to users in your department' 
+        });
+      }
+      
+      if (reporter && reporter.department !== req.user.department) {
+        return res.status(403).json({ 
+          error: 'Access denied', 
+          message: 'You can only set reporter as users in your department' 
+        });
+      }
+    }
+    // Admin can create tasks for anyone (no restrictions)
+
+    // Manager cross-department assignment -> force Adhoc
+    let finalTaskType = taskType;
+    if (requesterRole === 'manager') {
+      const assignee = await User.findById(assignedToId).select('department');
+      if (assignee && assignee.department && assignee.department !== req.user.department) {
+        finalTaskType = 'Adhoc';
+      }
+    }
     
     const taskData = {
       projectId,
       task,
       description,
-      taskType,
+      taskType: finalTaskType,
       priority,
       status,
       assignedTo: assignedToId,
@@ -190,6 +372,23 @@ exports.createTask = async (req, res) => {
 
 exports.updateTask = async (req, res) => {
   try {
+    // Fetch existing task to evaluate permissions and context
+    const existing = await Task.findById(req.params.id);
+    if (!existing) {
+      return res.status(404).json({ 
+        error: 'Task not found',
+        message: 'No task found with the provided ID' 
+      });
+    }
+
+    const canEdit = await canEditTask(req.user, existing);
+    if (!canEdit) {
+      return res.status(403).json({ 
+        error: 'Access denied', 
+        message: 'Not authorized to update this task. Only admins, task reporters, and managers from the same department can edit tasks.' 
+      });
+    }
+
     const { 
       task, 
       description, 
@@ -235,7 +434,37 @@ exports.updateTask = async (req, res) => {
     // Handle user ID conversion for assignedTo and reporter
     if (assignedTo !== undefined) {
       try {
-        updateData.assignedTo = await validateAndGetUserId(assignedTo);
+        const newAssignedToId = await validateAndGetUserId(assignedTo);
+        const userId = (req.user.id || req.user._id).toString();
+        const userRole = req.user.role;
+        
+        // RBAC checks for reassignment
+        if (userRole === 'employee') {
+          // Employee can only reassign to users in their department
+          const assignee = await User.findById(newAssignedToId).select('department');
+          if (assignee && assignee.department !== req.user.department) {
+            return res.status(403).json({ 
+              error: 'Access denied', 
+              message: 'You can only reassign tasks to users in your department' 
+            });
+          }
+        } else if (userRole === 'manager') {
+          // Manager can only reassign to users in their department
+          const assignee = await User.findById(newAssignedToId).select('department');
+          if (assignee && assignee.department !== req.user.department) {
+            return res.status(403).json({ 
+              error: 'Access denied', 
+              message: 'You can only reassign tasks to users in your department' 
+            });
+          }
+          // Manager cross-department reassignment -> force Adhoc
+          if (assignee && assignee.department && assignee.department !== req.user.department) {
+            updateData.taskType = 'Adhoc';
+          }
+        }
+        // Admin can reassign to anyone (no restrictions)
+        
+        updateData.assignedTo = newAssignedToId;
       } catch (userError) {
         return res.status(400).json({ 
           error: 'Invalid assignedTo user reference',
@@ -246,7 +475,33 @@ exports.updateTask = async (req, res) => {
 
     if (reporter !== undefined) {
       try {
-        updateData.reporter = await validateAndGetUserId(reporter);
+        const newReporterId = await validateAndGetUserId(reporter);
+        const userId = (req.user.id || req.user._id).toString();
+        const userRole = req.user.role;
+        
+        // RBAC checks for reporter change
+        if (userRole === 'employee') {
+          // Employee can only set reporter as themselves or users in their department
+          const reporter = await User.findById(newReporterId).select('department');
+          if (reporter && reporter.department !== req.user.department) {
+            return res.status(403).json({ 
+              error: 'Access denied', 
+              message: 'You can only set reporter as yourself or users in your department' 
+            });
+          }
+        } else if (userRole === 'manager') {
+          // Manager can only set reporter as users in their department
+          const reporter = await User.findById(newReporterId).select('department');
+          if (reporter && reporter.department !== req.user.department) {
+            return res.status(403).json({ 
+              error: 'Access denied', 
+              message: 'You can only set reporter as users in your department' 
+            });
+          }
+        }
+        // Admin can set reporter to anyone (no restrictions)
+        
+        updateData.reporter = newReporterId;
       } catch (userError) {
         return res.status(400).json({ 
           error: 'Invalid reporter user reference',
@@ -260,13 +515,6 @@ exports.updateTask = async (req, res) => {
       updateData, 
       { new: true, runValidators: true }
     ).populate('assignedTo', 'name email').populate('reporter', 'name email');
-    
-    if (!updatedTask) {
-      return res.status(404).json({ 
-        error: 'Task not found',
-        message: 'No task found with the provided ID' 
-      });
-    }
     
     res.json(updatedTask);
   } catch (err) {
@@ -289,13 +537,21 @@ exports.updateTask = async (req, res) => {
 
 exports.deleteTask = async (req, res) => {
   try {
-    const task = await Task.findByIdAndDelete(req.params.id);
+    const task = await Task.findById(req.params.id);
     if (!task) {
       return res.status(404).json({ 
         error: 'Task not found',
         message: 'No task found with the provided ID' 
       });
     }
+    const canDelete = await canEditTask(req.user, task);
+    if (!canDelete) {
+      return res.status(403).json({ 
+        error: 'Access denied', 
+        message: 'Not authorized to delete this task. Only admins, task reporters, and managers from the same department can delete tasks.' 
+      });
+    }
+    await Task.findByIdAndDelete(req.params.id);
     res.json({ 
       message: 'Task deleted successfully',
       deletedTaskId: task.id 

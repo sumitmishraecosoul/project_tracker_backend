@@ -11,6 +11,33 @@ All protected endpoints require a Bearer token in the Authorization header:
 Authorization: Bearer <your_jwt_token>
 ```
 
+## Role-Based Access Control (RBAC)
+
+The API implements role-based access control with three user roles:
+
+### Admin
+- **Full access** to all projects, tasks, and users across all departments
+- Can create, read, update, and delete any project or task
+- Can filter dashboard data by department
+- Can manage users and assign roles
+
+### Manager
+- **Department-restricted access** to projects and tasks from their own department only
+- Can create, read, update, and delete projects and tasks within their department
+- Cannot access projects or tasks from other departments
+- Can view and manage team members from their department
+
+### Employee
+- **Limited access** to projects and tasks they are directly involved in
+- Can view projects and tasks they are assigned to or created
+- **Cannot create, edit, or delete** any projects or tasks
+- Can only view data from their own department
+
+### Department-Based Filtering
+- Admins can use the `department` query parameter to filter data by specific departments
+- Managers and employees are automatically restricted to their own department's data
+- All dashboard statistics and project lists respect department boundaries
+
 ---
 
 ## 1. Authentication
@@ -24,8 +51,12 @@ Authorization: Bearer <your_jwt_token>
   "name": "John Doe",
   "email": "john@example.com",
   "password": "password123",
-  "role": "developer",
-  "department": "Engineering"
+  "role": "employee",
+  "department": "India E-commerce",
+  "employeeNumber": "EMP-1001",
+  "jobTitle": "Software Engineer",
+  "location": "Bengaluru",
+  "manager": "507f1f77bcf86cd799439099"
 }
 ```
 
@@ -35,8 +66,8 @@ Authorization: Bearer <your_jwt_token>
   "_id": "507f1f77bcf86cd799439011",
   "name": "John Doe",
   "email": "john@example.com",
-  "role": "developer",
-  "department": "Engineering",
+  "role": "employee",
+  "department": "India E-commerce",
   "isActive": true,
   "emailVerified": false,
   "createdAt": "2024-12-01T10:00:00.000Z",
@@ -63,7 +94,7 @@ Authorization: Bearer <your_jwt_token>
     "_id": "507f1f77bcf86cd799439011",
     "name": "John Doe",
     "email": "john@example.com",
-    "role": "developer"
+    "role": "employee"
   }
 }
 ```
@@ -84,8 +115,8 @@ Authorization: Bearer <your_jwt_token>
     "_id": "507f1f77bcf86cd799439011",
     "name": "John Doe",
     "email": "john@example.com",
-    "role": "developer",
-    "department": "Engineering",
+    "role": "employee",
+    "department": "India E-commerce",
     "isActive": true,
     "createdAt": "2024-12-01T10:00:00.000Z"
   }
@@ -103,8 +134,8 @@ Authorization: Bearer <your_jwt_token>
   "_id": "507f1f77bcf86cd799439011",
   "name": "John Doe",
   "email": "john@example.com",
-  "role": "developer",
-  "department": "Engineering",
+  "role": "employee",
+  "department": "India E-commerce",
   "isActive": true,
   "createdAt": "2024-12-01T10:00:00.000Z"
 }
@@ -121,8 +152,12 @@ Authorization: Bearer <your_jwt_token>
   "name": "Jane Smith",
   "email": "jane@example.com",
   "password": "password123",
-  "role": "designer",
-  "department": "Design"
+  "role": "employee",
+  "department": "Retail E-commerce",
+  "manager": "507f1f77bcf86cd799439011",
+  "employeeNumber": "EMP-2001",
+  "jobTitle": "UI Designer",
+  "location": "Delhi"
 }
 ```
 
@@ -133,7 +168,7 @@ Authorization: Bearer <your_jwt_token>
   "name": "Jane Smith",
   "email": "jane@example.com",
   "role": "designer",
-  "department": "Design",
+  "department": "Retail E-commerce",
   "isActive": true,
   "createdAt": "2024-12-01T10:00:00.000Z"
 }
@@ -149,7 +184,7 @@ Authorization: Bearer <your_jwt_token>
 {
   "name": "Jane Smith Updated",
   "role": "senior-designer",
-  "department": "UX Design"
+  "department": "Data Analytics"
 }
 ```
 
@@ -160,7 +195,7 @@ Authorization: Bearer <your_jwt_token>
   "name": "Jane Smith Updated",
   "email": "jane@example.com",
   "role": "senior-designer",
-  "department": "UX Design",
+  "department": "Data Analytics",
   "isActive": true,
   "updatedAt": "2024-12-01T15:00:00.000Z"
 }
@@ -168,6 +203,40 @@ Authorization: Bearer <your_jwt_token>
 
 ### 2.5 Delete User
 **DELETE** `/api/users/{userId}`
+### 2.6 Get Assignable Users
+**GET** `/api/users/helpers/assignable-users`
+
+**Authorization:** Bearer <token>
+
+**Description:**
+- Admin: returns all active users
+- Manager: returns all active users (can assign cross-team; such tasks become Adhoc)
+- Team member: returns only self
+
+**Success Response (200):**
+```json
+[
+  { "_id": "507f1f77bcf86cd799439011", "name": "John", "email": "john@example.com", "role": "manager", "department": "India E-commerce" }
+]
+```
+
+### 2.7 Get My Team
+**GET** `/api/users/helpers/my-team`
+
+**Authorization:** Bearer <token>
+
+**Description:**
+- Admin: returns list of managers
+- Manager: returns direct reports
+- Team member: returns empty array
+
+**Success Response (200):**
+```json
+[
+  { "_id": "507f1f77bcf86cd799439012", "name": "Jane", "email": "jane@example.com", "role": "employee", "department": "Data Analytics" }
+]
+```
+
 
 **Authorization:** Bearer <token>
 
@@ -186,7 +255,15 @@ Authorization: Bearer <your_jwt_token>
 ### 3.1 Get Dashboard Summary
 **GET** `/api/dashboard/summary`
 
-**Description:** Get comprehensive dashboard data in a single response for optimal performance. Returns aggregated statistics including project counts, task counts, team member counts, recent projects, and task progress summary.
+**Description:** Get comprehensive dashboard data in a single response for optimal performance. Returns aggregated statistics including project counts, task counts, team member counts, recent projects, and task progress summary. Supports department-based filtering for admins.
+
+**Query Parameters:**
+- `department` (optional): Filter data by department (admin only). Use "All Departments" to see all data. If not provided, admin's own department is used as default.
+
+**Default Department Logic:**
+- **Admin**: Defaults to admin's own department, or "All Departments" if admin has no department
+- **Manager**: Always uses their own department
+- **Employee**: Always uses their own department
 
 **Authorization:** Bearer <token>
 
@@ -204,6 +281,9 @@ Authorization: Bearer <your_jwt_token>
       "title": "E-commerce Website Development",
       "description": "Complete online store with payment integration",
       "status": "Active",
+      "department": "India E-commerce",
+      "activeMembersCount": 3,
+      "createdByDepartment": "India E-commerce",
       "updatedAt": "2024-12-01T10:00:00.000Z"
     },
     {
@@ -211,7 +291,19 @@ Authorization: Bearer <your_jwt_token>
       "title": "Mobile App Development",
       "description": "Cross-platform mobile application",
       "status": "Active",
+      "department": "Digital Marketing",
+      "activeMembersCount": 2,
+      "createdByDepartment": "Digital Marketing",
       "updatedAt": "2024-12-01T09:00:00.000Z"
+    }
+  ],
+  "teamMembers": [
+    {
+      "_id": "507f1f77bcf86cd799439011",
+      "name": "John Doe",
+      "email": "john@example.com",
+      "role": "manager",
+      "department": "India E-commerce"
     }
   ],
   "taskProgress": {
@@ -221,7 +313,8 @@ Authorization: Bearer <your_jwt_token>
   },
   "totalProjectsCount": 3,
   "pendingTasksCount": 1,
-  "overdueTasksCount": 0
+  "overdueTasksCount": 0,
+  "selectedDepartment": "India E-commerce"
 }
 ```
 
@@ -251,6 +344,37 @@ Authorization: Bearer <your_jwt_token>
   "completedTasks": 3,
   "pendingTasks": 2,
   "overdueTasks": 1
+}
+```
+
+### 3.3 Get All Departments
+**GET** `/api/dashboard/departments`
+
+**Description:** Get all available departments for dropdown selection. Returns user's department and role for default selection logic.
+
+**Authorization:** Bearer <token>
+
+**Success Response (200):**
+```json
+{
+  "departments": [
+    "Supply Chain-Operations",
+    "Human Resources and Administration",
+    "New Product Design",
+    "India E-commerce",
+    "Supply Chain",
+    "Data Analytics",
+    "E-commerce",
+    "Retail E-commerce",
+    "Finance & Accounts",
+    "Zonal Sales (India)- HORECA",
+    "Zonal Sales (India)",
+    "Supply Chain & Operation",
+    "Zonal Sales",
+    "Digital Marketing"
+  ],
+  "userDepartment": "Data Analytics",
+  "userRole": "admin"
 }
 ```
 
@@ -303,7 +427,7 @@ Authorization: Bearer <your_jwt_token>
 ## 4. Projects Management
 
 ### 4.1 Get All Projects
-**GET** `/api/projects?page=1&limit=10&status=Active&priority=High&search=ecommerce`
+**GET** `/api/projects?page=1&limit=10&status=Active&priority=High&search=ecommerce&department=India%20E-commerce`
 
 **Query Parameters:**
 - `page` (optional): Page number (default: 1)
@@ -311,6 +435,19 @@ Authorization: Bearer <your_jwt_token>
 - `status` (optional): Filter by status
 - `priority` (optional): Filter by priority
 - `search` (optional): Search in title and description
+- `department` (admin only, optional): Scope projects to a department. If not provided, admin's own department is used as default.
+
+**Default Department Logic:**
+- **Admin**: Defaults to admin's own department, or "All Departments" if admin has no department
+- **Manager**: Always uses their own department
+- **Employee**: Always uses their own department
+
+**Authorization:** Bearer <token>
+
+**RBAC:**
+- Admin: sees all projects (can filter by department)
+- Manager: sees projects from their own department only
+- Employee: sees projects they are involved in from their own department
 
 **Success Response (200):**
 ```json
@@ -325,8 +462,11 @@ Authorization: Bearer <your_jwt_token>
       "createdBy": {
         "_id": "507f1f77bcf86cd799439011",
         "name": "John Doe",
-        "email": "john@example.com"
+        "email": "john@example.com",
+        "department": "India E-commerce"
       },
+      "department": "India E-commerce",
+      "activeMembersCount": 3,
       "assignedTo": [
         {
           "_id": "507f1f77bcf86cd799439011",
@@ -341,7 +481,7 @@ Authorization: Bearer <your_jwt_token>
             "name": "Jane Smith",
             "email": "jane@example.com"
           },
-          "role": "developer"
+          "role": "employee"
         }
       ],
       "startDate": "2024-01-01T00:00:00.000Z",
@@ -359,6 +499,13 @@ Authorization: Bearer <your_jwt_token>
 
 ### 4.2 Get Project By ID
 **GET** `/api/projects/{projectId}`
+
+**Authorization:** Bearer <token>
+
+**RBAC:** Same visibility rules as list.
+**Team Members:**
+- Managers and Admins can add team members from any department
+- Employees can only add team members from their own department
 
 **Description:** Returns project details with all associated tasks. Handles mixed projectId formats (ObjectId or string title).
 
@@ -390,7 +537,7 @@ Authorization: Bearer <your_jwt_token>
           "name": "Jane Smith",
           "email": "jane@example.com"
         },
-        "role": "developer"
+        "role": "employee"
       }
     ],
     "startDate": "2024-01-01T00:00:00.000Z",
@@ -429,6 +576,10 @@ Authorization: Bearer <your_jwt_token>
 
 ### 4.3 Get Project Tasks
 **GET** `/api/projects/{projectId}/tasks`
+
+**Authorization:** Bearer <token>
+
+**RBAC:** Same visibility rules as project.
 
 **Description:** Returns all tasks associated with a specific project. Handles mixed projectId formats (ObjectId or string title).
 
@@ -473,6 +624,9 @@ Authorization: Bearer <your_jwt_token>
 **Authorization:** Bearer <token>
 
 **Description:** Create a new project with team members and assigned users.
+**Department Rules for Team Members:**
+- Managers/Admins: Can add any users (cross-department allowed)
+- Employees: Can only add users from their own department
 
 **Features:**
 - Validates all user IDs exist before creating project
@@ -493,7 +647,7 @@ Authorization: Bearer <your_jwt_token>
   "teamMembers": [
     {
       "user": "507f1f77bcf86cd799439012",
-      "role": "developer"
+      "role": "employee"
     },
     {
       "user": "507f1f77bcf86cd799439013",
@@ -558,6 +712,9 @@ Authorization: Bearer <your_jwt_token>
 **Authorization:** Bearer <token>
 
 **Description:** Update project details with team member management.
+**Department Rules for Team Members:**
+- Managers/Admins: Cross-department allowed
+- Employees: Same-department only
 
 **Features:**
 - Validates all user IDs exist before updating
@@ -673,7 +830,7 @@ Authorization: Bearer <your_jwt_token>
 ```json
 {
   "userId": "507f1f77bcf86cd799439014",
-  "role": "developer"
+  "role": "employee"
 }
 ```
 
@@ -690,7 +847,7 @@ Authorization: Bearer <your_jwt_token>
       "name": "Alice Johnson",
       "email": "alice@example.com"
     },
-    "role": "developer"
+    "role": "employee"
   }
 }
 ```
@@ -721,7 +878,7 @@ Authorization: Bearer <your_jwt_token>
       "name": "Alice Johnson",
       "email": "alice@example.com"
     },
-    "role": "developer"
+    "role": "employee"
   }
 }
 ```
@@ -786,7 +943,7 @@ Authorization: Bearer <your_jwt_token>
   "teamMembers": [
     {
       "userId": "507f1f77bcf86cd799439014",
-      "role": "developer"
+      "role": "employee"
     },
     {
       "userId": "507f1f77bcf86cd799439015",
@@ -838,9 +995,23 @@ Authorization: Bearer <your_jwt_token>
 ## 5. Tasks Management
 
 ### 5.1 Get All Tasks
-**GET** `/api/tasks`
+**GET** `/api/tasks?department=India%20E-commerce`
 
-**Authorization:** Bearer <token>
+**Query Parameters:**
+- `department` (admin only, optional): Scope tasks to a department. If not provided, admin's own department is used as default.
+- `status` (optional): Filter by task status
+- `taskType` (optional): Filter by task type
+- `view` (optional): Filter by view type (all, pending, inprogress, completed)
+
+**Default Department Logic:**
+- **Admin**: Defaults to admin's own department, or "All Departments" if admin has no department
+- **Manager**: Always uses their own department
+- **Employee**: Always uses their own department
+
+**RBAC:**
+- **Admin**: sees all tasks (can filter by department), can create/edit/delete any task
+- **Manager**: sees tasks from their own department only, can create/edit/delete tasks within their department
+- **Employee**: sees tasks assigned to them or created by them, can create tasks for users in their department, can edit/delete their own tasks
 
 **Success Response (200):**
 ```json
@@ -928,6 +1099,11 @@ Authorization: Bearer <your_jwt_token>
 
 **Description:** Create a new task with user ID references.
 
+**RBAC:**
+- Admin: create for anyone
+- Manager: can assign to any user; if assignee is outside manager’s team, `taskType` is forced to `Adhoc`
+- Team member: can only create tasks where both `assignedTo` and `reporter` are self
+
 **Important Changes:**
 - `assignedTo` and `reporter` now accept User IDs (ObjectId strings)
 - You can also pass user email or name - the API will convert them to IDs
@@ -1002,6 +1178,11 @@ Authorization: Bearer <your_jwt_token>
 
 **Description:** Update any task field with flexible updates.
 
+**RBAC:**
+- **Admin**: full access to update any task
+- **Manager**: can update tasks within their department; can reassign to users in their department
+- **Employee**: can update tasks assigned to them or created by them; can reassign to users in their department; can change reporter to users in their department
+
 **Common Update Examples:**
 - **Start Work**: `{"status": "In Progress", "startDate": "2024-12-01"}`
 - **Add Roadblock**: `{"status": "Blocked", "roadBlock": "Need API docs", "supportNeeded": "Backend specs"}`
@@ -1065,6 +1246,11 @@ Authorization: Bearer <your_jwt_token>
 **Example:**
 - ✅ Correct: `DELETE /api/tasks/507f1f77bcf86cd799439021` (using `_id`)
 - ❌ Wrong: `DELETE /api/tasks/TASK-0001` (using custom `id`)
+
+**RBAC:**
+- **Admin**: can delete any task
+- **Manager**: can delete tasks within their department
+- **Employee**: can delete tasks assigned to them or created by them
 
 **Success Response (200):**
 ```json
