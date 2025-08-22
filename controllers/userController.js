@@ -47,14 +47,41 @@ exports.createUser = async (req, res) => {
     const email = rawEmail || workEmail;
     
     // Validate required fields
-    if (!name || !email || !password) {
+    if (!name) {
       return res.status(400).json({ 
         error: 'Missing required fields',
-        message: 'name, email, and password are required' 
+        message: 'Name is required' 
+      });
+    }
+    if (!email) {
+      return res.status(400).json({ 
+        error: 'Missing required fields',
+        message: 'Email is required' 
+      });
+    }
+    if (!password) {
+      return res.status(400).json({ 
+        error: 'Missing required fields',
+        message: 'Password is required' 
+      });
+    }
+    if (!employeeNumber) {
+      return res.status(400).json({ 
+        error: 'Missing required fields',
+        message: 'Employee Number is required. Please provide a unique employee number for this user.' 
       });
     }
 
     const hashedPassword = await bcrypt.hash(password, 10);
+    // Check if employee number already exists
+    const existingEmployee = await User.findOne({ employeeNumber });
+    if (existingEmployee) {
+      return res.status(409).json({ 
+        error: 'Duplicate employeeNumber',
+        message: `Employee Number '${employeeNumber}' already exists. Please use a different employee number.` 
+      });
+    }
+
     const user = await User.create({ 
       name, 
       email, 
@@ -62,7 +89,7 @@ exports.createUser = async (req, res) => {
       role, 
       department,
       manager: manager || null,
-      employeeNumber: employeeNumber || null,
+      employeeNumber: employeeNumber,
       jobTitle: jobTitle || null,
       location: location || null
     });

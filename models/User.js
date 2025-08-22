@@ -24,10 +24,9 @@ const userSchema = new mongoose.Schema({
   },
   employeeNumber: {
     type: String,
+    required: true,
     unique: true,
-    sparse: true,
-    trim: true,
-    default: null
+    trim: true
   },
   manager: {
     type: mongoose.Schema.Types.ObjectId,

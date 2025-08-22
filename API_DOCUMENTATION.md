@@ -5,6 +5,22 @@
 http://localhost:5000
 ```
 
+## Important Notes
+
+### Employee Number Requirement
+**All user registration and creation endpoints now require a unique `employeeNumber` field.** This field is mandatory and must be unique across all users in the system.
+
+- **Required Format**: Any string that uniquely identifies the employee
+- **Examples**: "EMP-1001", "ECOSIND0044", "THRIVE001", "HR-2024-001"
+- **Validation**: Must be unique across all users
+- **Error Message**: If not provided, you'll receive: "Employee Number is required. Please provide a unique employee number for this user."
+
+### Frontend Implementation
+When implementing the frontend registration form, ensure you include an input field for `employeeNumber` with appropriate validation:
+- Field is required
+- Should be unique (check with backend)
+- Can be any format that makes sense for your organization
+
 ## Authentication
 All protected endpoints require a Bearer token in the Authorization header:
 ```
@@ -60,18 +76,61 @@ The API implements role-based access control with three user roles:
 }
 ```
 
+**Required Fields:**
+- `name` (string): Full name of the user
+- `email` (string): Unique email address
+- `password` (string): User password (minimum 6 characters)
+- `employeeNumber` (string): **REQUIRED** - Unique employee identification number
+
+**Optional Fields:**
+- `role` (string): User role - "admin", "manager", or "employee" (default: "employee")
+- `department` (string): User's department
+- `jobTitle` (string): User's job title
+- `location` (string): User's location
+- `manager` (string): ObjectId of the user's manager
+
 **Success Response (201):**
 ```json
 {
-  "_id": "507f1f77bcf86cd799439011",
-  "name": "John Doe",
-  "email": "john@example.com",
-  "role": "employee",
-  "department": "India E-commerce",
-  "isActive": true,
-  "emailVerified": false,
-  "createdAt": "2024-12-01T10:00:00.000Z",
-  "updatedAt": "2024-12-01T10:00:00.000Z"
+  "message": "User created successfully",
+  "user": {
+    "_id": "507f1f77bcf86cd799439011",
+    "name": "John Doe",
+    "email": "john@example.com",
+    "role": "employee",
+    "department": "India E-commerce",
+    "employeeNumber": "EMP-1001",
+    "isActive": true,
+    "emailVerified": false,
+    "createdAt": "2024-12-01T10:00:00.000Z",
+    "updatedAt": "2024-12-01T10:00:00.000Z"
+  }
+}
+```
+
+**Error Responses:**
+
+**Missing Required Field (400):**
+```json
+{
+  "message": "Signup failed",
+  "error": "Employee Number is required. Please provide a unique employee number for this user."
+}
+```
+
+**Duplicate Email (409):**
+```json
+{
+  "message": "Signup failed",
+  "error": "Email already exists"
+}
+```
+
+**Duplicate Employee Number (409):**
+```json
+{
+  "message": "Signup failed",
+  "error": "Employee Number 'EMP-1001' already exists. Please use a different employee number."
 }
 ```
 
@@ -161,16 +220,56 @@ The API implements role-based access control with three user roles:
 }
 ```
 
+**Required Fields:**
+- `name` (string): Full name of the user
+- `email` (string): Unique email address
+- `password` (string): User password (minimum 6 characters)
+- `employeeNumber` (string): **REQUIRED** - Unique employee identification number
+
+**Optional Fields:**
+- `role` (string): User role - "admin", "manager", or "employee" (default: "employee")
+- `department` (string): User's department
+- `jobTitle` (string): User's job title
+- `location` (string): User's location
+- `manager` (string): ObjectId of the user's manager
+
 **Success Response (201):**
 ```json
 {
   "_id": "507f1f77bcf86cd799439012",
   "name": "Jane Smith",
   "email": "jane@example.com",
-  "role": "designer",
+  "role": "employee",
   "department": "Retail E-commerce",
+  "employeeNumber": "EMP-2001",
   "isActive": true,
   "createdAt": "2024-12-01T10:00:00.000Z"
+}
+```
+
+**Error Responses:**
+
+**Missing Required Field (400):**
+```json
+{
+  "error": "Missing required fields",
+  "message": "Employee Number is required. Please provide a unique employee number for this user."
+}
+```
+
+**Duplicate Email (409):**
+```json
+{
+  "error": "Duplicate email",
+  "message": "A user with this email already exists"
+}
+```
+
+**Duplicate Employee Number (409):**
+```json
+{
+  "error": "Duplicate employeeNumber",
+  "message": "Employee Number 'EMP-2001' already exists. Please use a different employee number."
 }
 ```
 

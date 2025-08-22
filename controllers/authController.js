@@ -10,9 +10,32 @@ exports.signup = async (req, res) => {
     const name = rawName || fullName;
     const email = rawEmail || workEmail;
 
+    // Validate required fields
+    if (!name) {
+      return res.status(400).json({ message: 'Signup failed', error: 'Name is required' });
+    }
+    if (!email) {
+      return res.status(400).json({ message: 'Signup failed', error: 'Email is required' });
+    }
+    if (!password) {
+      return res.status(400).json({ message: 'Signup failed', error: 'Password is required' });
+    }
+    if (!employeeNumber) {
+      return res.status(400).json({ message: 'Signup failed', error: 'Employee Number is required. Please provide a unique employee number for this user.' });
+    }
+
     // Check if user already exists
     const existingUser = await User.findOne({ email });
     if (existingUser) return res.status(400).json({ message: 'User already exists' });
+
+    // Check if employee number already exists
+    const existingEmployee = await User.findOne({ employeeNumber });
+    if (existingEmployee) {
+      return res.status(409).json({ 
+        message: 'Signup failed', 
+        error: `Employee Number '${employeeNumber}' already exists. Please use a different employee number.` 
+      });
+    }
 
     // Hash password
     const hashedPassword = await bcrypt.hash(password, 10);
@@ -25,7 +48,7 @@ exports.signup = async (req, res) => {
       role: role || undefined,
       department: department || undefined,
       manager: manager || null,
-      employeeNumber: employeeNumber || null,
+      employeeNumber: employeeNumber,
       jobTitle: jobTitle || null,
       location: location || null
     });

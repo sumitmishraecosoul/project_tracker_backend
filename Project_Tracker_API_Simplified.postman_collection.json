@@ -42,7 +42,29 @@
                 { "key": "Content-Type", "value": "application/json" }
               ],
               "cookie": [],
-              "body": "{\n  \"_id\": \"507f1f77bcf86cd799439011\",\n  \"name\": \"John Doe\",\n  \"email\": \"john@example.com\",\n  \"role\": \"developer\",\n  \"department\": \"Engineering\",\n  \"isActive\": true,\n  \"emailVerified\": false,\n  \"createdAt\": \"2024-12-01T10:00:00.000Z\",\n  \"updatedAt\": \"2024-12-01T10:00:00.000Z\"\n}"
+              "body": "{\n  \"message\": \"User created successfully\",\n  \"user\": {\n    \"_id\": \"507f1f77bcf86cd799439011\",\n    \"name\": \"John Doe\",\n    \"email\": \"john@example.com\",\n    \"role\": \"employee\",\n    \"department\": \"India E-commerce\",\n    \"employeeNumber\": \"EMP-1001\",\n    \"isActive\": true,\n    \"emailVerified\": false,\n    \"createdAt\": \"2024-12-01T10:00:00.000Z\",\n    \"updatedAt\": \"2024-12-01T10:00:00.000Z\"\n  }\n}"
+            },
+            {
+              "name": "Missing Employee Number Error",
+              "originalRequest": {
+                "method": "POST",
+                "header": [
+                  { "key": "Content-Type", "value": "application/json" }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"name\": \"John Doe\",\n  \"email\": \"john@example.com\",\n  \"password\": \"password123\",\n  \"role\": \"employee\",\n  \"department\": \"India E-commerce\"\n}"
+                },
+                "url": "{{base_url}}/api/auth/register"
+              },
+              "status": "Bad Request",
+              "code": 400,
+              "_postman_previewlanguage": "json",
+              "header": [
+                { "key": "Content-Type", "value": "application/json" }
+              ],
+              "cookie": [],
+              "body": "{\n  \"message\": \"Signup failed\",\n  \"error\": \"Employee Number is required. Please provide a unique employee number for this user.\"\n}"
             },
             {
               "name": "Duplicate Email Error",
@@ -53,7 +75,7 @@
                 ],
                 "body": {
                   "mode": "raw",
-                  "raw": "{\n  \"name\": \"John Doe\",\n  \"email\": \"john@example.com\",\n  \"password\": \"password123\"\n}"
+                  "raw": "{\n  \"name\": \"John Doe\",\n  \"email\": \"john@example.com\",\n  \"password\": \"password123\",\n  \"employeeNumber\": \"EMP-1001\"\n}"
                 },
                 "url": "{{base_url}}/api/auth/register"
               },
@@ -64,7 +86,29 @@
                 { "key": "Content-Type", "value": "application/json" }
               ],
               "cookie": [],
-              "body": "{\n  \"error\": \"Duplicate email\",\n  \"message\": \"A user with this email already exists\"\n}"
+              "body": "{\n  \"message\": \"Signup failed\",\n  \"error\": \"Email already exists\"\n}"
+            },
+            {
+              "name": "Duplicate Employee Number Error",
+              "originalRequest": {
+                "method": "POST",
+                "header": [
+                  { "key": "Content-Type", "value": "application/json" }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"name\": \"Jane Smith\",\n  \"email\": \"jane@example.com\",\n  \"password\": \"password123\",\n  \"employeeNumber\": \"EMP-1001\"\n}"
+                },
+                "url": "{{base_url}}/api/auth/register"
+              },
+              "status": "Conflict",
+              "code": 409,
+              "_postman_previewlanguage": "json",
+              "header": [
+                { "key": "Content-Type", "value": "application/json" }
+              ],
+              "cookie": [],
+              "body": "{\n  \"message\": \"Signup failed\",\n  \"error\": \"Employee Number 'EMP-1001' already exists. Please use a different employee number.\"\n}"
             }
           ]
         },
