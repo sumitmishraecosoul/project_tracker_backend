@@ -252,11 +252,35 @@ exports.createTask = async (req, res) => {
     } = req.body;
     
     // Validate required fields
-    if (!projectId || !task || !assignedTo || !reporter || !eta) {
+    if (!projectId || !task || !assignedTo || !reporter) {
       return res.status(400).json({ 
         error: 'Missing required fields',
-        message: 'projectId, task, assignedTo, reporter, and eta are required' 
+        message: 'projectId, task, assignedTo, and reporter are required' 
       });
+    }
+
+    // Validate recurring status
+    if (status === 'Recurring') {
+      if (eta) {
+        return res.status(400).json({ 
+          error: 'Invalid recurring task',
+          message: 'ETA cannot be set for recurring tasks' 
+        });
+      }
+      if (startDate) {
+        return res.status(400).json({ 
+          error: 'Invalid recurring task',
+          message: 'Start date cannot be set for recurring tasks' 
+        });
+      }
+    } else {
+      // For non-recurring tasks, eta is required
+      if (!eta) {
+        return res.status(400).json({ 
+          error: 'Missing required fields',
+          message: 'ETA is required for non-recurring tasks' 
+        });
+      }
     }
 
     // Convert assignedTo and reporter to user IDs
@@ -334,8 +358,6 @@ exports.createTask = async (req, res) => {
       status,
       assignedTo: assignedToId,
       reporter: reporterId,
-      startDate: startDate ? new Date(startDate) : null,
-      eta: new Date(eta),
       estimatedHours,
       remark,
       roadBlock,
@@ -344,6 +366,17 @@ exports.createTask = async (req, res) => {
       parentTask,
       sprint
     };
+
+    // Handle date fields based on status
+    if (status === 'Recurring') {
+      // For recurring tasks, don't set startDate or eta
+      taskData.startDate = null;
+      taskData.eta = null;
+    } else {
+      // For non-recurring tasks, set the dates
+      taskData.startDate = startDate ? new Date(startDate) : null;
+      taskData.eta = new Date(eta);
+    }
 
     const newTask = await Task.create(taskData);
     
@@ -418,8 +451,43 @@ exports.updateTask = async (req, res) => {
     if (taskType !== undefined) updateData.taskType = taskType;
     if (priority !== undefined) updateData.priority = priority;
     if (status !== undefined) updateData.status = status;
-    if (startDate !== undefined) updateData.startDate = startDate ? new Date(startDate) : null;
-    if (eta !== undefined) updateData.eta = new Date(eta);
+    
+    // Handle date fields based on status
+    const newStatus = status !== undefined ? status : existing.status;
+    
+    if (newStatus === 'Recurring') {
+      // For recurring tasks, clear date fields
+      if (startDate !== undefined) {
+        if (startDate) {
+          return res.status(400).json({ 
+            error: 'Invalid recurring task',
+            message: 'Start date cannot be set for recurring tasks' 
+          });
+        }
+        updateData.startDate = null;
+      }
+      if (eta !== undefined) {
+        if (eta) {
+          return res.status(400).json({ 
+            error: 'Invalid recurring task',
+            message: 'ETA cannot be set for recurring tasks' 
+          });
+        }
+        updateData.eta = null;
+      }
+    } else {
+      // For non-recurring tasks, handle date fields normally
+      if (startDate !== undefined) updateData.startDate = startDate ? new Date(startDate) : null;
+      if (eta !== undefined) {
+        if (!eta) {
+          return res.status(400).json({ 
+            error: 'Missing required field',
+            message: 'ETA is required for non-recurring tasks' 
+          });
+        }
+        updateData.eta = new Date(eta);
+      }
+    }
     if (estimatedHours !== undefined) updateData.estimatedHours = estimatedHours;
     if (actualHours !== undefined) updateData.actualHours = actualHours;
     if (remark !== undefined) updateData.remark = remark;

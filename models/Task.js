@@ -32,7 +32,7 @@ const taskSchema = new mongoose.Schema(
     },
     status: {
       type: String,
-      enum: ['Yet to Start', 'In Progress', 'Completed', 'Blocked', 'On Hold', 'Cancelled'],
+      enum: ['Yet to Start', 'In Progress', 'Completed', 'Blocked', 'On Hold', 'Cancelled', 'Recurring'],
       default: 'Yet to Start'
     },
     assignedTo: {
@@ -46,11 +46,34 @@ const taskSchema = new mongoose.Schema(
       required: true
     },
     startDate: {
-      type: Date
+      type: Date,
+      validate: {
+        validator: function(value) {
+          // If status is 'Recurring', startDate should not be set
+          if (this.status === 'Recurring' && value) {
+            return false;
+          }
+          return true;
+        },
+        message: 'Start date cannot be set for recurring tasks'
+      }
     },
     eta: {
       type: Date,
-      required: true
+      required: function() {
+        // ETA is not required for recurring tasks
+        return this.status !== 'Recurring';
+      },
+      validate: {
+        validator: function(value) {
+          // If status is 'Recurring', eta should not be set
+          if (this.status === 'Recurring' && value) {
+            return false;
+          }
+          return true;
+        },
+        message: 'ETA cannot be set for recurring tasks'
+      }
     },
     estimatedHours: {
       type: Number

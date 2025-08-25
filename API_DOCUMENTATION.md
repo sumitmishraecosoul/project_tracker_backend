@@ -1213,7 +1213,7 @@ The API implements role-based access control with three user roles:
 - **User Email**: `"assignedTo": "john@example.com"`
 - **User Name**: `"assignedTo": "John Doe"`
 
-**Request Body:**
+**Request Body (Regular Task):**
 ```json
 {
   "projectId": "PROJ-001",
@@ -1231,10 +1231,47 @@ The API implements role-based access control with three user roles:
 }
 ```
 
-**Required Fields:** projectId, task, assignedTo, reporter, eta
+**Request Body (Recurring Task):**
+```json
+{
+  "projectId": "PROJ-001",
+  "task": "Daily Standup Meeting",
+  "description": "Daily team standup meeting to discuss progress and blockers",
+  "taskType": "Daily",
+  "priority": "Medium",
+  "status": "Recurring",
+  "assignedTo": "507f1f77bcf86cd799439011",
+  "reporter": "507f1f77bcf86cd799439012",
+  "estimatedHours": 0.5,
+  "labels": ["meeting", "daily", "team"]
+}
+```
+
+**Required Fields:** projectId, task, assignedTo, reporter
+**Conditional Fields:** eta (required for non-recurring tasks, not allowed for recurring tasks)
 **Optional Fields:** description, taskType, priority, status, startDate, estimatedHours, remark, roadBlock, supportNeeded, labels, attachments, relatedTasks, parentTask, sprint
 
-**Success Response (201):**
+**Status Options:**
+- `Yet to Start` (default)
+- `In Progress`
+- `Completed`
+- `Blocked`
+- `On Hold`
+- `Cancelled`
+- `Recurring` (new) - Tasks that repeat regularly without specific start/end dates
+
+**Recurring Task Rules:**
+- When `status` is set to `Recurring`:
+  - `eta` field is not allowed and will be set to null
+  - `startDate` field is not allowed and will be set to null
+  - These tasks are meant for ongoing, repetitive work
+
+**Date Field Rules:**
+- `startDate` is optional for all task types
+- `eta` is required for non-recurring tasks, not allowed for recurring tasks
+- Both fields can be null/empty for regular tasks
+
+**Success Response (201) - Regular Task:**
 ```json
 {
   "_id": "507f1f77bcf86cd799439021",
@@ -1261,6 +1298,62 @@ The API implements role-based access control with three user roles:
   "sprint": "Sprint 1",
   "createdAt": "2024-12-01T10:00:00.000Z",
   "updatedAt": "2024-12-01T10:00:00.000Z"
+}
+```
+
+**Success Response (201) - Recurring Task:**
+```json
+{
+  "_id": "507f1f77bcf86cd799439022",
+  "id": "TASK-0004",
+  "projectId": "PROJ-001",
+  "task": "Daily Standup Meeting",
+  "description": "Daily team standup meeting to discuss progress and blockers",
+  "taskType": "Daily",
+  "priority": "Medium",
+  "status": "Recurring",
+  "assignedTo": {
+    "_id": "507f1f77bcf86cd799439011",
+    "name": "John Doe",
+    "email": "john@example.com"
+  },
+  "reporter": {
+    "_id": "507f1f77bcf86cd799439012",
+    "name": "Jane Smith",
+    "email": "jane@example.com"
+  },
+  "eta": null,
+  "startDate": null,
+  "estimatedHours": 0.5,
+  "labels": ["meeting", "daily", "team"],
+  "createdAt": "2024-12-01T10:00:00.000Z",
+  "updatedAt": "2024-12-01T10:00:00.000Z"
+}
+```
+
+**Error Responses:**
+
+**Invalid Recurring Task (400):**
+```json
+{
+  "error": "Invalid recurring task",
+  "message": "ETA cannot be set for recurring tasks"
+}
+```
+
+**Missing ETA for Regular Task (400):**
+```json
+{
+  "error": "Missing required fields",
+  "message": "ETA is required for non-recurring tasks"
+}
+```
+
+**Invalid Recurring Task with ETA (400):**
+```json
+{
+  "error": "Invalid recurring task",
+  "message": "ETA cannot be set for recurring tasks"
 }
 ```
 

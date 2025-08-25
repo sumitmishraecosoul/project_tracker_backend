@@ -714,7 +714,7 @@
               "raw": "{\n  \"projectId\": \"PROJ-001\",\n  \"task\": \"Implement User Authentication\",\n  \"description\": \"Create login and registration functionality with JWT tokens\",\n  \"taskType\": \"Feature\",\n  \"priority\": \"High\",\n  \"status\": \"To Do\",\n  \"assignedTo\": \"507f1f77bcf86cd799439011\",\n  \"reporter\": \"507f1f77bcf86cd799439012\",\n  \"eta\": \"2024-12-31\",\n  \"estimatedHours\": 8,\n  \"labels\": [\"frontend\", \"auth\", \"urgent\"],\n  \"sprint\": \"Sprint 1\"\n}"
             },
             "url": "{{base_url}}/api/tasks",
-            "description": "Create a new task with user ID references.\n\n**Important Changes:**\n- `assignedTo` and `reporter` now accept User IDs (ObjectId strings)\n- You can also pass user email or name - the API will convert them to IDs\n- Task ID is automatically generated with retry logic for duplicates\n\n**User Reference Examples:**\n- **User ID**: `\"assignedTo\": \"507f1f77bcf86cd799439011\"`\n- **User Email**: `\"assignedTo\": \"john@example.com\"`\n- **User Name**: `\"assignedTo\": \"John Doe\"`\n\n**Required Fields:** projectId, task, assignedTo, reporter, eta\n**Optional Fields:** description, taskType, priority, status, startDate, estimatedHours, remark, roadBlock, supportNeeded, labels, attachments, relatedTasks, parentTask, sprint"
+            "description": "Create a new task with user ID references.\n\n**Important Changes:**\n- `assignedTo` and `reporter` now accept User IDs (ObjectId strings)\n- You can also pass user email or name - the API will convert them to IDs\n- Task ID is automatically generated with retry logic for duplicates\n\n**User Reference Examples:**\n- **User ID**: `\"assignedTo\": \"507f1f77bcf86cd799439011\"`\n- **User Email**: `\"assignedTo\": \"john@example.com\"`\n- **User Name**: `\"assignedTo\": \"John Doe\"`\n\n**Required Fields:** projectId, task, assignedTo, reporter\n**Optional Fields:** description, taskType, priority, status, startDate, estimatedHours, remark, roadBlock, supportNeeded, labels, attachments, relatedTasks, parentTask, sprint"
           },
           "response": [
             {
@@ -785,6 +785,70 @@
               ],
               "cookie": [],
               "body": "{\n  \"error\": \"Invalid user reference\",\n  \"message\": \"User not found with provided email\"\n}"
+            }
+          ]
+        },
+        {
+          "name": "Create Recurring Task",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"projectId\": \"PROJ-001\",\n  \"task\": \"Daily Standup Meeting\",\n  \"description\": \"Daily team standup meeting to discuss progress and blockers\",\n  \"taskType\": \"Daily\",\n  \"priority\": \"Medium\",\n  \"status\": \"Recurring\",\n  \"assignedTo\": \"507f1f77bcf86cd799439011\",\n  \"reporter\": \"507f1f77bcf86cd799439012\",\n  \"estimatedHours\": 0.5,\n  \"labels\": [\"meeting\", \"daily\", \"team\"]\n}"
+            },
+            "url": "{{base_url}}/api/tasks",
+            "description": "Create a recurring task that repeats regularly without specific start/end dates.\n\n**Recurring Task Rules:**\n- When `status` is set to `Recurring`:\n  - `eta` field is not allowed and will be set to null\n  - `startDate` field is not allowed and will be set to null\n  - These tasks are meant for ongoing, repetitive work\n\n**Date Field Rules:**\n- `startDate` is optional for all task types\n- `eta` is optional for all task types (except recurring tasks where it's not allowed)\n- Both fields can be null/empty for regular tasks\n\n**Required Fields:** projectId, task, assignedTo, reporter\n**Optional Fields:** description, taskType, priority, status, eta, estimatedHours, remark, roadBlock, supportNeeded, labels, attachments, relatedTasks, parentTask, sprint"
+          },
+          "response": [
+            {
+              "name": "Success Response",
+              "originalRequest": {
+                "method": "POST",
+                "header": [
+                  { "key": "Content-Type", "value": "application/json" },
+                  { "key": "Authorization", "value": "Bearer {{token}}" }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"projectId\": \"PROJ-001\",\n  \"task\": \"Daily Standup Meeting\",\n  \"description\": \"Daily team standup meeting to discuss progress and blockers\",\n  \"taskType\": \"Daily\",\n  \"priority\": \"Medium\",\n  \"status\": \"Recurring\",\n  \"assignedTo\": \"507f1f77bcf86cd799439011\",\n  \"reporter\": \"507f1f77bcf86cd799439012\",\n  \"estimatedHours\": 0.5,\n  \"labels\": [\"meeting\", \"daily\", \"team\"]\n}"
+                },
+                "url": "{{base_url}}/api/tasks"
+              },
+              "status": "Created",
+              "code": 201,
+              "_postman_previewlanguage": "json",
+              "header": [
+                { "key": "Content-Type", "value": "application/json" }
+              ],
+              "cookie": [],
+              "body": "{\n  \"_id\": \"507f1f77bcf86cd799439023\",\n  \"id\": \"TASK-0004\",\n  \"projectId\": \"PROJ-001\",\n  \"task\": \"Daily Standup Meeting\",\n  \"description\": \"Daily team standup meeting to discuss progress and blockers\",\n  \"taskType\": \"Daily\",\n  \"priority\": \"Medium\",\n  \"status\": \"Recurring\",\n  \"assignedTo\": {\n    \"_id\": \"507f1f77bcf86cd799439011\",\n    \"name\": \"John Doe\",\n    \"email\": \"john@example.com\"\n  },\n  \"reporter\": {\n    \"_id\": \"507f1f77bcf86cd799439012\",\n    \"name\": \"Jane Smith\",\n    \"email\": \"jane@example.com\"\n  },\n  \"eta\": null,\n  \"startDate\": null,\n  \"estimatedHours\": 0.5,\n  \"labels\": [\"meeting\", \"daily\", \"team\"],\n  \"createdAt\": \"2024-12-01T10:00:00.000Z\",\n  \"updatedAt\": \"2024-12-01T10:00:00.000Z\"\n}"
+            },
+            {
+              "name": "Invalid Recurring Task Error",
+              "originalRequest": {
+                "method": "POST",
+                "header": [
+                  { "key": "Content-Type", "value": "application/json" },
+                  { "key": "Authorization", "value": "Bearer {{token}}" }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"projectId\": \"PROJ-001\",\n  \"task\": \"Daily Standup Meeting\",\n  \"status\": \"Recurring\",\n  \"assignedTo\": \"507f1f77bcf86cd799439011\",\n  \"reporter\": \"507f1f77bcf86cd799439012\",\n  \"eta\": \"2024-12-31\"\n}"
+                },
+                "url": "{{base_url}}/api/tasks"
+              },
+              "status": "Bad Request",
+              "code": 400,
+              "_postman_previewlanguage": "json",
+              "header": [
+                { "key": "Content-Type", "value": "application/json" }
+              ],
+              "cookie": [],
+              "body": "{\n  \"error\": \"Invalid recurring task\",\n  \"message\": \"ETA cannot be set for recurring tasks\"\n}"
             }
           ]
         },
