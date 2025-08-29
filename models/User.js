@@ -49,7 +49,8 @@ const userSchema = new mongoose.Schema({
       'Zonal Sales (India)',
       'Supply Chain & Operation',
       'Zonal Sales',
-      'Digital Marketing'
+      'Digital Marketing',
+      'Thrive'
     ],
     default: 'India E-commerce'
   },

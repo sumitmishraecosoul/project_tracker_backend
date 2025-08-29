@@ -456,22 +456,23 @@ The API implements role-based access control with three user roles:
 **Success Response (200):**
 ```json
 {
-  "departments": [
-    "Supply Chain-Operations",
-    "Human Resources and Administration",
-    "New Product Design",
-    "India E-commerce",
-    "Supply Chain",
-    "Data Analytics",
-    "E-commerce",
-    "Retail E-commerce",
-    "Finance & Accounts",
-    "Zonal Sales (India)- HORECA",
-    "Zonal Sales (India)",
-    "Supply Chain & Operation",
-    "Zonal Sales",
-    "Digital Marketing"
-  ],
+        "departments": [
+        "Supply Chain-Operations",
+        "Human Resources and Administration",
+        "New Product Design",
+        "India E-commerce",
+        "Supply Chain",
+        "Data Analytics",
+        "E-commerce",
+        "Retail E-commerce",
+        "Finance & Accounts",
+        "Zonal Sales (India)- HORECA",
+        "Zonal Sales (India)",
+        "Supply Chain & Operation",
+        "Zonal Sales",
+        "Digital Marketing",
+        "Thrive"
+      ],
   "userDepartment": "Data Analytics",
   "userRole": "admin"
 }

@@ -113,6 +113,44 @@
           ]
         },
         {
+          "name": "Register User (Thrive Department)",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Sarah Johnson\",\n  \"email\": \"sarah.johnson@thrive.com\",\n  \"password\": \"password123\",\n  \"role\": \"manager\",\n  \"department\": \"Thrive\",\n  \"employeeNumber\": \"THRIVE001\",\n  \"jobTitle\": \"Product Manager\",\n  \"location\": \"Mumbai\"\n}"
+            },
+            "url": "{{base_url}}/api/auth/register"
+          },
+          "response": [
+            {
+              "name": "Success Response",
+              "originalRequest": {
+                "method": "POST",
+                "header": [
+                  { "key": "Content-Type", "value": "application/json" }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"name\": \"Sarah Johnson\",\n  \"email\": \"sarah.johnson@thrive.com\",\n  \"password\": \"password123\",\n  \"role\": \"manager\",\n  \"department\": \"Thrive\",\n  \"employeeNumber\": \"THRIVE001\",\n  \"jobTitle\": \"Product Manager\",\n  \"location\": \"Mumbai\"\n}"
+                },
+                "url": "{{base_url}}/api/auth/register"
+              },
+              "status": "Created",
+              "code": 201,
+              "_postman_previewlanguage": "json",
+              "header": [
+                { "key": "Content-Type", "value": "application/json" }
+              ],
+              "cookie": [],
+              "body": "{\n  \"message\": \"User created successfully\",\n  \"user\": {\n    \"_id\": \"507f1f77bcf86cd799439013\",\n    \"name\": \"Sarah Johnson\",\n    \"email\": \"sarah.johnson@thrive.com\",\n    \"role\": \"manager\",\n    \"department\": \"Thrive\",\n    \"employeeNumber\": \"THRIVE001\",\n    \"isActive\": true,\n    \"emailVerified\": false,\n    \"createdAt\": \"2024-12-01T10:00:00.000Z\",\n    \"updatedAt\": \"2024-12-01T10:00:00.000Z\"\n  }\n}"
+            }
+          ]
+        },
+        {
           "name": "Login User",
           "request": {
             "method": "POST",

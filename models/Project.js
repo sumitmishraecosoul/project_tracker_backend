@@ -47,7 +47,8 @@ const projectSchema = new mongoose.Schema({
       'Zonal Sales (India)',
       'Supply Chain & Operation',
       'Zonal Sales',
-      'Digital Marketing'
+      'Digital Marketing',
+      'Thrive'
     ],
     required: true
   },
