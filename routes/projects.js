@@ -2,7 +2,7 @@ const express = require('express');
 const router = express.Router();
 const projectController = require('../controllers/projectController');
 const auth = require('../middleware/auth');
-const authorize = require('../middleware/authorize');
+const { authorize } = require('../middleware/authorize');
 
 // Protected routes - View operations (all authenticated users can view based on their role)
 router.get('/', auth, projectController.getAllProjects);

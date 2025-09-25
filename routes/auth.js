@@ -15,5 +15,6 @@ router.get('/profile', auth, authController.getProfile);
 router.put('/profile', auth, authController.updateProfile);
 router.post('/change-password', auth, authController.changePassword);
 router.post('/refresh-token', auth, authController.refreshToken);
+router.post('/switch-brand', auth, authController.switchBrand);
 
 module.exports = router;

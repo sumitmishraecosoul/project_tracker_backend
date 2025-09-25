@@ -1,4 +1,6 @@
 const User = require('../models/User');
+const UserBrand = require('../models/UserBrand');
+const Brand = require('../models/Brand');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 
@@ -37,14 +39,11 @@ exports.signup = async (req, res) => {
       });
     }
 
-    // Hash password
-    const hashedPassword = await bcrypt.hash(password, 10);
-
-    // Create user
+    // Create user (password will be hashed by pre-save middleware)
     const user = await User.create({ 
       name, 
       email, 
-      password: hashedPassword,
+      password: password,
       role: role || undefined,
       department: department || undefined,
       manager: manager || null,
@@ -71,7 +70,7 @@ exports.signup = async (req, res) => {
 // Login controller
 exports.login = async (req, res) => {
   try {
-    const { email, password } = req.body;
+    const { email, password, currentBrandId } = req.body;
 
     // Find user
     const user = await User.findOne({ email });
@@ -81,11 +80,57 @@ exports.login = async (req, res) => {
     const isMatch = await bcrypt.compare(password, user.password);
     if (!isMatch) return res.status(400).json({ message: 'Invalid credentials' });
 
-    // Create token
-    const token = jwt.sign({ userId: user._id }, process.env.JWT_SECRET, { expiresIn: '1d' });
+    // Get user's brands
+    const userBrands = await UserBrand.getUserBrands(user._id);
+    const brands = userBrands.map(ub => ({
+      id: ub.brand_id._id,
+      name: ub.brand_id.name,
+      slug: ub.brand_id.slug,
+      role: ub.role,
+      permissions: ub.permissions,
+      status: ub.status
+    }));
+
+    // Determine current brand
+    let currentBrand = null;
+    if (currentBrandId) {
+      // Validate that user has access to the requested brand
+      const userBrand = userBrands.find(ub => ub.brand_id._id.toString() === currentBrandId);
+      if (userBrand && userBrand.status === 'active') {
+        currentBrand = {
+          id: userBrand.brand_id._id,
+          name: userBrand.brand_id.name,
+          slug: userBrand.brand_id.slug,
+          role: userBrand.role,
+          permissions: userBrand.permissions
+        };
+      }
+    }
+
+    // If no current brand specified or invalid, use the first available brand
+    if (!currentBrand && brands.length > 0) {
+      const firstActiveBrand = brands.find(b => b.status === 'active');
+      if (firstActiveBrand) {
+        currentBrand = firstActiveBrand;
+      }
+    }
+
+    // Create JWT token with multi-brand support
+    const tokenPayload = {
+      userId: user._id,
+      brands: brands,
+      currentBrand: currentBrand
+    };
+
+    const token = jwt.sign(tokenPayload, process.env.JWT_SECRET, { expiresIn: '1d' });
 
     const { password: _, ...safeUser } = user.toObject();
-    res.status(200).json({ token, user: safeUser });
+    res.status(200).json({ 
+      token, 
+      user: safeUser,
+      brands: brands,
+      currentBrand: currentBrand
+    });
   } catch (err) {
     res.status(500).json({ message: 'Login failed', error: err.message });
   }
@@ -165,4 +210,97 @@ exports.refreshToken = async (req, res) => {
   } catch (err) {
     res.status(500).json({ message: 'Failed to refresh token', error: err.message });
   };
+};
+
+// Switch brand
+exports.switchBrand = async (req, res) => {
+  try {
+    const { brandId } = req.body;
+    const userId = req.user.id;
+
+    if (!brandId) {
+      return res.status(400).json({ 
+        success: false,
+        error: { 
+          code: 'MISSING_BRAND_ID',
+          message: 'Brand ID is required' 
+        }
+      });
+    }
+
+    // Check if user has access to this brand
+    const userBrand = await UserBrand.findOne({
+      user_id: userId,
+      brand_id: brandId,
+      status: 'active'
+    }).populate('brand_id', 'name slug status subscription');
+
+    if (!userBrand) {
+      return res.status(403).json({
+        success: false,
+        error: {
+          code: 'ACCESS_DENIED',
+          message: 'Access denied to this brand'
+        }
+      });
+    }
+
+    // Check if brand is active
+    if (userBrand.brand_id.status !== 'active') {
+      return res.status(400).json({
+        success: false,
+        error: {
+          code: 'BRAND_INACTIVE',
+          message: 'Brand is not active'
+        }
+      });
+    }
+
+    // Get all user's brands for the new token
+    const userBrands = await UserBrand.getUserBrands(userId);
+    const brands = userBrands.map(ub => ({
+      id: ub.brand_id._id,
+      name: ub.brand_id.name,
+      slug: ub.brand_id.slug,
+      role: ub.role,
+      permissions: ub.permissions,
+      status: ub.status
+    }));
+
+    // Set the new current brand
+    const currentBrand = {
+      id: userBrand.brand_id._id,
+      name: userBrand.brand_id.name,
+      slug: userBrand.brand_id.slug,
+      role: userBrand.role,
+      permissions: userBrand.permissions
+    };
+
+    // Create new JWT token with updated brand context
+    const tokenPayload = {
+      userId: userId,
+      brands: brands,
+      currentBrand: currentBrand
+    };
+
+    const token = jwt.sign(tokenPayload, process.env.JWT_SECRET, { expiresIn: '1d' });
+
+    res.json({
+      success: true,
+      token: token,
+      currentBrand: currentBrand,
+      brands: brands,
+      message: 'Brand switched successfully'
+    });
+  } catch (err) {
+    console.error('Error switching brand:', err);
+    res.status(500).json({
+      success: false,
+      error: {
+        code: 'BRAND_SWITCH_ERROR',
+        message: 'Failed to switch brand',
+        details: err.message
+      }
+    });
+  }
 };

@@ -1,0 +1,443 @@
+{
+  "phase4": {
+    "projectManagement": [
+      {
+        "endpoint": "GET /api/brands/68d279a43d5e636fe87eaa9f/projects",
+        "status": "SUCCESS",
+        "statusCode": 200,
+        "request": null,
+        "response": {
+          "success": true,
+          "data": {
+            "projects": [],
+            "pagination": {
+              "currentPage": 1,
+              "totalPages": 0,
+              "totalProjects": 0,
+              "hasNextPage": false,
+              "hasPrevPage": false
+            }
+          },
+          "message": "Brand projects retrieved successfully"
+        },
+        "notes": "Get brand projects successful"
+      },
+      {
+        "endpoint": "POST /api/brands/68d279a43d5e636fe87eaa9f/projects",
+        "status": "SUCCESS",
+        "statusCode": 201,
+        "request": {
+          "title": "Test Project Phase4 Final",
+          "description": "Test project for Phase 4 testing",
+          "status": "Active",
+          "priority": "Medium",
+          "department": "India E-commerce",
+          "startDate": "2024-12-01",
+          "endDate": "2024-12-31",
+          "tags": [
+            "test",
+            "phase4"
+          ],
+          "settings": {
+            "allowComments": true,
+            "allowAttachments": true,
+            "notifications": true
+          }
+        },
+        "response": {
+          "success": true,
+          "data": {
+            "_id": "68d279ac3d5e636fe87eaab3",
+            "brand_id": "68d279a43d5e636fe87eaa9f",
+            "title": "Test Project Phase4 Final",
+            "description": "Test project for Phase 4 testing",
+            "status": "Active",
+            "priority": "Medium",
+            "startDate": "2024-12-01T00:00:00.000Z",
+            "createdBy": {
+              "_id": "68d278203d5e636fe87eaa6e",
+              "name": "Test Admin Phase4",
+              "email": "testadmin.phase4@example.com",
+              "fullName": "Test Admin Phase4",
+              "workEmail": "testadmin.phase4@example.com",
+              "id": "68d278203d5e636fe87eaa6e"
+            },
+            "department": "India E-commerce",
+            "assignedTo": [],
+            "progress": 0,
+            "teamMembers": [],
+            "attachments": [],
+            "createdAt": "2025-09-23T10:42:52.552Z",
+            "updatedAt": "2025-09-23T10:42:52.552Z",
+            "__v": 0,
+            "id": "68d279ac3d5e636fe87eaab3"
+          },
+          "message": "Brand project created successfully"
+        },
+        "notes": "Create project successful (final)"
+      },
+      {
+        "endpoint": "GET /api/brands/68d279a43d5e636fe87eaa9f/projects/68d279ac3d5e636fe87eaab3",
+        "status": "SUCCESS",
+        "statusCode": 200,
+        "request": null,
+        "response": {
+          "success": true,
+          "data": {
+            "project": {
+              "_id": "68d279ac3d5e636fe87eaab3",
+              "brand_id": "68d279a43d5e636fe87eaa9f",
+              "title": "Test Project Phase4 Final",
+              "description": "Test project for Phase 4 testing",
+              "status": "Active",
+              "priority": "Medium",
+              "startDate": "2024-12-01T00:00:00.000Z",
+              "createdBy": {
+                "_id": "68d278203d5e636fe87eaa6e",
+                "name": "Test Admin Phase4",
+                "email": "testadmin.phase4@example.com",
+                "fullName": "Test Admin Phase4",
+                "workEmail": "testadmin.phase4@example.com",
+                "id": "68d278203d5e636fe87eaa6e"
+              },
+              "department": "India E-commerce",
+              "assignedTo": [],
+              "progress": 0,
+              "teamMembers": [],
+              "attachments": [],
+              "createdAt": "2025-09-23T10:42:52.552Z",
+              "updatedAt": "2025-09-23T10:42:52.552Z",
+              "__v": 0,
+              "brand": {
+                "_id": "68d279a43d5e636fe87eaa9f",
+                "name": "Phase 4 Test Brand",
+                "slug": "phase-4-test-brand",
+                "id": "68d279a43d5e636fe87eaa9f"
+              },
+              "id": "68d279ac3d5e636fe87eaab3"
+            },
+            "sections": [],
+            "views": []
+          },
+          "message": "Brand project details retrieved successfully"
+        },
+        "notes": "Get project details successful"
+      },
+      {
+        "endpoint": "PUT /api/brands/68d279a43d5e636fe87eaa9f/projects/68d279ac3d5e636fe87eaab3",
+        "status": "SUCCESS",
+        "statusCode": 200,
+        "request": {
+          "title": "Updated Test Project Phase4 Final",
+          "description": "Updated test project description",
+          "status": "Active",
+          "priority": "High",
+          "department": "India E-commerce",
+          "tags": [
+            "test",
+            "phase4",
+            "updated"
+          ]
+        },
+        "response": {
+          "success": true,
+          "data": {
+            "_id": "68d279ac3d5e636fe87eaab3",
+            "brand_id": "68d279a43d5e636fe87eaa9f",
+            "title": "Updated Test Project Phase4 Final",
+            "description": "Updated test project description",
+            "status": "Active",
+            "priority": "High",
+            "startDate": "2024-12-01T00:00:00.000Z",
+            "createdBy": {
+              "_id": "68d278203d5e636fe87eaa6e",
+              "name": "Test Admin Phase4",
+              "email": "testadmin.phase4@example.com",
+              "fullName": "Test Admin Phase4",
+              "workEmail": "testadmin.phase4@example.com",
+              "id": "68d278203d5e636fe87eaa6e"
+            },
+            "department": "India E-commerce",
+            "assignedTo": [],
+            "progress": 0,
+            "teamMembers": [],
+            "attachments": [],
+            "createdAt": "2025-09-23T10:42:52.552Z",
+            "updatedAt": "2025-09-23T10:42:53.164Z",
+            "__v": 0,
+            "id": "68d279ac3d5e636fe87eaab3"
+          },
+          "message": "Brand project updated successfully"
+        },
+        "notes": "Update project successful"
+      },
+      {
+        "endpoint": "GET /api/brands/68d279a43d5e636fe87eaa9f/projects/68d279ac3d5e636fe87eaab3/tasks",
+        "status": "SUCCESS",
+        "statusCode": 200,
+        "request": null,
+        "response": {
+          "success": true,
+          "data": [],
+          "message": "Brand project tasks retrieved successfully"
+        },
+        "notes": "Get project tasks successful"
+      },
+      {
+        "endpoint": "PUT /api/brands/68d279a43d5e636fe87eaa9f/projects/68d279ac3d5e636fe87eaab3/status",
+        "status": "SUCCESS",
+        "statusCode": 200,
+        "request": {
+          "status": "Active"
+        },
+        "response": {
+          "success": true,
+          "data": {
+            "_id": "68d279ac3d5e636fe87eaab3",
+            "brand_id": "68d279a43d5e636fe87eaa9f",
+            "title": "Updated Test Project Phase4 Final",
+            "description": "Updated test project description",
+            "status": "Active",
+            "priority": "High",
+            "startDate": "2024-12-01T00:00:00.000Z",
+            "createdBy": {
+              "_id": "68d278203d5e636fe87eaa6e",
+              "name": "Test Admin Phase4",
+              "email": "testadmin.phase4@example.com",
+              "fullName": "Test Admin Phase4",
+              "workEmail": "testadmin.phase4@example.com",
+              "id": "68d278203d5e636fe87eaa6e"
+            },
+            "department": "India E-commerce",
+            "assignedTo": [],
+            "progress": 0,
+            "teamMembers": [],
+            "attachments": [],
+            "createdAt": "2025-09-23T10:42:52.552Z",
+            "updatedAt": "2025-09-23T10:42:53.623Z",
+            "__v": 0,
+            "id": "68d279ac3d5e636fe87eaab3"
+          },
+          "message": "Project status updated successfully"
+        },
+        "notes": "Update project status successful"
+      },
+      {
+        "endpoint": "PUT /api/brands/68d279a43d5e636fe87eaa9f/projects/68d279ac3d5e636fe87eaab3/complete",
+        "status": "SUCCESS",
+        "statusCode": 200,
+        "request": null,
+        "response": {
+          "success": true,
+          "data": {
+            "_id": "68d279ac3d5e636fe87eaab3",
+            "brand_id": "68d279a43d5e636fe87eaa9f",
+            "title": "Updated Test Project Phase4 Final",
+            "description": "Updated test project description",
+            "status": "Completed",
+            "priority": "High",
+            "startDate": "2024-12-01T00:00:00.000Z",
+            "createdBy": {
+              "_id": "68d278203d5e636fe87eaa6e",
+              "name": "Test Admin Phase4",
+              "email": "testadmin.phase4@example.com",
+              "fullName": "Test Admin Phase4",
+              "workEmail": "testadmin.phase4@example.com",
+              "id": "68d278203d5e636fe87eaa6e"
+            },
+            "department": "India E-commerce",
+            "assignedTo": [],
+            "progress": 100,
+            "teamMembers": [],
+            "attachments": [],
+            "createdAt": "2025-09-23T10:42:52.552Z",
+            "updatedAt": "2025-09-23T10:42:53.860Z",
+            "__v": 0,
+            "id": "68d279ac3d5e636fe87eaab3"
+          },
+          "message": "Project completed successfully"
+        },
+        "notes": "Complete project successful"
+      },
+      {
+        "endpoint": "PUT /api/brands/68d279a43d5e636fe87eaa9f/projects/68d279ac3d5e636fe87eaab3/archive",
+        "status": "FAILED",
+        "statusCode": 500,
+        "request": null,
+        "error": {
+          "success": false,
+          "error": {
+            "code": "PROJECT_ARCHIVE_ERROR",
+            "message": "Failed to archive project",
+            "details": "Validation failed: status: `Archived` is not a valid enum value for path `status`."
+          }
+        },
+        "notes": "Archive project failed"
+      },
+      {
+        "endpoint": "GET /api/brands/68d279a43d5e636fe87eaa9f/projects/68d279ac3d5e636fe87eaab3/sections",
+        "status": "SUCCESS",
+        "statusCode": 200,
+        "request": null,
+        "response": {
+          "success": true,
+          "data": [],
+          "message": "Project sections retrieved successfully"
+        },
+        "notes": "Get project sections successful"
+      },
+      {
+        "endpoint": "POST /api/brands/68d279a43d5e636fe87eaa9f/projects/68d279ac3d5e636fe87eaab3/sections",
+        "status": "SUCCESS",
+        "statusCode": 201,
+        "request": {
+          "name": "Test Section Phase4 Final",
+          "description": "Test section for Phase 4 testing",
+          "order": 1
+        },
+        "response": {
+          "success": true,
+          "data": {
+            "brand_id": "68d279a43d5e636fe87eaa9f",
+            "project_id": "68d279ac3d5e636fe87eaab3",
+            "name": "Test Section Phase4 Final",
+            "description": "Test section for Phase 4 testing",
+            "order": 1,
+            "is_visible": true,
+            "color": "#3498db",
+            "icon": "folder",
+            "created_by": "68d278203d5e636fe87eaa6e",
+            "settings": {
+              "show_completed_tasks": true,
+              "task_limit": null,
+              "auto_archive_completed": false
+            },
+            "_id": "68d279ae3d5e636fe87eaadd",
+            "createdAt": "2025-09-23T10:42:54.427Z",
+            "updatedAt": "2025-09-23T10:42:54.427Z",
+            "__v": 0,
+            "id": "68d279ae3d5e636fe87eaadd"
+          },
+          "message": "Project section created successfully"
+        },
+        "notes": "Create project section successful"
+      },
+      {
+        "endpoint": "GET /api/brands/68d279a43d5e636fe87eaa9f/projects/68d279ac3d5e636fe87eaab3/views",
+        "status": "SUCCESS",
+        "statusCode": 200,
+        "request": null,
+        "response": {
+          "success": true,
+          "data": [],
+          "message": "Project views retrieved successfully"
+        },
+        "notes": "Get project views successful"
+      },
+      {
+        "endpoint": "POST /api/brands/68d279a43d5e636fe87eaa9f/projects/68d279ac3d5e636fe87eaab3/views",
+        "status": "SUCCESS",
+        "statusCode": 201,
+        "request": {
+          "name": "Test View Phase4 Final",
+          "type": "list",
+          "settings": {
+            "groupBy": "status",
+            "sortBy": "priority",
+            "filters": {
+              "status": [
+                "Active",
+                "In Progress"
+              ]
+            }
+          }
+        },
+        "response": {
+          "success": true,
+          "data": {
+            "brand_id": "68d279a43d5e636fe87eaa9f",
+            "project_id": "68d279ac3d5e636fe87eaab3",
+            "name": "Test View Phase4 Final",
+            "type": "list",
+            "is_default": false,
+            "is_public": false,
+            "created_by": "68d278203d5e636fe87eaa6e",
+            "settings": {
+              "filters": [
+                {
+                  "_id": "68d279ae3d5e636fe87eaae8",
+                  "id": "68d279ae3d5e636fe87eaae8"
+                }
+              ],
+              "columns": [],
+              "sorting": [],
+              "grouping": {
+                "enabled": false
+              },
+              "pagination": {
+                "enabled": true,
+                "page_size": 25
+              }
+            },
+            "permissions": {
+              "can_view": [],
+              "can_edit": [],
+              "can_delete": []
+            },
+            "_id": "68d279ae3d5e636fe87eaae7",
+            "createdAt": "2025-09-23T10:42:54.877Z",
+            "updatedAt": "2025-09-23T10:42:54.877Z",
+            "__v": 0,
+            "id": "68d279ae3d5e636fe87eaae7"
+          },
+          "message": "Project view created successfully"
+        },
+        "notes": "Create project view successful"
+      },
+      {
+        "endpoint": "GET /api/brands/68d279a43d5e636fe87eaa9f/projects/68d279ac3d5e636fe87eaab3/analytics",
+        "status": "FAILED",
+        "statusCode": 500,
+        "request": null,
+        "error": {
+          "success": false,
+          "error": {
+            "code": "PROJECT_ANALYTICS_FETCH_ERROR",
+            "message": "Failed to fetch project analytics",
+            "details": "Class constructor ObjectId cannot be invoked without 'new'"
+          }
+        },
+        "notes": "Get project analytics failed"
+      },
+      {
+        "endpoint": "GET /api/brands/68d279a43d5e636fe87eaa9f/projects/68d279ac3d5e636fe87eaab3/progress",
+        "status": "SUCCESS",
+        "statusCode": 200,
+        "request": null,
+        "response": {
+          "success": true,
+          "data": {
+            "projectId": "68d279ac3d5e636fe87eaab3",
+            "totalTasks": 0,
+            "completedTasks": 0,
+            "progress": 0,
+            "remainingTasks": 0
+          },
+          "message": "Project progress retrieved successfully"
+        },
+        "notes": "Get project progress successful"
+      },
+      {
+        "endpoint": "DELETE /api/brands/68d279a43d5e636fe87eaa9f/projects/68d279ac3d5e636fe87eaab3",
+        "status": "SUCCESS",
+        "statusCode": 200,
+        "request": null,
+        "response": {
+          "success": true,
+          "message": "Brand project deleted successfully"
+        },
+        "notes": "Delete project successful"
+      }
+    ]
+  }
+}

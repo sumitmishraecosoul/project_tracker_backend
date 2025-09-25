@@ -1,7 +1,7 @@
 {
   "info": {
-    "name": "Project Tracker API (Updated Task Schema)",
-    "description": "Complete API collection for Project Tracker Backend with updated Task schema including auto-generated IDs, new fields, and enhanced functionality.",
+    "name": "Project Tracker API (Complete Phase 1-6)",
+    "description": "Complete API collection for Project Tracker Backend with all phases implemented: Database Foundation, Authentication, Project Management, Task Management, Subtask Management, and Comments & Communication System.",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
   },
   "item": [
@@ -84,6 +84,139 @@
               { "key": "Authorization", "value": "Bearer {{token}}" }
             ],
             "url": "{{base_url}}/api/auth/refresh-token"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Brand Management",
+      "item": [
+        {
+          "name": "Get All Brands",
+          "request": {
+            "method": "GET",
+            "header": [ { "key": "Authorization", "value": "Bearer {{token}}" } ],
+            "url": "{{base_url}}/api/brands"
+          }
+        },
+        {
+          "name": "Get Brand Details",
+          "request": {
+            "method": "GET",
+            "header": [ { "key": "Authorization", "value": "Bearer {{token}}" } ],
+            "url": "{{base_url}}/api/brands/{{brand_id}}"
+          }
+        },
+        {
+          "name": "Create Brand",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"New Brand\",\n  \"description\": \"Description of the new brand\",\n  \"logo\": \"https://example.com/logo.png\",\n  \"settings\": {\n    \"timezone\": \"UTC\",\n    \"date_format\": \"MM/DD/YYYY\",\n    \"currency\": \"USD\",\n    \"language\": \"en\"\n  }\n}"
+            },
+            "url": "{{base_url}}/api/brands"
+          }
+        },
+        {
+          "name": "Update Brand",
+          "request": {
+            "method": "PUT",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Updated Brand Name\",\n  \"description\": \"Updated description\",\n  \"settings\": {\n    \"timezone\": \"America/New_York\",\n    \"currency\": \"USD\"\n  }\n}"
+            },
+            "url": "{{base_url}}/api/brands/{{brand_id}}"
+          }
+        },
+        {
+          "name": "Delete Brand",
+          "request": {
+            "method": "DELETE",
+            "header": [ { "key": "Authorization", "value": "Bearer {{token}}" } ],
+            "url": "{{base_url}}/api/brands/{{brand_id}}"
+          }
+        },
+        {
+          "name": "Switch to Brand",
+          "request": {
+            "method": "POST",
+            "header": [ { "key": "Authorization", "value": "Bearer {{token}}" } ],
+            "url": "{{base_url}}/api/brands/{{brand_id}}/switch"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Brand User Management",
+      "item": [
+        {
+          "name": "Get Brand Users",
+          "request": {
+            "method": "GET",
+            "header": [ { "key": "Authorization", "value": "Bearer {{token}}" } ],
+            "url": "{{base_url}}/api/brands/{{brand_id}}/users"
+          }
+        },
+        {
+          "name": "Add User to Brand",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"user_id\": \"{{user_id}}\",\n  \"role\": \"member\",\n  \"permissions\": {\n    \"can_create_projects\": false,\n    \"can_edit_projects\": true,\n    \"can_delete_projects\": false,\n    \"can_view_all_projects\": true,\n    \"can_create_tasks\": true,\n    \"can_edit_tasks\": true,\n    \"can_delete_tasks\": false,\n    \"can_assign_tasks\": false,\n    \"can_manage_users\": false,\n    \"can_invite_users\": false,\n    \"can_remove_users\": false,\n    \"can_view_analytics\": false,\n    \"can_export_data\": false,\n    \"can_generate_reports\": false,\n    \"can_manage_brand_settings\": false,\n    \"can_manage_billing\": false\n  }\n}"
+            },
+            "url": "{{base_url}}/api/brands/{{brand_id}}/users"
+          }
+        },
+        {
+          "name": "Update User Role in Brand",
+          "request": {
+            "method": "PUT",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"role\": \"manager\",\n  \"permissions\": {\n    \"can_create_projects\": true,\n    \"can_edit_projects\": true,\n    \"can_delete_projects\": false,\n    \"can_view_all_projects\": true,\n    \"can_create_tasks\": true,\n    \"can_edit_tasks\": true,\n    \"can_delete_tasks\": true,\n    \"can_assign_tasks\": true,\n    \"can_manage_users\": false,\n    \"can_invite_users\": true,\n    \"can_remove_users\": false,\n    \"can_view_analytics\": true,\n    \"can_export_data\": false,\n    \"can_generate_reports\": true,\n    \"can_manage_brand_settings\": false,\n    \"can_manage_billing\": false\n  }\n}"
+            },
+            "url": "{{base_url}}/api/brands/{{brand_id}}/users/{{user_id}}"
+          }
+        },
+        {
+          "name": "Remove User from Brand",
+          "request": {
+            "method": "DELETE",
+            "header": [ { "key": "Authorization", "value": "Bearer {{token}}" } ],
+            "url": "{{base_url}}/api/brands/{{brand_id}}/users/{{user_id}}"
+          }
+        },
+        {
+          "name": "Invite User to Brand",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"newuser@example.com\",\n  \"role\": \"member\",\n  \"message\": \"You have been invited to join our brand!\"\n}"
+            },
+            "url": "{{base_url}}/api/brands/{{brand_id}}/users/invite"
           }
         }
       ]
@@ -503,6 +636,231 @@
           }
         }
       ]
+    },
+    {
+      "name": "Phase 6: Comments & Communication",
+      "item": [
+        {
+          "name": "Comment Management",
+          "item": [
+            {
+              "name": "Get Brand Comments",
+              "request": {
+                "method": "GET",
+                "header": [
+                  { "key": "Authorization", "value": "Bearer {{token}}" }
+                ],
+                "url": "{{base_url}}/api/brands/{{brand_id}}/comments"
+              }
+            },
+            {
+              "name": "Get Entity Comments",
+              "request": {
+                "method": "GET",
+                "header": [
+                  { "key": "Authorization", "value": "Bearer {{token}}" }
+                ],
+                "url": "{{base_url}}/api/brands/{{brand_id}}/task/{{task_id}}/comments"
+              }
+            },
+            {
+              "name": "Create Comment",
+              "request": {
+                "method": "POST",
+                "header": [
+                  { "key": "Authorization", "value": "Bearer {{token}}" },
+                  { "key": "Content-Type", "value": "application/json" }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"content\": \"This is a comment\",\n  \"type\": \"comment\",\n  \"visibility\": \"public\",\n  \"mentions\": [\n    {\n      \"user_id\": \"user_id\",\n      \"position\": 0,\n      \"length\": 5\n    }\n  ]\n}"
+                },
+                "url": "{{base_url}}/api/brands/{{brand_id}}/task/{{task_id}}/comments"
+              }
+            },
+            {
+              "name": "Update Comment",
+              "request": {
+                "method": "PUT",
+                "header": [
+                  { "key": "Authorization", "value": "Bearer {{token}}" },
+                  { "key": "Content-Type", "value": "application/json" }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"content\": \"Updated comment content\",\n  \"visibility\": \"private\"\n}"
+                },
+                "url": "{{base_url}}/api/brands/{{brand_id}}/comments/{{comment_id}}"
+              }
+            },
+            {
+              "name": "Delete Comment",
+              "request": {
+                "method": "DELETE",
+                "header": [
+                  { "key": "Authorization", "value": "Bearer {{token}}" }
+                ],
+                "url": "{{base_url}}/api/brands/{{brand_id}}/comments/{{comment_id}}"
+              }
+            },
+            {
+              "name": "Reply to Comment",
+              "request": {
+                "method": "POST",
+                "header": [
+                  { "key": "Authorization", "value": "Bearer {{token}}" },
+                  { "key": "Content-Type", "value": "application/json" }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"content\": \"This is a reply\",\n  \"mentions\": []\n}"
+                },
+                "url": "{{base_url}}/api/brands/{{brand_id}}/comments/{{comment_id}}/reply"
+              }
+            },
+            {
+              "name": "React to Comment",
+              "request": {
+                "method": "POST",
+                "header": [
+                  { "key": "Authorization", "value": "Bearer {{token}}" },
+                  { "key": "Content-Type", "value": "application/json" }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"emoji\": \"👍\"\n}"
+                },
+                "url": "{{base_url}}/api/brands/{{brand_id}}/comments/{{comment_id}}/react"
+              }
+            },
+            {
+              "name": "Remove Reaction",
+              "request": {
+                "method": "DELETE",
+                "header": [
+                  { "key": "Authorization", "value": "Bearer {{token}}" }
+                ],
+                "url": "{{base_url}}/api/brands/{{brand_id}}/comments/{{comment_id}}/react"
+              }
+            },
+            {
+              "name": "Search Comments",
+              "request": {
+                "method": "GET",
+                "header": [
+                  { "key": "Authorization", "value": "Bearer {{token}}" }
+                ],
+                "url": "{{base_url}}/api/brands/{{brand_id}}/comments/search?q=search_term"
+              }
+            },
+            {
+              "name": "Get Comment Analytics",
+              "request": {
+                "method": "GET",
+                "header": [
+                  { "key": "Authorization", "value": "Bearer {{token}}" }
+                ],
+                "url": "{{base_url}}/api/brands/{{brand_id}}/comments/analytics"
+              }
+            }
+          ]
+        },
+        {
+          "name": "Activity Management",
+          "item": [
+            {
+              "name": "Get Brand Activities",
+              "request": {
+                "method": "GET",
+                "header": [
+                  { "key": "Authorization", "value": "Bearer {{token}}" }
+                ],
+                "url": "{{base_url}}/api/brands/{{brand_id}}/activities"
+              }
+            },
+            {
+              "name": "Get User Activity Feed",
+              "request": {
+                "method": "GET",
+                "header": [
+                  { "key": "Authorization", "value": "Bearer {{token}}" }
+                ],
+                "url": "{{base_url}}/api/brands/{{brand_id}}/activities/feed"
+              }
+            },
+            {
+              "name": "Create Activity",
+              "request": {
+                "method": "POST",
+                "header": [
+                  { "key": "Authorization", "value": "Bearer {{token}}" },
+                  { "key": "Content-Type", "value": "application/json" }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"type\": \"task_created\",\n  \"action\": \"created a task\",\n  \"description\": \"User created a new task\",\n  \"target\": {\n    \"type\": \"task\",\n    \"id\": \"task_id\",\n    \"name\": \"Task Name\"\n  },\n  \"context\": {\n    \"project_id\": \"project_id\",\n    \"task_id\": \"task_id\"\n  },\n  \"visibility\": \"public\",\n  \"recipients\": [\n    {\n      \"user_id\": \"user_id\",\n      \"role\": \"actor\"\n    }\n  ],\n  \"tags\": [\"tag1\", \"tag2\"],\n  \"priority\": \"medium\"\n}"
+                },
+                "url": "{{base_url}}/api/brands/{{brand_id}}/activities"
+              }
+            },
+            {
+              "name": "Mark Activity as Read",
+              "request": {
+                "method": "PUT",
+                "header": [
+                  { "key": "Authorization", "value": "Bearer {{token}}" }
+                ],
+                "url": "{{base_url}}/api/brands/{{brand_id}}/activities/{{activity_id}}/read"
+              }
+            },
+            {
+              "name": "Search Activities",
+              "request": {
+                "method": "GET",
+                "header": [
+                  { "key": "Authorization", "value": "Bearer {{token}}" }
+                ],
+                "url": "{{base_url}}/api/brands/{{brand_id}}/activities/search?q=search_term"
+              }
+            },
+            {
+              "name": "Get Activity Analytics",
+              "request": {
+                "method": "GET",
+                "header": [
+                  { "key": "Authorization", "value": "Bearer {{token}}" }
+                ],
+                "url": "{{base_url}}/api/brands/{{brand_id}}/activities/analytics"
+              }
+            },
+            {
+              "name": "Get Activity Notifications",
+              "request": {
+                "method": "GET",
+                "header": [
+                  { "key": "Authorization", "value": "Bearer {{token}}" }
+                ],
+                "url": "{{base_url}}/api/brands/{{brand_id}}/activities/notifications"
+              }
+            },
+            {
+              "name": "Update Activity Preferences",
+              "request": {
+                "method": "PUT",
+                "header": [
+                  { "key": "Authorization", "value": "Bearer {{token}}" },
+                  { "key": "Content-Type", "value": "application/json" }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"email_notifications\": true,\n  \"in_app_notifications\": true,\n  \"activity_types\": [\"task_created\", \"task_updated\", \"comment_created\"],\n  \"notification_frequency\": \"immediate\",\n  \"quiet_hours\": {\n    \"enabled\": false,\n    \"start\": \"22:00\",\n    \"end\": \"08:00\"\n  }\n}"
+                },
+                "url": "{{base_url}}/api/brands/{{brand_id}}/activities/preferences"
+              }
+            }
+          ]
+        }
+      ]
     }
   ],
   "variable": [
@@ -511,7 +869,10 @@
     { "key": "user_id", "value": "" },
     { "key": "project_id", "value": "" },
     { "key": "task_id", "value": "" },
-    { "key": "user_task_id", "value": "" }
+    { "key": "user_task_id", "value": "" },
+    { "key": "brand_id", "value": "" },
+    { "key": "comment_id", "value": "" },
+    { "key": "activity_id", "value": "" }
   ]
 }
 

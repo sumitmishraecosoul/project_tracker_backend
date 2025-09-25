@@ -1,0 +1,764 @@
+{
+  "info": {
+    "name": "Project Tracker API - Phases 1-4 (Updated with Fixes)",
+    "description": "Complete API collection for Project Tracker Backend - Phases 1-4 with all fixes applied",
+    "version": "2.0.0",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "auth": {
+    "type": "bearer",
+    "bearer": [
+      {
+        "key": "token",
+        "value": "{{auth_token}}",
+        "type": "string"
+      }
+    ]
+  },
+  "variable": [
+    {
+      "key": "base_url",
+      "value": "http://localhost:5000/api",
+      "type": "string"
+    },
+    {
+      "key": "auth_token",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "brand_id",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "project_id",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "user_id",
+      "value": "",
+      "type": "string"
+    }
+  ],
+  "item": [
+    {
+      "name": "Phase 1: Authentication APIs",
+      "description": "User authentication and management APIs",
+      "item": [
+        {
+          "name": "User Registration",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"John Doe\",\n  \"email\": \"john.doe@example.com\",\n  \"password\": \"password123\",\n  \"role\": \"employee\",\n  \"employeeNumber\": \"EMP-001\",\n  \"department\": \"India E-commerce\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/auth/register",
+              "host": ["{{base_url}}"],
+              "path": ["auth", "register"]
+            }
+          }
+        },
+        {
+          "name": "User Login",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"john.doe@example.com\",\n  \"password\": \"password123\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/auth/login",
+              "host": ["{{base_url}}"],
+              "path": ["auth", "login"]
+            }
+          }
+        },
+        {
+          "name": "Forgot Password",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"john.doe@example.com\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/auth/forgot-password",
+              "host": ["{{base_url}}"],
+              "path": ["auth", "forgot-password"]
+            }
+          }
+        },
+        {
+          "name": "Reset Password",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"token\": \"reset_token_here\",\n  \"password\": \"newpassword123\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/auth/reset-password",
+              "host": ["{{base_url}}"],
+              "path": ["auth", "reset-password"]
+            }
+          }
+        },
+        {
+          "name": "Get User Profile",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{auth_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/auth/profile",
+              "host": ["{{base_url}}"],
+              "path": ["auth", "profile"]
+            }
+          }
+        },
+        {
+          "name": "Update User Profile",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{auth_token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"John Updated\",\n  \"department\": \"Finance & Accounts\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/auth/profile",
+              "host": ["{{base_url}}"],
+              "path": ["auth", "profile"]
+            }
+          }
+        },
+        {
+          "name": "Change Password",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{auth_token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"currentPassword\": \"password123\",\n  \"newPassword\": \"newpassword123\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/auth/change-password",
+              "host": ["{{base_url}}"],
+              "path": ["auth", "change-password"]
+            }
+          }
+        },
+        {
+          "name": "Refresh Token",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{auth_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/auth/refresh-token",
+              "host": ["{{base_url}}"],
+              "path": ["auth", "refresh-token"]
+            }
+          }
+        },
+        {
+          "name": "Switch Brand",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{auth_token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"brandId\": \"{{brand_id}}\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/auth/switch-brand",
+              "host": ["{{base_url}}"],
+              "path": ["auth", "switch-brand"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Phase 2: Brand Management APIs",
+      "description": "Brand creation, management, and settings APIs",
+      "item": [
+        {
+          "name": "Get All Brands",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{auth_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/brands",
+              "host": ["{{base_url}}"],
+              "path": ["brands"]
+            }
+          }
+        },
+        {
+          "name": "Get Brand by ID",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{auth_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/brands/{{brand_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["brands", "{{brand_id}}"]
+            }
+          }
+        },
+        {
+          "name": "Create Brand",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{auth_token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"My Company\",\n  \"description\": \"A great company\",\n  \"website\": \"https://mycompany.com\",\n  \"industry\": \"Technology\",\n  \"size\": \"Medium\",\n  \"settings\": {\n    \"timezone\": \"UTC\",\n    \"dateFormat\": \"MM/DD/YYYY\",\n    \"currency\": \"USD\"\n  }\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/brands",
+              "host": ["{{base_url}}"],
+              "path": ["brands"]
+            }
+          }
+        },
+        {
+          "name": "Update Brand",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{auth_token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"My Updated Company\",\n  \"description\": \"An even better company\",\n  \"website\": \"https://myupdatedcompany.com\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/brands/{{brand_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["brands", "{{brand_id}}"]
+            }
+          }
+        },
+        {
+          "name": "Delete Brand (Owner Only)",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{auth_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/brands/{{brand_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["brands", "{{brand_id}}"]
+            }
+          }
+        },
+        {
+          "name": "Switch Brand",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{auth_token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"brandId\": \"{{brand_id}}\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/brands/{{brand_id}}/switch",
+              "host": ["{{base_url}}"],
+              "path": ["brands", "{{brand_id}}", "switch"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Phase 3: Brand User Management APIs",
+      "description": "Brand user management, roles, and permissions APIs",
+      "item": [
+        {
+          "name": "Get Brand Users",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{auth_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/brands/{{brand_id}}/users",
+              "host": ["{{base_url}}"],
+              "path": ["brands", "{{brand_id}}", "users"]
+            }
+          }
+        },
+        {
+          "name": "Add User to Brand",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{auth_token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"existing.user@example.com\",\n  \"role\": \"member\",\n  \"permissions\": {\n    \"can_create_projects\": true,\n    \"can_edit_projects\": false\n  }\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/brands/{{brand_id}}/users",
+              "host": ["{{base_url}}"],
+              "path": ["brands", "{{brand_id}}", "users"]
+            }
+          }
+        },
+        {
+          "name": "Update User Role",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{auth_token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"role\": \"manager\",\n  \"permissions\": {\n    \"can_create_projects\": true,\n    \"can_edit_projects\": true,\n    \"can_delete_projects\": true,\n    \"can_manage_users\": true\n  }\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/brands/{{brand_id}}/users/{{user_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["brands", "{{brand_id}}", "users", "{{user_id}}"]
+            }
+          }
+        },
+        {
+          "name": "Invite User to Brand (FIXED)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{auth_token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"existing.user@example.com\",\n  \"role\": \"member\",\n  \"message\": \"You are invited to join our brand!\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/brands/{{brand_id}}/users/invite",
+              "host": ["{{base_url}}"],
+              "path": ["brands", "{{brand_id}}", "users", "invite"]
+            }
+          }
+        },
+        {
+          "name": "Remove User from Brand",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{auth_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/brands/{{brand_id}}/users/{{user_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["brands", "{{brand_id}}", "users", "{{user_id}}"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Phase 4: Project Management APIs",
+      "description": "Project creation, management, and analytics APIs",
+      "item": [
+        {
+          "name": "Get Brand Projects",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{auth_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/brands/{{brand_id}}/projects",
+              "host": ["{{base_url}}"],
+              "path": ["brands", "{{brand_id}}", "projects"]
+            }
+          }
+        },
+        {
+          "name": "Get Project by ID",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{auth_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/brands/{{brand_id}}/projects/{{project_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["brands", "{{brand_id}}", "projects", "{{project_id}}"]
+            }
+          }
+        },
+        {
+          "name": "Create Project (FIXED)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{auth_token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"title\": \"My New Project\",\n  \"description\": \"A great project\",\n  \"department\": \"India E-commerce\",\n  \"priority\": \"High\",\n  \"start_date\": \"2025-09-24T00:00:00.000Z\",\n  \"end_date\": \"2025-10-24T00:00:00.000Z\",\n  \"status\": \"Active\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/brands/{{brand_id}}/projects",
+              "host": ["{{base_url}}"],
+              "path": ["brands", "{{brand_id}}", "projects"]
+            }
+          }
+        },
+        {
+          "name": "Update Project",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{auth_token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"title\": \"Updated Project Title\",\n  \"description\": \"Updated project description\",\n  \"priority\": \"Medium\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/brands/{{brand_id}}/projects/{{project_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["brands", "{{brand_id}}", "projects", "{{project_id}}"]
+            }
+          }
+        },
+        {
+          "name": "Delete Project",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{auth_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/brands/{{brand_id}}/projects/{{project_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["brands", "{{brand_id}}", "projects", "{{project_id}}"]
+            }
+          }
+        },
+        {
+          "name": "Get Project Tasks",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{auth_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/brands/{{brand_id}}/projects/{{project_id}}/tasks",
+              "host": ["{{base_url}}"],
+              "path": ["brands", "{{brand_id}}", "projects", "{{project_id}}", "tasks"]
+            }
+          }
+        },
+        {
+          "name": "Update Project Status",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{auth_token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"status\": \"Completed\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/brands/{{brand_id}}/projects/{{project_id}}/status",
+              "host": ["{{base_url}}"],
+              "path": ["brands", "{{brand_id}}", "projects", "{{project_id}}", "status"]
+            }
+          }
+        },
+        {
+          "name": "Complete Project",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{auth_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/brands/{{brand_id}}/projects/{{project_id}}/complete",
+              "host": ["{{base_url}}"],
+              "path": ["brands", "{{brand_id}}", "projects", "{{project_id}}", "complete"]
+            }
+          }
+        },
+        {
+          "name": "Get Project Sections",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{auth_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/brands/{{brand_id}}/projects/{{project_id}}/sections",
+              "host": ["{{base_url}}"],
+              "path": ["brands", "{{brand_id}}", "projects", "{{project_id}}", "sections"]
+            }
+          }
+        },
+        {
+          "name": "Create Project Section",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{auth_token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"New Section\",\n  \"description\": \"Section description\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/brands/{{brand_id}}/projects/{{project_id}}/sections",
+              "host": ["{{base_url}}"],
+              "path": ["brands", "{{brand_id}}", "projects", "{{project_id}}", "sections"]
+            }
+          }
+        },
+        {
+          "name": "Get Project Views",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{auth_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/brands/{{brand_id}}/projects/{{project_id}}/views",
+              "host": ["{{base_url}}"],
+              "path": ["brands", "{{brand_id}}", "projects", "{{project_id}}", "views"]
+            }
+          }
+        },
+        {
+          "name": "Create Project View (FIXED)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{auth_token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"My View\",\n  \"type\": \"list\",\n  \"filters\": {\n    \"status\": \"Active\"\n  }\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/brands/{{brand_id}}/projects/{{project_id}}/views",
+              "host": ["{{base_url}}"],
+              "path": ["brands", "{{brand_id}}", "projects", "{{project_id}}", "views"]
+            }
+          }
+        },
+        {
+          "name": "Get Project Progress",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{auth_token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/brands/{{brand_id}}/projects/{{project_id}}/progress",
+              "host": ["{{base_url}}"],
+              "path": ["brands", "{{brand_id}}", "projects", "{{project_id}}", "progress"]
+            }
+          }
+        }
+      ]
+    }
+  ]
+}

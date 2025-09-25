@@ -1,0 +1,423 @@
+{
+  "phase2": {
+    "brandManagement": [
+      {
+        "endpoint": "GET /api/brands",
+        "status": "SUCCESS",
+        "statusCode": 200,
+        "request": null,
+        "response": {
+          "success": true,
+          "data": [
+            {
+              "id": "68d236b5ed7feeb0d191ad23",
+              "name": "Phase 1 Test Brand 1758607029471",
+              "slug": "phase-1-test-brand-1758607029471",
+              "status": "active",
+              "role": "owner",
+              "permissions": {
+                "can_create_projects": true,
+                "can_edit_projects": true,
+                "can_delete_projects": true,
+                "can_view_all_projects": true,
+                "can_create_tasks": true,
+                "can_edit_tasks": true,
+                "can_delete_tasks": true,
+                "can_assign_tasks": true,
+                "can_manage_users": true,
+                "can_invite_users": true,
+                "can_remove_users": true,
+                "can_view_analytics": true,
+                "can_export_data": true,
+                "can_generate_reports": true,
+                "can_manage_brand_settings": true,
+                "can_manage_billing": true
+              },
+              "joined_at": "2025-09-23T05:57:09.607Z",
+              "subscription": {
+                "plan": "free",
+                "status": "trial",
+                "billing_cycle": "monthly",
+                "max_users": 5,
+                "max_projects": 10,
+                "features": [],
+                "trial_ends_at": "2025-10-07T05:57:09.553Z"
+              }
+            },
+            {
+              "id": "68d236c0ed7feeb0d191ad2e",
+              "name": "Debug Test Brand 1758607040158",
+              "slug": "debug-test-brand-1758607040158",
+              "status": "active",
+              "role": "owner",
+              "permissions": {
+                "can_create_projects": true,
+                "can_edit_projects": true,
+                "can_delete_projects": true,
+                "can_view_all_projects": true,
+                "can_create_tasks": true,
+                "can_edit_tasks": true,
+                "can_delete_tasks": true,
+                "can_assign_tasks": true,
+                "can_manage_users": true,
+                "can_invite_users": true,
+                "can_remove_users": true,
+                "can_view_analytics": true,
+                "can_export_data": true,
+                "can_generate_reports": true,
+                "can_manage_brand_settings": true,
+                "can_manage_billing": true
+              },
+              "joined_at": "2025-09-23T05:57:20.264Z",
+              "subscription": {
+                "plan": "free",
+                "status": "trial",
+                "billing_cycle": "monthly",
+                "max_users": 5,
+                "max_projects": 10,
+                "features": [],
+                "trial_ends_at": "2025-10-07T05:57:20.227Z"
+              }
+            },
+            {
+              "id": "68d236c9ed7feeb0d191ad3c",
+              "name": "Updated Phase 1 Test Brand",
+              "slug": "phase-1-test-brand-1758607049888",
+              "status": "active",
+              "role": "owner",
+              "permissions": {
+                "can_create_projects": true,
+                "can_edit_projects": true,
+                "can_delete_projects": true,
+                "can_view_all_projects": true,
+                "can_create_tasks": true,
+                "can_edit_tasks": true,
+                "can_delete_tasks": true,
+                "can_assign_tasks": true,
+                "can_manage_users": true,
+                "can_invite_users": true,
+                "can_remove_users": true,
+                "can_view_analytics": true,
+                "can_export_data": true,
+                "can_generate_reports": true,
+                "can_manage_brand_settings": true,
+                "can_manage_billing": true
+              },
+              "joined_at": "2025-09-23T05:57:29.988Z",
+              "subscription": {
+                "plan": "free",
+                "status": "trial",
+                "billing_cycle": "monthly",
+                "max_users": 5,
+                "max_projects": 10,
+                "features": [],
+                "trial_ends_at": "2025-10-07T05:57:29.953Z"
+              }
+            },
+            {
+              "id": "68d24381ed7feeb0d191b083",
+              "name": "Test Brand 1758610305512",
+              "slug": "test-brand-1758610305512",
+              "status": "active",
+              "role": "owner",
+              "permissions": {
+                "can_create_projects": true,
+                "can_edit_projects": true,
+                "can_delete_projects": true,
+                "can_view_all_projects": true,
+                "can_create_tasks": true,
+                "can_edit_tasks": true,
+                "can_delete_tasks": true,
+                "can_assign_tasks": true,
+                "can_manage_users": true,
+                "can_invite_users": true,
+                "can_remove_users": true,
+                "can_view_analytics": true,
+                "can_export_data": true,
+                "can_generate_reports": true,
+                "can_manage_brand_settings": true,
+                "can_manage_billing": true
+              },
+              "joined_at": "2025-09-23T06:51:45.967Z",
+              "subscription": {
+                "plan": "free",
+                "status": "trial",
+                "billing_cycle": "monthly",
+                "max_users": 5,
+                "max_projects": 10,
+                "features": [],
+                "trial_ends_at": "2025-10-07T06:51:45.924Z"
+              }
+            },
+            {
+              "id": "68d24791ed7feeb0d191b13e",
+              "name": "Test Brand 1758611345310",
+              "slug": "test-brand-1758611345310",
+              "status": "active",
+              "role": "owner",
+              "permissions": {
+                "can_create_projects": true,
+                "can_edit_projects": true,
+                "can_delete_projects": true,
+                "can_view_all_projects": true,
+                "can_create_tasks": true,
+                "can_edit_tasks": true,
+                "can_delete_tasks": true,
+                "can_assign_tasks": true,
+                "can_manage_users": true,
+                "can_invite_users": true,
+                "can_remove_users": true,
+                "can_view_analytics": true,
+                "can_export_data": true,
+                "can_generate_reports": true,
+                "can_manage_brand_settings": true,
+                "can_manage_billing": true
+              },
+              "joined_at": "2025-09-23T07:09:05.530Z",
+              "subscription": {
+                "plan": "free",
+                "status": "trial",
+                "billing_cycle": "monthly",
+                "max_users": 5,
+                "max_projects": 10,
+                "features": [],
+                "trial_ends_at": "2025-10-07T07:09:05.489Z"
+              }
+            }
+          ],
+          "message": "Brands retrieved successfully"
+        },
+        "notes": "Get all brands successful"
+      },
+      {
+        "endpoint": "POST /api/brands",
+        "status": "SUCCESS",
+        "statusCode": 201,
+        "request": {
+          "name": "Test Brand Phase2 1758616324265",
+          "description": "Test brand for Phase 2 testing",
+          "logo": "https://example.com/logo.png",
+          "settings": {
+            "theme": "light",
+            "notifications": true,
+            "timezone": "UTC"
+          }
+        },
+        "response": {
+          "success": true,
+          "data": {
+            "id": "68d25b04ed7feeb0d191b1fe",
+            "name": "Test Brand Phase2 1758616324265",
+            "slug": "test-brand-phase2-1758616324265",
+            "description": "Test brand for Phase 2 testing",
+            "logo": "https://example.com/logo.png",
+            "status": "active",
+            "settings": {
+              "timezone": "UTC",
+              "date_format": "MM/DD/YYYY",
+              "currency": "USD",
+              "language": "en",
+              "working_hours": {
+                "start": "09:00",
+                "end": "17:00",
+                "timezone": "UTC"
+              },
+              "holidays": []
+            },
+            "subscription": {
+              "plan": "free",
+              "status": "trial",
+              "billing_cycle": "monthly",
+              "max_users": 5,
+              "max_projects": 10,
+              "features": [],
+              "trial_ends_at": "2025-10-07T08:32:04.350Z"
+            }
+          },
+          "message": "Brand created successfully"
+        },
+        "notes": "Create brand successful"
+      },
+      {
+        "endpoint": "GET /api/brands/68d25b04ed7feeb0d191b1fe",
+        "status": "SUCCESS",
+        "statusCode": 200,
+        "request": null,
+        "response": {
+          "success": true,
+          "data": {
+            "id": "68d25b04ed7feeb0d191b1fe",
+            "name": "Test Brand Phase2 1758616324265",
+            "slug": "test-brand-phase2-1758616324265",
+            "description": "Test brand for Phase 2 testing",
+            "logo": "https://example.com/logo.png",
+            "status": "active",
+            "settings": {
+              "working_hours": {
+                "start": "09:00",
+                "end": "17:00",
+                "timezone": "UTC"
+              },
+              "timezone": "UTC",
+              "date_format": "MM/DD/YYYY",
+              "currency": "USD",
+              "language": "en",
+              "holidays": []
+            },
+            "subscription": {
+              "plan": "free",
+              "status": "trial",
+              "billing_cycle": "monthly",
+              "max_users": 5,
+              "max_projects": 10,
+              "features": [],
+              "trial_ends_at": "2025-10-07T08:32:04.350Z"
+            },
+            "compliance": {
+              "data_retention_days": 2555,
+              "gdpr_compliant": true,
+              "audit_logging": true,
+              "data_encryption": true
+            },
+            "created_by": {
+              "_id": "68d2220aba59a7daa49387b2",
+              "name": "Test Admin",
+              "email": "testadmin@example.com",
+              "fullName": "Test Admin",
+              "workEmail": "testadmin@example.com",
+              "id": "68d2220aba59a7daa49387b2"
+            },
+            "user_role": "owner",
+            "user_permissions": {
+              "can_create_projects": true,
+              "can_edit_projects": true,
+              "can_delete_projects": true,
+              "can_view_all_projects": true,
+              "can_create_tasks": true,
+              "can_edit_tasks": true,
+              "can_delete_tasks": true,
+              "can_assign_tasks": true,
+              "can_manage_users": true,
+              "can_invite_users": true,
+              "can_remove_users": true,
+              "can_view_analytics": true,
+              "can_export_data": true,
+              "can_generate_reports": true,
+              "can_manage_brand_settings": true,
+              "can_manage_billing": true
+            }
+          },
+          "message": "Brand details retrieved successfully"
+        },
+        "notes": "Get brand details successful"
+      },
+      {
+        "endpoint": "PUT /api/brands/68d25b04ed7feeb0d191b1fe",
+        "status": "SUCCESS",
+        "statusCode": 200,
+        "request": {
+          "name": "Updated Test Brand Phase2 1758616324578",
+          "description": "Updated test brand description",
+          "settings": {
+            "theme": "dark",
+            "notifications": false,
+            "timezone": "Asia/Kolkata"
+          }
+        },
+        "response": {
+          "success": true,
+          "data": {
+            "id": "68d25b04ed7feeb0d191b1fe",
+            "name": "Updated Test Brand Phase2 1758616324578",
+            "slug": "test-brand-phase2-1758616324265",
+            "description": "Updated test brand description",
+            "logo": "https://example.com/logo.png",
+            "status": "active",
+            "settings": {
+              "working_hours": {
+                "start": "09:00",
+                "end": "17:00",
+                "timezone": "UTC"
+              },
+              "date_format": "MM/DD/YYYY",
+              "currency": "USD",
+              "language": "en",
+              "timezone": "Asia/Kolkata",
+              "holidays": []
+            },
+            "subscription": {
+              "plan": "free",
+              "status": "trial",
+              "billing_cycle": "monthly",
+              "max_users": 5,
+              "max_projects": 10,
+              "features": [],
+              "trial_ends_at": "2025-10-07T08:32:04.350Z"
+            }
+          },
+          "message": "Brand updated successfully"
+        },
+        "notes": "Update brand successful"
+      },
+      {
+        "endpoint": "POST /api/brands/68d25b04ed7feeb0d191b1fe/switch",
+        "status": "SUCCESS",
+        "statusCode": 200,
+        "request": null,
+        "response": {
+          "success": true,
+          "data": {
+            "brand_id": "68d25b04ed7feeb0d191b1fe",
+            "brand_name": "Updated Test Brand Phase2 1758616324578",
+            "brand_slug": "test-brand-phase2-1758616324265",
+            "role": "owner",
+            "permissions": {
+              "can_create_projects": true,
+              "can_edit_projects": true,
+              "can_delete_projects": true,
+              "can_view_all_projects": true,
+              "can_create_tasks": true,
+              "can_edit_tasks": true,
+              "can_delete_tasks": true,
+              "can_assign_tasks": true,
+              "can_manage_users": true,
+              "can_invite_users": true,
+              "can_remove_users": true,
+              "can_view_analytics": true,
+              "can_export_data": true,
+              "can_generate_reports": true,
+              "can_manage_brand_settings": true,
+              "can_manage_billing": true
+            },
+            "subscription": {
+              "plan": "free",
+              "status": "trial",
+              "billing_cycle": "monthly",
+              "max_users": 5,
+              "max_projects": 10,
+              "features": [],
+              "trial_ends_at": "2025-10-07T08:32:04.350Z"
+            }
+          },
+          "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjY4ZDIyMjBhYmE1OWE3ZGFhNDkzODdiMiIsImVtYWlsIjoidGVzdGFkbWluQGV4YW1wbGUuY29tIiwibmFtZSI6IlRlc3QgQWRtaW4iLCJyb2xlIjoib3duZXIiLCJicmFuZElkIjoiNjhkMjViMDRlZDdmZWViMGQxOTFiMWZlIiwiYnJhbmROYW1lIjoiVXBkYXRlZCBUZXN0IEJyYW5kIFBoYXNlMiAxNzU4NjE2MzI0NTc4IiwiYnJhbmRTbHVnIjoidGVzdC1icmFuZC1waGFzZTItMTc1ODYxNjMyNDI2NSIsInBlcm1pc3Npb25zIjp7ImNhbl9jcmVhdGVfcHJvamVjdHMiOnRydWUsImNhbl9lZGl0X3Byb2plY3RzIjp0cnVlLCJjYW5fZGVsZXRlX3Byb2plY3RzIjp0cnVlLCJjYW5fdmlld19hbGxfcHJvamVjdHMiOnRydWUsImNhbl9jcmVhdGVfdGFza3MiOnRydWUsImNhbl9lZGl0X3Rhc2tzIjp0cnVlLCJjYW5fZGVsZXRlX3Rhc2tzIjp0cnVlLCJjYW5fYXNzaWduX3Rhc2tzIjp0cnVlLCJjYW5fbWFuYWdlX3VzZXJzIjp0cnVlLCJjYW5faW52aXRlX3VzZXJzIjp0cnVlLCJjYW5fcmVtb3ZlX3VzZXJzIjp0cnVlLCJjYW5fdmlld19hbmFseXRpY3MiOnRydWUsImNhbl9leHBvcnRfZGF0YSI6dHJ1ZSwiY2FuX2dlbmVyYXRlX3JlcG9ydHMiOnRydWUsImNhbl9tYW5hZ2VfYnJhbmRfc2V0dGluZ3MiOnRydWUsImNhbl9tYW5hZ2VfYmlsbGluZyI6dHJ1ZX0sImlhdCI6MTc1ODYxNjMyNCwiZXhwIjoxNzU4NzAyNzI0fQ.wioPpHx1wSwIsSmvzpwhbsWvKGk3u4gVzykzPwuiOFo",
+          "message": "Switched to brand successfully"
+        },
+        "notes": "Switch to brand successful"
+      },
+      {
+        "endpoint": "DELETE /api/brands/68d25b04ed7feeb0d191b1fe",
+        "status": "FAILED",
+        "statusCode": 403,
+        "request": null,
+        "error": {
+          "success": false,
+          "error": {
+            "code": "INSUFFICIENT_ROLE",
+            "message": "Forbidden: insufficient role"
+          }
+        },
+        "notes": "Delete brand failed"
+      }
+    ]
+  }
+}

@@ -9,17 +9,24 @@
     "migrate:reset-task-counter": "node reset-task-counter.js",
     "migrate:standardize-project-ids": "node migration-standardize-project-ids.js",
     "migrate:fix-task-status-type": "node migration-fix-task-status-and-type.js",
+    "migrate:add-brand-support": "node migration-add-brand-support.js",
+    "setup:brands": "node setup-brands.js",
     "migrate:all": "npm run migrate:reset-task-counter && npm run migrate:fix-task-users && npm run migrate:standardize-project-ids",
     "test:task-creation": "node test-task-creation.js"
   },
   "dependencies": {
+    "axios": "^1.12.2",
     "bcryptjs": "^2.4.3",
+    "cheerio": "^1.1.2",
     "cors": "^2.8.5",
     "dotenv": "^16.3.1",
     "express": "^4.18.2",
     "jsonwebtoken": "^9.0.2",
+    "marked": "^16.3.0",
     "mongoose": "^7.6.1",
-    "multer": "^2.0.2"
+    "multer": "^2.0.2",
+    "nodemailer": "^7.0.6",
+    "ws": "^8.18.3"
   },
   "devDependencies": {
     "nodemon": "^3.0.1"

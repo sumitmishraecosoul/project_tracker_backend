@@ -42,6 +42,19 @@ const getDepartmentUserIds = async (department) => {
   return users.map(u => u._id.toString());
 };
 
+// Utility to fetch a manager's team (direct reports + self)
+const getManagerTeamUserIds = async (managerId) => {
+  const manager = await User.findById(managerId);
+  if (!manager) return [];
+  
+  // Get direct reports
+  const directReports = await User.find({ manager: managerId, isActive: true }).select('_id');
+  const directReportIds = directReports.map(u => u._id.toString());
+  
+  // Include manager themselves
+  return [managerId.toString(), ...directReportIds];
+};
+
 // Check if a user can view a project
 const canViewProject = async (user, project) => {
   if (!user || !project) return false;
@@ -257,13 +270,20 @@ const getProjectById = async (req, res) => {
 // Create new project
 const createProject = async (req, res) => {
   try {
-    const { title, description, status, priority, startDate, dueDate, assignedTo, teamMembers } = req.body;
+    const { title, description, status, priority, startDate, dueDate, assignedTo, teamMembers, brand_id } = req.body;
 
     // Validate required fields
     if (!title || !title.trim()) {
       return res.status(400).json({
         error: 'Missing required field',
         message: 'Project title is required'
+      });
+    }
+
+    if (!brand_id) {
+      return res.status(400).json({
+        error: 'Missing required field',
+        message: 'Brand ID is required'
       });
     }
 
@@ -297,7 +317,12 @@ const createProject = async (req, res) => {
       if (req.user.role === 'employee' && teamMemberIds.length > 0) {
         const users = await User.find({ _id: { $in: teamMemberIds } }).select('_id department');
         const invalid = users.find(u => u.department !== req.user.department);
-        // Note: Managers and admins can add cross-department; employees are validated above
+        if (invalid) {
+          return res.status(400).json({
+            error: 'Department restriction',
+            message: 'Employees can only add team members from their own department'
+          });
+        }
       }
     }
 
@@ -320,11 +345,17 @@ const createProject = async (req, res) => {
       if (req.user.role === 'employee' && assignedToIds.length > 0) {
         const users = await User.find({ _id: { $in: assignedToIds } }).select('_id department');
         const invalid = users.find(u => u.department !== req.user.department);
-        // Note: Managers and admins can assign cross-department; employees are validated above
+        if (invalid) {
+          return res.status(400).json({
+            error: 'Department restriction',
+            message: 'Employees can only assign users from their own department'
+          });
+        }
       }
     }
 
     const projectData = {
+      brand_id,
       title: title.trim(),
       description: description?.trim(),
       status,
@@ -514,7 +545,7 @@ const deleteProject = async (req, res) => {
         const filePath = path.join(__dirname, '..', attachment.path);
         if (fs.existsSync(filePath)) {
           try {
-            fs.unlinkSync(filePath);
+          fs.unlinkSync(filePath);
           } catch (fileError) {
             console.error('Error deleting file:', fileError);
           }

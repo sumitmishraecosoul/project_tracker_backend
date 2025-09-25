@@ -8,7 +8,7 @@ const {
   deleteTask
 } = require('../controllers/taskController');
 const auth = require('../middleware/auth');
-const authorize = require('../middleware/authorize');
+const { authorize } = require('../middleware/authorize');
 
 // View operations (all authenticated users can view based on their role)
 router.get('/', auth, getAllTasks);

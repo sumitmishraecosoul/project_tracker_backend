@@ -1,0 +1,80 @@
+{
+  "total": 12,
+  "passed": 12,
+  "failed": 0,
+  "details": [
+    {
+      "endpoint": "GET /api/brands/68d361ba23002084a402ece7/tasks",
+      "status": "SUCCESS",
+      "statusCode": 200,
+      "message": "Get brand tasks successful"
+    },
+    {
+      "endpoint": "POST /api/brands/68d361ba23002084a402ece7/tasks",
+      "status": "SUCCESS",
+      "statusCode": 201,
+      "message": "Create brand task successful",
+      "taskId": "TASK-1758696577128-K1B8Z"
+    },
+    {
+      "endpoint": "GET /api/brands/68d361ba23002084a402ece7/tasks/TASK-1758696577128-K1B8Z",
+      "status": "SUCCESS",
+      "statusCode": 200,
+      "message": "Get brand task by ID successful"
+    },
+    {
+      "endpoint": "PUT /api/brands/68d361ba23002084a402ece7/tasks/TASK-1758696577128-K1B8Z",
+      "status": "SUCCESS",
+      "statusCode": 200,
+      "message": "Update brand task successful"
+    },
+    {
+      "endpoint": "GET /api/brands/68d361ba23002084a402ece7/projects/68d361ba23002084a402ecee/tasks",
+      "status": "SUCCESS",
+      "statusCode": 200,
+      "message": "Get project tasks successful"
+    },
+    {
+      "endpoint": "POST /api/brands/68d361ba23002084a402ece7/tasks/TASK-1758696577128-K1B8Z/assign",
+      "status": "SUCCESS",
+      "statusCode": 200,
+      "message": "Assign task successful"
+    },
+    {
+      "endpoint": "PUT /api/brands/68d361ba23002084a402ece7/tasks/TASK-1758696577128-K1B8Z/status",
+      "status": "SUCCESS",
+      "statusCode": 200,
+      "message": "Update task status successful"
+    },
+    {
+      "endpoint": "PUT /api/brands/68d361ba23002084a402ece7/tasks/TASK-1758696577128-K1B8Z/priority",
+      "status": "SUCCESS",
+      "statusCode": 200,
+      "message": "Update task priority successful"
+    },
+    {
+      "endpoint": "GET /api/brands/68d361ba23002084a402ece7/tasks/analytics",
+      "status": "SUCCESS",
+      "statusCode": 200,
+      "message": "Get task analytics successful"
+    },
+    {
+      "endpoint": "GET /api/brands/68d361ba23002084a402ece7/tasks/search",
+      "status": "SUCCESS",
+      "statusCode": 200,
+      "message": "Search tasks successful"
+    },
+    {
+      "endpoint": "GET /api/brands/68d361ba23002084a402ece7/tasks/filter",
+      "status": "SUCCESS",
+      "statusCode": 200,
+      "message": "Filter tasks successful"
+    },
+    {
+      "endpoint": "DELETE /api/brands/68d361ba23002084a402ece7/tasks/TASK-1758696577128-K1B8Z",
+      "status": "SUCCESS",
+      "statusCode": 200,
+      "message": "Delete task successful"
+    }
+  ]
+}

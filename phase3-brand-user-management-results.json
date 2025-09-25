@@ -1,0 +1,187 @@
+{
+  "phase3": {
+    "brandUserManagement": [
+      {
+        "endpoint": "GET /api/brands/68d236b5ed7feeb0d191ad23/users",
+        "status": "SUCCESS",
+        "statusCode": 200,
+        "request": null,
+        "response": {
+          "success": true,
+          "data": [
+            {
+              "id": "68d2220aba59a7daa49387b2",
+              "name": "Test Admin",
+              "email": "testadmin@example.com",
+              "avatar": null,
+              "role": "owner",
+              "permissions": {
+                "can_create_projects": true,
+                "can_edit_projects": true,
+                "can_delete_projects": true,
+                "can_view_all_projects": true,
+                "can_create_tasks": true,
+                "can_edit_tasks": true,
+                "can_delete_tasks": true,
+                "can_assign_tasks": true,
+                "can_manage_users": true,
+                "can_invite_users": true,
+                "can_remove_users": true,
+                "can_view_analytics": true,
+                "can_export_data": true,
+                "can_generate_reports": true,
+                "can_manage_brand_settings": true,
+                "can_manage_billing": true
+              },
+              "status": "active",
+              "joined_at": "2025-09-23T05:57:09.607Z",
+              "invited_by": null
+            }
+          ],
+          "message": "Brand users retrieved successfully"
+        },
+        "notes": "Get brand users successful"
+      },
+      {
+        "endpoint": "POST /api/brands/68d236b5ed7feeb0d191ad23/users",
+        "status": "SUCCESS",
+        "statusCode": 201,
+        "request": {
+          "email": "testuser.phase3@example.com",
+          "role": "member",
+          "permissions": {
+            "can_create_tasks": true,
+            "can_edit_tasks": true,
+            "can_view_all_projects": true
+          }
+        },
+        "response": {
+          "success": true,
+          "data": {
+            "id": "68d26185ed7feeb0d191b22c",
+            "user": {
+              "id": "68d26184ed7feeb0d191b222",
+              "name": "Test User Phase3",
+              "email": "testuser.phase3@example.com",
+              "avatar": null
+            },
+            "role": "member",
+            "permissions": {
+              "can_view_all_projects": true,
+              "can_create_tasks": true,
+              "can_edit_tasks": true,
+              "can_create_projects": false,
+              "can_edit_projects": false,
+              "can_delete_projects": false,
+              "can_delete_tasks": false,
+              "can_assign_tasks": false,
+              "can_manage_users": false,
+              "can_invite_users": false,
+              "can_remove_users": false,
+              "can_view_analytics": false,
+              "can_export_data": false,
+              "can_generate_reports": false,
+              "can_manage_brand_settings": false,
+              "can_manage_billing": false
+            },
+            "status": "active",
+            "joined_at": "2025-09-23T08:59:49.294Z",
+            "invited_by": {
+              "id": "68d2220aba59a7daa49387b2",
+              "name": "Test Admin",
+              "email": "testadmin@example.com"
+            }
+          },
+          "message": "User added to brand successfully"
+        },
+        "notes": "Add user to brand successful"
+      },
+      {
+        "endpoint": "PUT /api/brands/68d236b5ed7feeb0d191ad23/users/68d26184ed7feeb0d191b222",
+        "status": "SUCCESS",
+        "statusCode": 200,
+        "request": {
+          "role": "manager",
+          "permissions": {
+            "can_create_projects": true,
+            "can_edit_projects": true,
+            "can_create_tasks": true,
+            "can_edit_tasks": true,
+            "can_assign_tasks": true,
+            "can_view_analytics": true
+          }
+        },
+        "response": {
+          "success": true,
+          "data": {
+            "id": "68d26185ed7feeb0d191b22c",
+            "user": {
+              "id": "68d26184ed7feeb0d191b222",
+              "name": "Test User Phase3",
+              "email": "testuser.phase3@example.com",
+              "avatar": null
+            },
+            "role": "manager",
+            "permissions": {
+              "can_delete_projects": false,
+              "can_view_all_projects": true,
+              "can_delete_tasks": false,
+              "can_manage_users": false,
+              "can_invite_users": false,
+              "can_remove_users": false,
+              "can_export_data": false,
+              "can_generate_reports": false,
+              "can_manage_brand_settings": false,
+              "can_manage_billing": false,
+              "can_create_projects": true,
+              "can_edit_projects": true,
+              "can_create_tasks": true,
+              "can_edit_tasks": true,
+              "can_assign_tasks": true,
+              "can_view_analytics": true
+            },
+            "status": "active",
+            "joined_at": "2025-09-23T08:59:49.294Z",
+            "invited_by": {
+              "id": "68d2220aba59a7daa49387b2",
+              "name": "Test Admin",
+              "email": "testadmin@example.com"
+            }
+          },
+          "message": "User role updated successfully"
+        },
+        "notes": "Update user role in brand successful"
+      },
+      {
+        "endpoint": "POST /api/brands/68d236b5ed7feeb0d191ad23/users/invite",
+        "status": "FAILED",
+        "statusCode": 500,
+        "request": {
+          "email": "invited.user@example.com",
+          "role": "member",
+          "message": "You are invited to join our brand!"
+        },
+        "error": {
+          "success": false,
+          "error": {
+            "code": "INVITATION_ERROR",
+            "message": "Failed to send invitation",
+            "details": "User validation failed: employeeNumber: Path `employeeNumber` is required."
+          }
+        },
+        "notes": "Invite user to brand failed"
+      },
+      {
+        "endpoint": "DELETE /api/brands/68d236b5ed7feeb0d191ad23/users/68d26184ed7feeb0d191b222",
+        "status": "SUCCESS",
+        "statusCode": 200,
+        "request": null,
+        "response": {
+          "success": true,
+          "message": "User removed from brand successfully"
+        },
+        "notes": "Remove user from brand successful"
+      }
+    ]
+  }
+}

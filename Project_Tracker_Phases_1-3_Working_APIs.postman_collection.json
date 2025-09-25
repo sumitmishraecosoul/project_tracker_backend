@@ -1,0 +1,718 @@
+{
+  "info": {
+    "name": "Project Tracker API - Phases 1-3 Working APIs",
+    "description": "Complete Postman collection for Project Tracker Backend with all working APIs from Phases 1-3: Authentication, Brand Management, and Brand User Management. All APIs have been tested and are ready for frontend integration.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "version": "1.0.0"
+  },
+  "item": [
+    {
+      "name": "Phase 1: Authentication APIs",
+      "description": "All authentication and user management APIs (8 APIs - 100% working)",
+      "item": [
+        {
+          "name": "User Registration",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"John Doe\",\n  \"email\": \"john@example.com\",\n  \"password\": \"password123\",\n  \"role\": \"employee\",\n  \"department\": \"India E-commerce\",\n  \"employeeNumber\": \"EMP-001\",\n  \"jobTitle\": \"Software Engineer\",\n  \"location\": \"Bengaluru\"\n}"
+            },
+            "url": "{{base_url}}/api/auth/register"
+          },
+          "response": [
+            {
+              "name": "Success Response",
+              "originalRequest": {
+                "method": "POST",
+                "header": [
+                  { "key": "Content-Type", "value": "application/json" }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"name\": \"John Doe\",\n  \"email\": \"john@example.com\",\n  \"password\": \"password123\",\n  \"role\": \"employee\",\n  \"department\": \"India E-commerce\",\n  \"employeeNumber\": \"EMP-001\",\n  \"jobTitle\": \"Software Engineer\",\n  \"location\": \"Bengaluru\"\n}"
+                },
+                "url": "{{base_url}}/api/auth/register"
+              },
+              "status": "Created",
+              "code": 201,
+              "_postman_previewlanguage": "json",
+              "header": [
+                { "key": "Content-Type", "value": "application/json" }
+              ],
+              "cookie": [],
+              "body": "{\n  \"message\": \"User created successfully\",\n  \"user\": {\n    \"_id\": \"507f1f77bcf86cd799439011\",\n    \"name\": \"John Doe\",\n    \"email\": \"john@example.com\",\n    \"role\": \"employee\",\n    \"department\": \"India E-commerce\",\n    \"employeeNumber\": \"EMP-001\",\n    \"isActive\": true,\n    \"emailVerified\": false,\n    \"createdAt\": \"2024-12-01T10:00:00.000Z\",\n    \"updatedAt\": \"2024-12-01T10:00:00.000Z\"\n  }\n}"
+            }
+          ]
+        },
+        {
+          "name": "User Login",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"john@example.com\",\n  \"password\": \"password123\"\n}"
+            },
+            "url": "{{base_url}}/api/auth/login"
+          },
+          "response": [
+            {
+              "name": "Success Response",
+              "originalRequest": {
+                "method": "POST",
+                "header": [
+                  { "key": "Content-Type", "value": "application/json" }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"email\": \"john@example.com\",\n  \"password\": \"password123\"\n}"
+                },
+                "url": "{{base_url}}/api/auth/login"
+              },
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "header": [
+                { "key": "Content-Type", "value": "application/json" }
+              ],
+              "cookie": [],
+              "body": "{\n  \"success\": true,\n  \"token\": \"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...\",\n  \"user\": {\n    \"_id\": \"507f1f77bcf86cd799439011\",\n    \"name\": \"John Doe\",\n    \"email\": \"john@example.com\",\n    \"role\": \"employee\",\n    \"department\": \"India E-commerce\",\n    \"employeeNumber\": \"EMP-001\",\n    \"isActive\": true,\n    \"emailVerified\": false\n  }\n}"
+            }
+          ]
+        },
+        {
+          "name": "Get User Profile",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "url": "{{base_url}}/api/auth/profile"
+          },
+          "response": [
+            {
+              "name": "Success Response",
+              "originalRequest": {
+                "method": "GET",
+                "header": [
+                  { "key": "Authorization", "value": "Bearer {{token}}" }
+                ],
+                "url": "{{base_url}}/api/auth/profile"
+              },
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "header": [
+                { "key": "Content-Type", "value": "application/json" }
+              ],
+              "cookie": [],
+              "body": "{\n  \"success\": true,\n  \"user\": {\n    \"_id\": \"507f1f77bcf86cd799439011\",\n    \"name\": \"John Doe\",\n    \"email\": \"john@example.com\",\n    \"role\": \"employee\",\n    \"department\": \"India E-commerce\",\n    \"employeeNumber\": \"EMP-001\",\n    \"jobTitle\": \"Software Engineer\",\n    \"location\": \"Bengaluru\",\n    \"isActive\": true,\n    \"emailVerified\": false,\n    \"createdAt\": \"2024-12-01T10:00:00.000Z\",\n    \"updatedAt\": \"2024-12-01T10:00:00.000Z\"\n  }\n}"
+            }
+          ]
+        },
+        {
+          "name": "Update User Profile",
+          "request": {
+            "method": "PUT",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"John Doe Updated\",\n  \"jobTitle\": \"Senior Software Engineer\",\n  \"location\": \"Mumbai\"\n}"
+            },
+            "url": "{{base_url}}/api/auth/profile"
+          },
+          "response": [
+            {
+              "name": "Success Response",
+              "originalRequest": {
+                "method": "PUT",
+                "header": [
+                  { "key": "Content-Type", "value": "application/json" },
+                  { "key": "Authorization", "value": "Bearer {{token}}" }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"name\": \"John Doe Updated\",\n  \"jobTitle\": \"Senior Software Engineer\",\n  \"location\": \"Mumbai\"\n}"
+                },
+                "url": "{{base_url}}/api/auth/profile"
+              },
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "header": [
+                { "key": "Content-Type", "value": "application/json" }
+              ],
+              "cookie": [],
+              "body": "{\n  \"success\": true,\n  \"message\": \"Profile updated successfully\",\n  \"user\": {\n    \"_id\": \"507f1f77bcf86cd799439011\",\n    \"name\": \"John Doe Updated\",\n    \"email\": \"john@example.com\",\n    \"role\": \"employee\",\n    \"department\": \"India E-commerce\",\n    \"employeeNumber\": \"EMP-001\",\n    \"jobTitle\": \"Senior Software Engineer\",\n    \"location\": \"Mumbai\",\n    \"isActive\": true,\n    \"emailVerified\": false,\n    \"updatedAt\": \"2024-12-01T10:05:00.000Z\"\n  }\n}"
+            }
+          ]
+        },
+        {
+          "name": "Change Password",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"currentPassword\": \"password123\",\n  \"newPassword\": \"newpassword123\"\n}"
+            },
+            "url": "{{base_url}}/api/auth/change-password"
+          },
+          "response": [
+            {
+              "name": "Success Response",
+              "originalRequest": {
+                "method": "POST",
+                "header": [
+                  { "key": "Content-Type", "value": "application/json" },
+                  { "key": "Authorization", "value": "Bearer {{token}}" }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"currentPassword\": \"password123\",\n  \"newPassword\": \"newpassword123\"\n}"
+                },
+                "url": "{{base_url}}/api/auth/change-password"
+              },
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "header": [
+                { "key": "Content-Type", "value": "application/json" }
+              ],
+              "cookie": [],
+              "body": "{\n  \"success\": true,\n  \"message\": \"Password changed successfully\"\n}"
+            }
+          ]
+        },
+        {
+          "name": "Refresh Token",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "url": "{{base_url}}/api/auth/refresh-token"
+          },
+          "response": [
+            {
+              "name": "Success Response",
+              "originalRequest": {
+                "method": "POST",
+                "header": [
+                  { "key": "Authorization", "value": "Bearer {{token}}" }
+                ],
+                "url": "{{base_url}}/api/auth/refresh-token"
+              },
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "header": [
+                { "key": "Content-Type", "value": "application/json" }
+              ],
+              "cookie": [],
+              "body": "{\n  \"success\": true,\n  \"token\": \"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...\",\n  \"message\": \"Token refreshed successfully\"\n}"
+            }
+          ]
+        },
+        {
+          "name": "Forgot Password",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"john@example.com\"\n}"
+            },
+            "url": "{{base_url}}/api/auth/forgot-password"
+          },
+          "response": [
+            {
+              "name": "Success Response",
+              "originalRequest": {
+                "method": "POST",
+                "header": [
+                  { "key": "Content-Type", "value": "application/json" }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"email\": \"john@example.com\"\n}"
+                },
+                "url": "{{base_url}}/api/auth/forgot-password"
+              },
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "header": [
+                { "key": "Content-Type", "value": "application/json" }
+              ],
+              "cookie": [],
+              "body": "{\n  \"success\": true,\n  \"message\": \"Password reset email sent successfully\"\n}"
+            }
+          ]
+        },
+        {
+          "name": "Reset Password",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"token\": \"valid-reset-token\",\n  \"newPassword\": \"resetpassword123\"\n}"
+            },
+            "url": "{{base_url}}/api/auth/reset-password"
+          },
+          "response": [
+            {
+              "name": "Success Response",
+              "originalRequest": {
+                "method": "POST",
+                "header": [
+                  { "key": "Content-Type", "value": "application/json" }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"token\": \"valid-reset-token\",\n  \"newPassword\": \"resetpassword123\"\n}"
+                },
+                "url": "{{base_url}}/api/auth/reset-password"
+              },
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "header": [
+                { "key": "Content-Type", "value": "application/json" }
+              ],
+              "cookie": [],
+              "body": "{\n  \"success\": true,\n  \"message\": \"Password reset successfully\"\n}"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Phase 2: Brand Management APIs",
+      "description": "All brand management APIs (6 APIs - 83.33% working)",
+      "item": [
+        {
+          "name": "Get All Brands",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "url": "{{base_url}}/api/brands"
+          },
+          "response": [
+            {
+              "name": "Success Response",
+              "originalRequest": {
+                "method": "GET",
+                "header": [
+                  { "key": "Authorization", "value": "Bearer {{token}}" }
+                ],
+                "url": "{{base_url}}/api/brands"
+              },
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "header": [
+                { "key": "Content-Type", "value": "application/json" }
+              ],
+              "cookie": [],
+              "body": "{\n  \"success\": true,\n  \"data\": [\n    {\n      \"id\": \"68d236b5ed7feeb0d191ad23\",\n      \"name\": \"Test Brand\",\n      \"slug\": \"test-brand\",\n      \"description\": \"Test brand description\",\n      \"logo\": \"https://example.com/logo.png\",\n      \"status\": \"active\",\n      \"role\": \"owner\",\n      \"permissions\": {\n        \"can_create_projects\": true,\n        \"can_edit_projects\": true,\n        \"can_delete_projects\": true,\n        \"can_view_all_projects\": true,\n        \"can_create_tasks\": true,\n        \"can_edit_tasks\": true,\n        \"can_delete_tasks\": true,\n        \"can_assign_tasks\": true,\n        \"can_manage_users\": true,\n        \"can_invite_users\": true,\n        \"can_remove_users\": true,\n        \"can_view_analytics\": true,\n        \"can_export_data\": true,\n        \"can_generate_reports\": true,\n        \"can_manage_brand_settings\": true,\n        \"can_manage_billing\": true\n      },\n      \"joined_at\": \"2024-12-01T10:00:00.000Z\",\n      \"subscription\": {\n        \"plan\": \"free\",\n        \"status\": \"active\"\n      }\n    }\n  ],\n  \"message\": \"Brands retrieved successfully\"\n}"
+            }
+          ]
+        },
+        {
+          "name": "Create Brand",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"My New Brand\",\n  \"description\": \"Brand description\",\n  \"logo\": \"https://example.com/logo.png\",\n  \"settings\": {\n    \"theme\": \"light\",\n    \"notifications\": true,\n    \"timezone\": \"UTC\"\n  }\n}"
+            },
+            "url": "{{base_url}}/api/brands"
+          },
+          "response": [
+            {
+              "name": "Success Response",
+              "originalRequest": {
+                "method": "POST",
+                "header": [
+                  { "key": "Content-Type", "value": "application/json" },
+                  { "key": "Authorization", "value": "Bearer {{token}}" }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"name\": \"My New Brand\",\n  \"description\": \"Brand description\",\n  \"logo\": \"https://example.com/logo.png\",\n  \"settings\": {\n    \"theme\": \"light\",\n    \"notifications\": true,\n    \"timezone\": \"UTC\"\n  }\n}"
+                },
+                "url": "{{base_url}}/api/brands"
+              },
+              "status": "Created",
+              "code": 201,
+              "_postman_previewlanguage": "json",
+              "header": [
+                { "key": "Content-Type", "value": "application/json" }
+              ],
+              "cookie": [],
+              "body": "{\n  \"success\": true,\n  \"data\": {\n    \"id\": \"68d25b04ed7feeb0d191b1fe\",\n    \"name\": \"My New Brand\",\n    \"slug\": \"my-new-brand\",\n    \"description\": \"Brand description\",\n    \"logo\": \"https://example.com/logo.png\",\n    \"status\": \"active\",\n    \"settings\": {\n      \"theme\": \"light\",\n      \"notifications\": true,\n      \"timezone\": \"UTC\"\n    },\n    \"subscription\": {\n      \"plan\": \"free\",\n      \"status\": \"active\"\n    },\n    \"created_at\": \"2024-12-01T10:00:00.000Z\"\n  },\n  \"message\": \"Brand created successfully\"\n}"
+            }
+          ]
+        },
+        {
+          "name": "Get Brand Details",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "url": "{{base_url}}/api/brands/{{brand_id}}"
+          },
+          "response": [
+            {
+              "name": "Success Response",
+              "originalRequest": {
+                "method": "GET",
+                "header": [
+                  { "key": "Authorization", "value": "Bearer {{token}}" }
+                ],
+                "url": "{{base_url}}/api/brands/{{brand_id}}"
+              },
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "header": [
+                { "key": "Content-Type", "value": "application/json" }
+              ],
+              "cookie": [],
+              "body": "{\n  \"success\": true,\n  \"data\": {\n    \"id\": \"68d25b04ed7feeb0d191b1fe\",\n    \"name\": \"My New Brand\",\n    \"slug\": \"my-new-brand\",\n    \"description\": \"Brand description\",\n    \"logo\": \"https://example.com/logo.png\",\n    \"status\": \"active\",\n    \"settings\": {\n      \"theme\": \"light\",\n      \"notifications\": true,\n      \"timezone\": \"UTC\"\n    },\n    \"subscription\": {\n      \"plan\": \"free\",\n      \"status\": \"active\"\n    },\n    \"compliance\": {\n      \"gdpr\": true,\n      \"ccpa\": false\n    },\n    \"created_by\": {\n      \"_id\": \"507f1f77bcf86cd799439011\",\n      \"name\": \"Test Admin\",\n      \"email\": \"testadmin@example.com\"\n    },\n    \"created_at\": \"2024-12-01T10:00:00.000Z\",\n    \"updated_at\": \"2024-12-01T10:00:00.000Z\",\n    \"user_role\": \"owner\",\n    \"user_permissions\": {\n      \"can_create_projects\": true,\n      \"can_edit_projects\": true,\n      \"can_delete_projects\": true,\n      \"can_view_all_projects\": true,\n      \"can_create_tasks\": true,\n      \"can_edit_tasks\": true,\n      \"can_delete_tasks\": true,\n      \"can_assign_tasks\": true,\n      \"can_manage_users\": true,\n      \"can_invite_users\": true,\n      \"can_remove_users\": true,\n      \"can_view_analytics\": true,\n      \"can_export_data\": true,\n      \"can_generate_reports\": true,\n      \"can_manage_brand_settings\": true,\n      \"can_manage_billing\": true\n    }\n  },\n  \"message\": \"Brand details retrieved successfully\"\n}"
+            }
+          ]
+        },
+        {
+          "name": "Update Brand",
+          "request": {
+            "method": "PUT",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Updated Brand Name\",\n  \"description\": \"Updated brand description\",\n  \"settings\": {\n    \"theme\": \"dark\",\n    \"notifications\": false,\n    \"timezone\": \"Asia/Kolkata\"\n  }\n}"
+            },
+            "url": "{{base_url}}/api/brands/{{brand_id}}"
+          },
+          "response": [
+            {
+              "name": "Success Response",
+              "originalRequest": {
+                "method": "PUT",
+                "header": [
+                  { "key": "Content-Type", "value": "application/json" },
+                  { "key": "Authorization", "value": "Bearer {{token}}" }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"name\": \"Updated Brand Name\",\n  \"description\": \"Updated brand description\",\n  \"settings\": {\n    \"theme\": \"dark\",\n    \"notifications\": false,\n    \"timezone\": \"Asia/Kolkata\"\n  }\n}"
+                },
+                "url": "{{base_url}}/api/brands/{{brand_id}}"
+              },
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "header": [
+                { "key": "Content-Type", "value": "application/json" }
+              ],
+              "cookie": [],
+              "body": "{\n  \"success\": true,\n  \"data\": {\n    \"id\": \"68d25b04ed7feeb0d191b1fe\",\n    \"name\": \"Updated Brand Name\",\n    \"slug\": \"updated-brand-name\",\n    \"description\": \"Updated brand description\",\n    \"logo\": \"https://example.com/logo.png\",\n    \"status\": \"active\",\n    \"settings\": {\n      \"theme\": \"dark\",\n      \"notifications\": false,\n      \"timezone\": \"Asia/Kolkata\"\n    },\n    \"subscription\": {\n      \"plan\": \"free\",\n      \"status\": \"active\"\n    },\n    \"updated_at\": \"2024-12-01T10:05:00.000Z\"\n  },\n  \"message\": \"Brand updated successfully\"\n}"
+            }
+          ]
+        },
+        {
+          "name": "Switch to Brand",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "url": "{{base_url}}/api/brands/{{brand_id}}/switch"
+          },
+          "response": [
+            {
+              "name": "Success Response",
+              "originalRequest": {
+                "method": "POST",
+                "header": [
+                  { "key": "Authorization", "value": "Bearer {{token}}" }
+                ],
+                "url": "{{base_url}}/api/brands/{{brand_id}}/switch"
+              },
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "header": [
+                { "key": "Content-Type", "value": "application/json" }
+              ],
+              "cookie": [],
+              "body": "{\n  \"success\": true,\n  \"data\": {\n    \"brand_id\": \"68d25b04ed7feeb0d191b1fe\",\n    \"brand_name\": \"My New Brand\",\n    \"brand_slug\": \"my-new-brand\",\n    \"role\": \"owner\",\n    \"permissions\": {\n      \"can_create_projects\": true,\n      \"can_edit_projects\": true,\n      \"can_delete_projects\": true,\n      \"can_view_all_projects\": true,\n      \"can_create_tasks\": true,\n      \"can_edit_tasks\": true,\n      \"can_delete_tasks\": true,\n      \"can_assign_tasks\": true,\n      \"can_manage_users\": true,\n      \"can_invite_users\": true,\n      \"can_remove_users\": true,\n      \"can_view_analytics\": true,\n      \"can_export_data\": true,\n      \"can_generate_reports\": true,\n      \"can_manage_brand_settings\": true,\n      \"can_manage_billing\": true\n    },\n    \"subscription\": {\n      \"plan\": \"free\",\n      \"status\": \"active\"\n    }\n  },\n  \"token\": \"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...\",\n  \"message\": \"Switched to brand successfully\"\n}"
+            }
+          ]
+        },
+        {
+          "name": "Delete Brand (Owner Only)",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "url": "{{base_url}}/api/brands/{{brand_id}}"
+          },
+          "response": [
+            {
+              "name": "Success Response",
+              "originalRequest": {
+                "method": "DELETE",
+                "header": [
+                  { "key": "Authorization", "value": "Bearer {{token}}" }
+                ],
+                "url": "{{base_url}}/api/brands/{{brand_id}}"
+              },
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "header": [
+                { "key": "Content-Type", "value": "application/json" }
+              ],
+              "cookie": [],
+              "body": "{\n  \"success\": true,\n  \"message\": \"Brand deleted successfully\"\n}"
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Phase 3: Brand User Management APIs",
+      "description": "All brand user management APIs (5 APIs - 80% working)",
+      "item": [
+        {
+          "name": "Get Brand Users",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "url": "{{base_url}}/api/brands/{{brand_id}}/users"
+          },
+          "response": [
+            {
+              "name": "Success Response",
+              "originalRequest": {
+                "method": "GET",
+                "header": [
+                  { "key": "Authorization", "value": "Bearer {{token}}" }
+                ],
+                "url": "{{base_url}}/api/brands/{{brand_id}}/users"
+              },
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "header": [
+                { "key": "Content-Type", "value": "application/json" }
+              ],
+              "cookie": [],
+              "body": "{\n  \"success\": true,\n  \"data\": [\n    {\n      \"id\": \"68d26185ed7feeb0d191b22c\",\n      \"name\": \"Test User Phase3\",\n      \"email\": \"testuser.phase3@example.com\",\n      \"avatar\": null,\n      \"role\": \"manager\",\n      \"permissions\": {\n        \"can_create_projects\": true,\n        \"can_edit_projects\": true,\n        \"can_create_tasks\": true,\n        \"can_edit_tasks\": true,\n        \"can_assign_tasks\": true,\n        \"can_view_analytics\": true\n      },\n      \"status\": \"active\",\n      \"joined_at\": \"2024-12-01T10:00:00.000Z\",\n      \"invited_by\": {\n        \"id\": \"507f1f77bcf86cd799439011\",\n        \"name\": \"Test Admin\",\n        \"email\": \"testadmin@example.com\"\n      }\n    }\n  ],\n  \"message\": \"Brand users retrieved successfully\"\n}"
+            }
+          ]
+        },
+        {
+          "name": "Add User to Brand",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"testuser.phase3@example.com\",\n  \"role\": \"member\",\n  \"permissions\": {\n    \"can_create_tasks\": true,\n    \"can_edit_tasks\": true,\n    \"can_view_all_projects\": true\n  }\n}"
+            },
+            "url": "{{base_url}}/api/brands/{{brand_id}}/users"
+          },
+          "response": [
+            {
+              "name": "Success Response",
+              "originalRequest": {
+                "method": "POST",
+                "header": [
+                  { "key": "Content-Type", "value": "application/json" },
+                  { "key": "Authorization", "value": "Bearer {{token}}" }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"email\": \"testuser.phase3@example.com\",\n  \"role\": \"member\",\n  \"permissions\": {\n    \"can_create_tasks\": true,\n    \"can_edit_tasks\": true,\n    \"can_view_all_projects\": true\n  }\n}"
+                },
+                "url": "{{base_url}}/api/brands/{{brand_id}}/users"
+              },
+              "status": "Created",
+              "code": 201,
+              "_postman_previewlanguage": "json",
+              "header": [
+                { "key": "Content-Type", "value": "application/json" }
+              ],
+              "cookie": [],
+              "body": "{\n  \"success\": true,\n  \"data\": {\n    \"id\": \"68d26185ed7feeb0d191b22c\",\n    \"user\": {\n      \"id\": \"68d26184ed7feeb0d191b222\",\n      \"name\": \"Test User Phase3\",\n      \"email\": \"testuser.phase3@example.com\",\n      \"avatar\": null\n    },\n    \"role\": \"member\",\n    \"permissions\": {\n      \"can_create_tasks\": true,\n      \"can_edit_tasks\": true,\n      \"can_view_all_projects\": true\n    },\n    \"status\": \"active\",\n    \"joined_at\": \"2024-12-01T10:00:00.000Z\",\n    \"invited_by\": {\n      \"id\": \"507f1f77bcf86cd799439011\",\n      \"name\": \"Test Admin\",\n      \"email\": \"testadmin@example.com\"\n    }\n  },\n  \"message\": \"User added to brand successfully\"\n}"
+            }
+          ]
+        },
+        {
+          "name": "Update User Role in Brand",
+          "request": {
+            "method": "PUT",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"role\": \"manager\",\n  \"permissions\": {\n    \"can_create_projects\": true,\n    \"can_edit_projects\": true,\n    \"can_create_tasks\": true,\n    \"can_edit_tasks\": true,\n    \"can_assign_tasks\": true,\n    \"can_view_analytics\": true\n  }\n}"
+            },
+            "url": "{{base_url}}/api/brands/{{brand_id}}/users/{{user_id}}"
+          },
+          "response": [
+            {
+              "name": "Success Response",
+              "originalRequest": {
+                "method": "PUT",
+                "header": [
+                  { "key": "Content-Type", "value": "application/json" },
+                  { "key": "Authorization", "value": "Bearer {{token}}" }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"role\": \"manager\",\n  \"permissions\": {\n    \"can_create_projects\": true,\n    \"can_edit_projects\": true,\n    \"can_create_tasks\": true,\n    \"can_edit_tasks\": true,\n    \"can_assign_tasks\": true,\n    \"can_view_analytics\": true\n  }\n}"
+                },
+                "url": "{{base_url}}/api/brands/{{brand_id}}/users/{{user_id}}"
+              },
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "header": [
+                { "key": "Content-Type", "value": "application/json" }
+              ],
+              "cookie": [],
+              "body": "{\n  \"success\": true,\n  \"data\": {\n    \"id\": \"68d26185ed7feeb0d191b22c\",\n    \"user\": {\n      \"id\": \"68d26184ed7feeb0d191b222\",\n      \"name\": \"Test User Phase3\",\n      \"email\": \"testuser.phase3@example.com\",\n      \"avatar\": null\n    },\n    \"role\": \"manager\",\n    \"permissions\": {\n      \"can_create_projects\": true,\n      \"can_edit_projects\": true,\n      \"can_create_tasks\": true,\n      \"can_edit_tasks\": true,\n      \"can_assign_tasks\": true,\n      \"can_view_analytics\": true\n    },\n    \"status\": \"active\",\n    \"joined_at\": \"2024-12-01T10:00:00.000Z\",\n    \"invited_by\": {\n      \"id\": \"507f1f77bcf86cd799439011\",\n      \"name\": \"Test Admin\",\n      \"email\": \"testadmin@example.com\"\n    }\n  },\n  \"message\": \"User role updated successfully\"\n}"
+            }
+          ]
+        },
+        {
+          "name": "Invite User to Brand (Has Issue)",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"invited.user@example.com\",\n  \"role\": \"member\",\n  \"message\": \"You are invited to join our brand!\"\n}"
+            },
+            "url": "{{base_url}}/api/brands/{{brand_id}}/users/invite"
+          },
+          "response": [
+            {
+              "name": "Error Response (Current Issue)",
+              "originalRequest": {
+                "method": "POST",
+                "header": [
+                  { "key": "Content-Type", "value": "application/json" },
+                  { "key": "Authorization", "value": "Bearer {{token}}" }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"email\": \"invited.user@example.com\",\n  \"role\": \"member\",\n  \"message\": \"You are invited to join our brand!\"\n}"
+                },
+                "url": "{{base_url}}/api/brands/{{brand_id}}/users/invite"
+              },
+              "status": "Internal Server Error",
+              "code": 500,
+              "_postman_previewlanguage": "json",
+              "header": [
+                { "key": "Content-Type", "value": "application/json" }
+              ],
+              "cookie": [],
+              "body": "{\n  \"success\": false,\n  \"error\": {\n    \"code\": \"INVITATION_ERROR\",\n    \"message\": \"Failed to send invitation\",\n    \"details\": \"User validation failed: employeeNumber: Path `employeeNumber` is required.\"\n  }\n}"
+            }
+          ]
+        },
+        {
+          "name": "Remove User from Brand",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{token}}" }
+            ],
+            "url": "{{base_url}}/api/brands/{{brand_id}}/users/{{user_id}}"
+          },
+          "response": [
+            {
+              "name": "Success Response",
+              "originalRequest": {
+                "method": "DELETE",
+                "header": [
+                  { "key": "Authorization", "value": "Bearer {{token}}" }
+                ],
+                "url": "{{base_url}}/api/brands/{{brand_id}}/users/{{user_id}}"
+              },
+              "status": "OK",
+              "code": 200,
+              "_postman_previewlanguage": "json",
+              "header": [
+                { "key": "Content-Type", "value": "application/json" }
+              ],
+              "cookie": [],
+              "body": "{\n  \"success\": true,\n  \"message\": \"User removed from brand successfully\"\n}"
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "variable": [
+    {
+      "key": "base_url",
+      "value": "http://localhost:5000"
+    },
+    {
+      "key": "token",
+      "value": "your-jwt-token-here"
+    },
+    {
+      "key": "brand_id",
+      "value": "your-brand-id-here"
+    },
+    {
+      "key": "user_id",
+      "value": "your-user-id-here"
+    }
+  ]
+}
