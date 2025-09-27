@@ -1,137 +1,84 @@
-const mongoose = require('mongoose');
 const Activity = require('../models/Activity');
 const User = require('../models/User');
-const Task = require('../models/Task');
-const Project = require('../models/Project');
-const Subtask = require('../models/Subtask');
-const Comment = require('../models/Comment');
+const mongoose = require('mongoose');
 
-// Get all activities for a specific brand
+// Get all activities for a brand
 const getBrandActivities = async (req, res) => {
   try {
     const { brandId } = req.params;
-    const { page = 1, limit = 20, type, priority, status, date_from, date_to } = req.query;
+    const { page = 1, limit = 20, type, priority, visibility, status = 'active' } = req.query;
 
-    // Build query with brand filter
-    let query = { brand_id: brandId };
+    const query = {
+      brand_id: new mongoose.Types.ObjectId(brandId),
+      status: status
+    };
 
-    // Apply additional filters
-    if (type) {
-      query.type = type;
-    }
-    if (priority) {
-      query.priority = priority;
-    }
-    if (status) {
-      query.status = status;
-    }
-    if (date_from || date_to) {
-      query.created_at = {};
-      if (date_from) {
-        query.created_at.$gte = new Date(date_from);
-      }
-      if (date_to) {
-        query.created_at.$lte = new Date(date_to);
-      }
-    }
+    if (type) query.type = type;
+    if (priority) query.priority = priority;
+    if (visibility) query.visibility = visibility;
 
-    // Calculate pagination
-    const skip = (parseInt(page) - 1) * parseInt(limit);
-
-    // Get activities with pagination
     const activities = await Activity.find(query)
-      .populate('actor', 'name email avatar')
-      .populate('target.id', 'name title task')
-      .populate('recipients.user_id', 'name email')
-      .populate('context.project_id', 'title')
-      .populate('context.task_id', 'task')
-      .populate('context.subtask_id', 'title')
+      .populate('created_by', 'name email avatar')
+      .populate('recipients.user', 'name email avatar')
+      .populate('mentions.user', 'name email avatar')
       .sort({ created_at: -1 })
-      .skip(skip)
-      .limit(parseInt(limit));
+      .limit(limit * 1)
+      .skip((page - 1) * limit);
 
-    // Get total count for pagination
-    const totalActivities = await Activity.countDocuments(query);
+    const total = await Activity.countDocuments(query);
 
     res.json({
       success: true,
       data: {
         activities,
         pagination: {
-          currentPage: parseInt(page),
-          totalPages: Math.ceil(totalActivities / parseInt(limit)),
-          totalActivities,
-          hasNextPage: skip + activities.length < totalActivities,
-          hasPrevPage: parseInt(page) > 1
+          current: page,
+          pages: Math.ceil(total / limit),
+          total
         }
-      },
-      message: 'Brand activities retrieved successfully'
+      }
     });
   } catch (error) {
     console.error('Error fetching brand activities:', error);
     res.status(500).json({
       success: false,
-      error: {
-        code: 'BRAND_ACTIVITIES_FETCH_ERROR',
-        message: 'Failed to fetch brand activities',
-        details: error.message
-      }
+      message: 'Error fetching brand activities',
+      error: error.message
     });
   }
 };
 
-// Get activity details within a brand
+// Get activity details
 const getBrandActivityById = async (req, res) => {
   try {
     const { brandId, id } = req.params;
 
-    const activity = await Activity.findOne({ _id: id, brand_id: brandId })
-      .populate('actor', 'name email avatar')
-      .populate('target.id', 'name title task')
-      .populate('recipients.user_id', 'name email')
-      .populate('context.project_id', 'title')
-      .populate('context.task_id', 'task')
-      .populate('context.subtask_id', 'title');
+    const activity = await Activity.findOne({
+      _id: id,
+      brand_id: new mongoose.Types.ObjectId(brandId)
+    })
+      .populate('created_by', 'name email avatar')
+      .populate('recipients.user', 'name email avatar')
+      .populate('mentions.user', 'name email avatar')
+      .populate('reactions.user', 'name email avatar');
 
     if (!activity) {
       return res.status(404).json({
         success: false,
-        error: {
-          code: 'ACTIVITY_NOT_FOUND',
-          message: 'Activity not found in this brand'
-        }
+        message: 'Activity not found'
       });
     }
-
-    // Check if user can view activity
-    if (!activity.canUserView(req.user.id)) {
-      return res.status(403).json({
-        success: false,
-        error: {
-          code: 'ACCESS_DENIED',
-          message: 'Access denied to this activity'
-        }
-      });
-    }
-
-    // Increment view count
-    activity.analytics.view_count += 1;
-    await activity.save();
 
     res.json({
       success: true,
-      data: activity,
-      message: 'Brand activity details retrieved successfully'
+      data: activity
     });
   } catch (error) {
-    console.error('Error fetching brand activity details:', error);
+    console.error('Error fetching activity details:', error);
     res.status(500).json({
       success: false,
-      error: {
-        code: 'BRAND_ACTIVITY_FETCH_ERROR',
-        message: 'Failed to fetch brand activity details',
-        details: error.message
-      }
+      message: 'Error fetching activity details',
+      error: error.message
     });
   }
 };
@@ -140,446 +87,344 @@ const getBrandActivityById = async (req, res) => {
 const getUserActivityFeed = async (req, res) => {
   try {
     const { brandId } = req.params;
-    const { page = 1, limit = 20, types, priorities, tags, date_from, date_to } = req.query;
+    const { page = 1, limit = 20, type, priority, visibility } = req.query;
+    const userId = req.user.id;
 
-    const options = {
-      page: parseInt(page),
-      limit: parseInt(limit),
-      types: types ? types.split(',') : undefined,
-      priorities: priorities ? priorities.split(',') : undefined,
-      tags: tags ? tags.split(',') : undefined,
-      date_from: date_from ? new Date(date_from) : undefined,
-      date_to: date_to ? new Date(date_to) : undefined
-    };
+    const activities = await Activity.getUserActivityFeed(
+      new mongoose.Types.ObjectId(userId),
+      new mongoose.Types.ObjectId(brandId),
+      { type, priority, visibility, limit: limit * 1, skip: (page - 1) * limit }
+    );
 
-    const activities = await Activity.getActivityFeed(brandId, req.user.id, options);
-
-    res.json({
-      success: true,
-      data: activities,
-      message: 'User activity feed retrieved successfully'
-    });
-  } catch (error) {
-    console.error('Error fetching user activity feed:', error);
-    res.status(500).json({
-      success: false,
-      error: {
-        code: 'USER_ACTIVITY_FEED_FETCH_ERROR',
-        message: 'Failed to fetch user activity feed',
-        details: error.message
-      }
-    });
-  }
-};
-
-// Get activities by entity
-const getEntityActivities = async (req, res) => {
-  try {
-    const { brandId, entityType, entityId } = req.params;
-    const { page = 1, limit = 20, type, priority } = req.query;
-
-    // Validate entity type
-    if (!['task', 'project', 'subtask', 'user', 'comment'].includes(entityType)) {
-      return res.status(400).json({
-        success: false,
-        error: {
-          code: 'INVALID_ENTITY_TYPE',
-          message: 'Invalid entity type. Must be task, project, subtask, user, or comment'
-        }
-      });
-    }
-
-    // Check if entity exists
-    let entity;
-    switch (entityType) {
-      case 'task':
-        entity = await Task.findOne({ _id: entityId, brand_id: brandId });
-        break;
-      case 'project':
-        entity = await Project.findOne({ _id: entityId, brand_id: brandId });
-        break;
-      case 'subtask':
-        entity = await Subtask.findOne({ _id: entityId, brand_id: brandId });
-        break;
-      case 'user':
-        entity = await User.findOne({ _id: entityId, brand_id: brandId });
-        break;
-      case 'comment':
-        entity = await Comment.findOne({ _id: entityId, brand_id: brandId });
-        break;
-    }
-
-    if (!entity) {
-      return res.status(404).json({
-        success: false,
-        error: {
-          code: 'ENTITY_NOT_FOUND',
-          message: 'Entity not found in this brand'
-        }
-      });
-    }
-
-    // Build query
-    let query = {
-      brand_id: brandId,
-      'target.type': entityType,
-      'target.id': entityId,
+    const total = await Activity.countDocuments({
+      brand_id: new mongoose.Types.ObjectId(brandId),
+      $or: [
+        { created_by: new mongoose.Types.ObjectId(userId) },
+        { 'recipients.user': new mongoose.Types.ObjectId(userId) }
+      ],
       status: 'active'
-    };
-
-    if (type) {
-      query.type = type;
-    }
-    if (priority) {
-      query.priority = priority;
-    }
-
-    const skip = (parseInt(page) - 1) * parseInt(limit);
-
-    const activities = await Activity.find(query)
-      .populate('actor', 'name email avatar')
-      .populate('target.id', 'name title task')
-      .populate('recipients.user_id', 'name email')
-      .sort({ created_at: -1 })
-      .skip(skip)
-      .limit(parseInt(limit));
-
-    const totalActivities = await Activity.countDocuments(query);
+    });
 
     res.json({
       success: true,
       data: {
         activities,
         pagination: {
-          currentPage: parseInt(page),
-          totalPages: Math.ceil(totalActivities / parseInt(limit)),
-          totalActivities,
-          hasNextPage: skip + activities.length < totalActivities,
-          hasPrevPage: parseInt(page) > 1
+          current: page,
+          pages: Math.ceil(total / limit),
+          total
         }
-      },
-      message: 'Entity activities retrieved successfully'
+      }
+    });
+  } catch (error) {
+    console.error('Error fetching user activity feed:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Error fetching user activity feed',
+      error: error.message
+    });
+  }
+};
+
+// Get activities for a specific entity
+const getEntityActivities = async (req, res) => {
+  try {
+    const { brandId, entityType, entityId } = req.params;
+    const { page = 1, limit = 20, type } = req.query;
+
+    const activities = await Activity.getEntityActivities(
+      entityType,
+      new mongoose.Types.ObjectId(entityId),
+      new mongoose.Types.ObjectId(brandId),
+      { type, limit: limit * 1, skip: (page - 1) * limit }
+    );
+
+    const total = await Activity.countDocuments({
+      'metadata.entity_type': entityType,
+      'metadata.entity_id': new mongoose.Types.ObjectId(entityId),
+      brand_id: new mongoose.Types.ObjectId(brandId),
+      status: 'active'
+    });
+
+    res.json({
+      success: true,
+      data: {
+        activities,
+        pagination: {
+          current: page,
+          pages: Math.ceil(total / limit),
+          total
+        }
+      }
     });
   } catch (error) {
     console.error('Error fetching entity activities:', error);
     res.status(500).json({
       success: false,
-      error: {
-        code: 'ENTITY_ACTIVITIES_FETCH_ERROR',
-        message: 'Failed to fetch entity activities',
-        details: error.message
-      }
+      message: 'Error fetching entity activities',
+      error: error.message
     });
   }
 };
 
-// Create activity within a brand
+// Create activity
 const createBrandActivity = async (req, res) => {
   try {
     const { brandId } = req.params;
-    const {
-      type,
-      action,
-      description,
-      target,
-      context,
-      metadata,
-      visibility,
-      recipients,
-      tags,
-      priority
+    const { 
+      type, 
+      title, 
+      description, 
+      metadata, 
+      recipients = [], 
+      priority = 'medium', 
+      visibility = 'public',
+      tags = [],
+      mentions = [],
+      attachments = []
     } = req.body;
+    const userId = req.user.id;
 
     // Validate required fields
-    if (!type || !action || !description || !target) {
+    if (!type || !title || !description) {
       return res.status(400).json({
         success: false,
-        error: {
-          code: 'VALIDATION_ERROR',
-          message: 'Type, action, description, and target are required'
-        }
-      });
-    }
-
-    // Validate activity type
-    const validTypes = [
-      'task_created', 'task_updated', 'task_deleted', 'task_assigned', 'task_unassigned',
-      'task_status_changed', 'task_priority_changed', 'task_completed', 'task_reopened',
-      'project_created', 'project_updated', 'project_deleted', 'project_completed',
-      'subtask_created', 'subtask_updated', 'subtask_deleted', 'subtask_completed',
-      'comment_created', 'comment_updated', 'comment_deleted', 'comment_mentioned',
-      'user_joined', 'user_left', 'user_invited', 'user_role_changed',
-      'file_uploaded', 'file_deleted', 'file_shared',
-      'meeting_scheduled', 'meeting_cancelled', 'meeting_completed',
-      'deadline_approaching', 'deadline_passed', 'deadline_updated',
-      'system_announcement', 'brand_updated', 'settings_changed'
-    ];
-
-    if (!validTypes.includes(type)) {
-      return res.status(400).json({
-        success: false,
-        error: {
-          code: 'VALIDATION_ERROR',
-          message: 'Invalid activity type'
-        }
+        message: 'Type, title, and description are required'
       });
     }
 
     // Create activity
-    const activity = await Activity.createActivity({
-      brand_id: brandId,
+    const activity = new Activity({
+      brand_id: new mongoose.Types.ObjectId(brandId),
+      created_by: new mongoose.Types.ObjectId(userId),
       type,
-      action,
-      description,
-      actor: req.user.id,
-      target,
-      context,
-      metadata,
-      visibility: visibility || 'public',
-      recipients: recipients || [{ user_id: req.user.id, role: 'actor' }],
-      tags: tags || [],
-      priority: priority || 'medium'
+      title: title.trim(),
+      description: description.trim(),
+      metadata: {
+        entity_type: metadata.entity_type || 'system',
+        entity_id: metadata.entity_id ? new mongoose.Types.ObjectId(metadata.entity_id) : new mongoose.Types.ObjectId(),
+        entity_title: metadata.entity_title || title,
+        entity_url: metadata.entity_url,
+        old_values: metadata.old_values,
+        new_values: metadata.new_values,
+        additional_data: metadata.additional_data
+      },
+      recipients: recipients.map(recipient => ({
+        user: new mongoose.Types.ObjectId(recipient.user),
+        role: recipient.role || 'secondary',
+        notification_sent: false,
+        read: false,
+        notified: false
+      })),
+      priority,
+      visibility,
+      tags: tags.map(tag => tag.toLowerCase().trim()),
+      mentions: mentions.map(mention => ({
+        user: new mongoose.Types.ObjectId(mention),
+        mentioned_at: new Date(),
+        notified: false
+      })),
+      attachments: attachments,
+      system_metadata: {
+        ip_address: req.ip,
+        user_agent: req.get('User-Agent'),
+        device_type: req.get('X-Device-Type') || 'unknown',
+        browser: req.get('X-Browser') || 'unknown',
+        source: req.get('X-Source') || 'api'
+      }
     });
 
-    // Populate the created activity
-    const populatedActivity = await Activity.findById(activity._id)
-      .populate('actor', 'name email avatar')
-      .populate('target.id', 'name title task')
-      .populate('recipients.user_id', 'name email');
+    await activity.save();
+
+    // Populate the activity
+    await activity.populate('created_by', 'name email avatar');
+    await activity.populate('recipients.user', 'name email avatar');
+    await activity.populate('mentions.user', 'name email avatar');
 
     res.status(201).json({
       success: true,
-      data: populatedActivity,
-      message: 'Brand activity created successfully'
+      message: 'Activity created successfully',
+      data: activity
     });
   } catch (error) {
-    console.error('Error creating brand activity:', error);
+    console.error('Error creating activity:', error);
     res.status(500).json({
       success: false,
-      error: {
-        code: 'BRAND_ACTIVITY_CREATE_ERROR',
-        message: 'Failed to create brand activity',
-        details: error.message
-      }
+      message: 'Error creating activity',
+      error: error.message
     });
   }
 };
 
-// Update activity within a brand
+// Update activity
 const updateBrandActivity = async (req, res) => {
   try {
     const { brandId, id } = req.params;
-    const { action, description, metadata, visibility, tags, priority } = req.body;
+    const { title, description, priority, visibility, tags } = req.body;
+    const userId = req.user.id;
 
-    const activity = await Activity.findOne({ _id: id, brand_id: brandId });
+    const activity = await Activity.findOne({
+      _id: id,
+      brand_id: new mongoose.Types.ObjectId(brandId)
+    });
 
     if (!activity) {
       return res.status(404).json({
         success: false,
-        error: {
-          code: 'ACTIVITY_NOT_FOUND',
-          message: 'Activity not found in this brand'
-        }
+        message: 'Activity not found'
       });
     }
 
-    // Check if user can update activity (actor or admin/manager)
-    if (activity.actor.toString() !== req.user.id && !['admin', 'manager'].includes(req.user.role)) {
+    // Check if user can update this activity
+    if (activity.created_by.toString() !== userId && req.user.role !== 'admin') {
       return res.status(403).json({
         success: false,
-        error: {
-          code: 'PERMISSION_DENIED',
-          message: 'You do not have permission to update this activity'
-        }
+        message: 'You do not have permission to update this activity'
       });
     }
 
     // Update activity
-    const updatedActivity = await Activity.findByIdAndUpdate(
-      id,
-      {
-        action: action || activity.action,
-        description: description || activity.description,
-        metadata: metadata || activity.metadata,
-        visibility: visibility || activity.visibility,
-        tags: tags || activity.tags,
-        priority: priority || activity.priority
-      },
-      { new: true, runValidators: true }
-    ).populate('actor', 'name email avatar')
-     .populate('target.id', 'name title task')
-     .populate('recipients.user_id', 'name email');
+    if (title) activity.title = title.trim();
+    if (description) activity.description = description.trim();
+    if (priority) activity.priority = priority;
+    if (visibility) activity.visibility = visibility;
+    if (tags) activity.tags = tags.map(tag => tag.toLowerCase().trim());
+
+    await activity.save();
+
+    // Populate the activity
+    await activity.populate('created_by', 'name email avatar');
+    await activity.populate('recipients.user', 'name email avatar');
+    await activity.populate('mentions.user', 'name email avatar');
 
     res.json({
       success: true,
-      data: updatedActivity,
-      message: 'Brand activity updated successfully'
+      message: 'Activity updated successfully',
+      data: activity
     });
   } catch (error) {
-    console.error('Error updating brand activity:', error);
+    console.error('Error updating activity:', error);
     res.status(500).json({
       success: false,
-      error: {
-        code: 'BRAND_ACTIVITY_UPDATE_ERROR',
-        message: 'Failed to update brand activity',
-        details: error.message
-      }
+      message: 'Error updating activity',
+      error: error.message
     });
   }
 };
 
-// Delete activity within a brand
+// Delete activity
 const deleteBrandActivity = async (req, res) => {
   try {
     const { brandId, id } = req.params;
+    const userId = req.user.id;
 
-    const activity = await Activity.findOne({ _id: id, brand_id: brandId });
+    const activity = await Activity.findOne({
+      _id: id,
+      brand_id: new mongoose.Types.ObjectId(brandId)
+    });
 
     if (!activity) {
       return res.status(404).json({
         success: false,
-        error: {
-          code: 'ACTIVITY_NOT_FOUND',
-          message: 'Activity not found in this brand'
-        }
+        message: 'Activity not found'
       });
     }
 
-    // Check if user can delete activity (actor or admin)
-    if (activity.actor.toString() !== req.user.id && req.user.role !== 'admin') {
+    // Check if user can delete this activity
+    if (activity.created_by.toString() !== userId && req.user.role !== 'admin') {
       return res.status(403).json({
         success: false,
-        error: {
-          code: 'PERMISSION_DENIED',
-          message: 'You do not have permission to delete this activity'
-        }
+        message: 'You do not have permission to delete this activity'
       });
     }
 
-    // Soft delete activity
+    // Soft delete
     activity.status = 'deleted';
     await activity.save();
 
     res.json({
       success: true,
-      message: 'Brand activity deleted successfully'
+      message: 'Activity deleted successfully'
     });
   } catch (error) {
-    console.error('Error deleting brand activity:', error);
+    console.error('Error deleting activity:', error);
     res.status(500).json({
       success: false,
-      error: {
-        code: 'BRAND_ACTIVITY_DELETE_ERROR',
-        message: 'Failed to delete brand activity',
-        details: error.message
-      }
+      message: 'Error deleting activity',
+      error: error.message
     });
   }
 };
 
-// Add activity recipient
+// Add recipient to activity
 const addActivityRecipient = async (req, res) => {
   try {
     const { brandId, id } = req.params;
-    const { user_id, role } = req.body;
+    const { userId, role = 'secondary' } = req.body;
 
-    if (!user_id || !role) {
-      return res.status(400).json({
-        success: false,
-        error: {
-          code: 'VALIDATION_ERROR',
-          message: 'user_id and role are required'
-        }
-      });
-    }
-
-    const activity = await Activity.findOne({ _id: id, brand_id: brandId });
+    const activity = await Activity.findOne({
+      _id: id,
+      brand_id: new mongoose.Types.ObjectId(brandId)
+    });
 
     if (!activity) {
       return res.status(404).json({
         success: false,
-        error: {
-          code: 'ACTIVITY_NOT_FOUND',
-          message: 'Activity not found in this brand'
-        }
+        message: 'Activity not found'
       });
     }
 
-    // Check if user exists in brand
-    const user = await User.findOne({ _id: user_id, brand_id: brandId });
-    if (!user) {
-      return res.status(404).json({
-        success: false,
-        error: {
-          code: 'USER_NOT_FOUND',
-          message: 'User not found in this brand'
-        }
-      });
-    }
-
-    const result = await activity.addRecipient(user_id, role);
-
-    if (!result) {
-      return res.status(400).json({
-        success: false,
-        error: {
-          code: 'RECIPIENT_EXISTS',
-          message: 'User is already a recipient of this activity'
-        }
-      });
-    }
+    // Add recipient
+    await activity.addRecipient(userId, role);
+    await activity.populate('recipients.user', 'name email avatar');
 
     res.json({
       success: true,
-      data: activity,
-      message: 'Activity recipient added successfully'
+      message: 'Recipient added successfully',
+      data: activity
     });
   } catch (error) {
-    console.error('Error adding activity recipient:', error);
+    console.error('Error adding recipient:', error);
     res.status(500).json({
       success: false,
-      error: {
-        code: 'ACTIVITY_RECIPIENT_ADD_ERROR',
-        message: 'Failed to add activity recipient',
-        details: error.message
-      }
+      message: 'Error adding recipient',
+      error: error.message
     });
   }
 };
 
-// Remove activity recipient
+// Remove recipient from activity
 const removeActivityRecipient = async (req, res) => {
   try {
     const { brandId, id, userId } = req.params;
 
-    const activity = await Activity.findOne({ _id: id, brand_id: brandId });
+    const activity = await Activity.findOne({
+      _id: id,
+      brand_id: new mongoose.Types.ObjectId(brandId)
+    });
 
     if (!activity) {
       return res.status(404).json({
         success: false,
-        error: {
-          code: 'ACTIVITY_NOT_FOUND',
-          message: 'Activity not found in this brand'
-        }
+        message: 'Activity not found'
       });
     }
 
+    // Remove recipient
     await activity.removeRecipient(userId);
+    await activity.populate('recipients.user', 'name email avatar');
 
     res.json({
       success: true,
-      data: activity,
-      message: 'Activity recipient removed successfully'
+      message: 'Recipient removed successfully',
+      data: activity
     });
   } catch (error) {
-    console.error('Error removing activity recipient:', error);
+    console.error('Error removing recipient:', error);
     res.status(500).json({
       success: false,
-      error: {
-        code: 'ACTIVITY_RECIPIENT_REMOVE_ERROR',
-        message: 'Failed to remove activity recipient',
-        details: error.message
-      }
+      message: 'Error removing recipient',
+      error: error.message
     });
   }
 };
@@ -588,45 +433,34 @@ const removeActivityRecipient = async (req, res) => {
 const markActivityAsRead = async (req, res) => {
   try {
     const { brandId, id } = req.params;
+    const userId = req.user.id;
 
-    const activity = await Activity.findOne({ _id: id, brand_id: brandId });
+    const activity = await Activity.findOne({
+      _id: id,
+      brand_id: new mongoose.Types.ObjectId(brandId)
+    });
 
     if (!activity) {
       return res.status(404).json({
         success: false,
-        error: {
-          code: 'ACTIVITY_NOT_FOUND',
-          message: 'Activity not found in this brand'
-        }
+        message: 'Activity not found'
       });
     }
 
-    const result = await activity.markAsRead(req.user.id);
-
-    if (!result) {
-      return res.status(403).json({
-        success: false,
-        error: {
-          code: 'ACCESS_DENIED',
-          message: 'You are not a recipient of this activity'
-        }
-      });
-    }
+    // Mark as read
+    await activity.markAsRead(userId);
 
     res.json({
       success: true,
-      data: activity,
-      message: 'Activity marked as read successfully'
+      message: 'Activity marked as read',
+      data: activity
     });
   } catch (error) {
     console.error('Error marking activity as read:', error);
     res.status(500).json({
       success: false,
-      error: {
-        code: 'ACTIVITY_READ_ERROR',
-        message: 'Failed to mark activity as read',
-        details: error.message
-      }
+      message: 'Error marking activity as read',
+      error: error.message
     });
   }
 };
@@ -635,45 +469,34 @@ const markActivityAsRead = async (req, res) => {
 const markActivityAsNotified = async (req, res) => {
   try {
     const { brandId, id } = req.params;
+    const userId = req.user.id;
 
-    const activity = await Activity.findOne({ _id: id, brand_id: brandId });
+    const activity = await Activity.findOne({
+      _id: id,
+      brand_id: new mongoose.Types.ObjectId(brandId)
+    });
 
     if (!activity) {
       return res.status(404).json({
         success: false,
-        error: {
-          code: 'ACTIVITY_NOT_FOUND',
-          message: 'Activity not found in this brand'
-        }
+        message: 'Activity not found'
       });
     }
 
-    const result = await activity.markAsNotified(req.user.id);
-
-    if (!result) {
-      return res.status(403).json({
-        success: false,
-        error: {
-          code: 'ACCESS_DENIED',
-          message: 'You are not a recipient of this activity'
-        }
-      });
-    }
+    // Mark as notified
+    await activity.markAsNotified(userId);
 
     res.json({
       success: true,
-      data: activity,
-      message: 'Activity marked as notified successfully'
+      message: 'Activity marked as notified',
+      data: activity
     });
   } catch (error) {
     console.error('Error marking activity as notified:', error);
     res.status(500).json({
       success: false,
-      error: {
-        code: 'ACTIVITY_NOTIFIED_ERROR',
-        message: 'Failed to mark activity as notified',
-        details: error.message
-      }
+      message: 'Error marking activity as notified',
+      error: error.message
     });
   }
 };
@@ -683,35 +506,32 @@ const archiveActivity = async (req, res) => {
   try {
     const { brandId, id } = req.params;
 
-    const activity = await Activity.findOne({ _id: id, brand_id: brandId });
+    const activity = await Activity.findOne({
+      _id: id,
+      brand_id: new mongoose.Types.ObjectId(brandId)
+    });
 
     if (!activity) {
       return res.status(404).json({
         success: false,
-        error: {
-          code: 'ACTIVITY_NOT_FOUND',
-          message: 'Activity not found in this brand'
-        }
+        message: 'Activity not found'
       });
     }
 
-    activity.status = 'archived';
-    await activity.save();
+    // Archive activity
+    await activity.archiveActivity();
 
     res.json({
       success: true,
-      data: activity,
-      message: 'Activity archived successfully'
+      message: 'Activity archived successfully',
+      data: activity
     });
   } catch (error) {
     console.error('Error archiving activity:', error);
     res.status(500).json({
       success: false,
-      error: {
-        code: 'ACTIVITY_ARCHIVE_ERROR',
-        message: 'Failed to archive activity',
-        details: error.message
-      }
+      message: 'Error archiving activity',
+      error: error.message
     });
   }
 };
@@ -720,70 +540,38 @@ const archiveActivity = async (req, res) => {
 const searchActivities = async (req, res) => {
   try {
     const { brandId } = req.params;
-    const { q, page = 1, limit = 20, type, priority } = req.query;
+    const { q, page = 1, limit = 20 } = req.query;
 
     if (!q) {
       return res.status(400).json({
         success: false,
-        error: {
-          code: 'VALIDATION_ERROR',
-          message: 'Search query is required'
-        }
+        message: 'Search query is required'
       });
     }
 
-    let query = {
-      brand_id: brandId,
-      $or: [
-        { action: { $regex: q, $options: 'i' } },
-        { description: { $regex: q, $options: 'i' } },
-        { tags: { $in: [new RegExp(q, 'i')] } }
-      ],
-      status: 'active'
-    };
-
-    if (type) {
-      query.type = type;
-    }
-    if (priority) {
-      query.priority = priority;
-    }
-
-    const skip = (parseInt(page) - 1) * parseInt(limit);
-
-    const activities = await Activity.find(query)
-      .populate('actor', 'name email avatar')
-      .populate('target.id', 'name title task')
-      .populate('recipients.user_id', 'name email')
-      .sort({ created_at: -1 })
-      .skip(skip)
-      .limit(parseInt(limit));
-
-    const totalActivities = await Activity.countDocuments(query);
+    const activities = await Activity.searchActivities(
+      new mongoose.Types.ObjectId(brandId),
+      q,
+      { limit: limit * 1, skip: (page - 1) * limit }
+    );
 
     res.json({
       success: true,
       data: {
         activities,
         pagination: {
-          currentPage: parseInt(page),
-          totalPages: Math.ceil(totalActivities / parseInt(limit)),
-          totalActivities,
-          hasNextPage: skip + activities.length < totalActivities,
-          hasPrevPage: parseInt(page) > 1
+          current: page,
+          pages: Math.ceil(activities.length / limit),
+          total: activities.length
         }
-      },
-      message: 'Activity search completed successfully'
+      }
     });
   } catch (error) {
     console.error('Error searching activities:', error);
     res.status(500).json({
       success: false,
-      error: {
-        code: 'ACTIVITY_SEARCH_ERROR',
-        message: 'Failed to search activities',
-        details: error.message
-      }
+      message: 'Error searching activities',
+      error: error.message
     });
   }
 };
@@ -792,64 +580,61 @@ const searchActivities = async (req, res) => {
 const filterActivities = async (req, res) => {
   try {
     const { brandId } = req.params;
-    const { type, priority, status, date_from, date_to, page = 1, limit = 20 } = req.query;
+    const { 
+      type, 
+      priority, 
+      visibility, 
+      status, 
+      created_by, 
+      date_from, 
+      date_to, 
+      page = 1, 
+      limit = 20 
+    } = req.query;
 
-    let query = { brand_id: brandId };
+    const query = {
+      brand_id: new mongoose.Types.ObjectId(brandId)
+    };
 
-    if (type) {
-      query.type = type;
-    }
-    if (priority) {
-      query.priority = priority;
-    }
-    if (status) {
-      query.status = status;
-    }
+    if (type) query.type = type;
+    if (priority) query.priority = priority;
+    if (visibility) query.visibility = visibility;
+    if (status) query.status = status;
+    if (created_by) query.created_by = new mongoose.Types.ObjectId(created_by);
+
     if (date_from || date_to) {
       query.created_at = {};
-      if (date_from) {
-        query.created_at.$gte = new Date(date_from);
-      }
-      if (date_to) {
-        query.created_at.$lte = new Date(date_to);
-      }
+      if (date_from) query.created_at.$gte = new Date(date_from);
+      if (date_to) query.created_at.$lte = new Date(date_to);
     }
 
-    const skip = (parseInt(page) - 1) * parseInt(limit);
-
     const activities = await Activity.find(query)
-      .populate('actor', 'name email avatar')
-      .populate('target.id', 'name title task')
-      .populate('recipients.user_id', 'name email')
+      .populate('created_by', 'name email avatar')
+      .populate('recipients.user', 'name email avatar')
+      .populate('mentions.user', 'name email avatar')
       .sort({ created_at: -1 })
-      .skip(skip)
-      .limit(parseInt(limit));
+      .limit(limit * 1)
+      .skip((page - 1) * limit);
 
-    const totalActivities = await Activity.countDocuments(query);
+    const total = await Activity.countDocuments(query);
 
     res.json({
       success: true,
       data: {
         activities,
         pagination: {
-          currentPage: parseInt(page),
-          totalPages: Math.ceil(totalActivities / parseInt(limit)),
-          totalActivities,
-          hasNextPage: skip + activities.length < totalActivities,
-          hasPrevPage: parseInt(page) > 1
+          current: page,
+          pages: Math.ceil(total / limit),
+          total
         }
-      },
-      message: 'Activity filtering completed successfully'
+      }
     });
   } catch (error) {
     console.error('Error filtering activities:', error);
     res.status(500).json({
       success: false,
-      error: {
-        code: 'ACTIVITY_FILTER_ERROR',
-        message: 'Failed to filter activities',
-        details: error.message
-      }
+      message: 'Error filtering activities',
+      error: error.message
     });
   }
 };
@@ -860,28 +645,29 @@ const getActivityAnalytics = async (req, res) => {
     const { brandId } = req.params;
     const { type, date_from, date_to } = req.query;
 
-    const options = {
-      type: type,
-      date_from: date_from ? new Date(date_from) : undefined,
-      date_to: date_to ? new Date(date_to) : undefined
-    };
-
-    const analytics = await Activity.getActivityAnalytics(brandId, options);
+    const analytics = await Activity.getActivityAnalytics(
+      new mongoose.Types.ObjectId(brandId),
+      { type, date_from, date_to }
+    );
 
     res.json({
       success: true,
-      data: analytics,
-      message: 'Activity analytics retrieved successfully'
+      data: analytics[0] || {
+        total_activities: 0,
+        total_reactions: 0,
+        total_mentions: 0,
+        total_recipients: 0,
+        avg_reactions_per_activity: 0,
+        avg_mentions_per_activity: 0,
+        activities_by_type: []
+      }
     });
   } catch (error) {
     console.error('Error fetching activity analytics:', error);
     res.status(500).json({
       success: false,
-      error: {
-        code: 'ACTIVITY_ANALYTICS_FETCH_ERROR',
-        message: 'Failed to fetch activity analytics',
-        details: error.message
-      }
+      message: 'Error fetching activity analytics',
+      error: error.message
     });
   }
 };
@@ -891,38 +677,39 @@ const getActivityAnalyticsById = async (req, res) => {
   try {
     const { brandId, id } = req.params;
 
-    const activity = await Activity.findOne({ _id: id, brand_id: brandId });
+    const activity = await Activity.findOne({
+      _id: id,
+      brand_id: new mongoose.Types.ObjectId(brandId)
+    });
 
     if (!activity) {
       return res.status(404).json({
         success: false,
-        error: {
-          code: 'ACTIVITY_NOT_FOUND',
-          message: 'Activity not found in this brand'
-        }
+        message: 'Activity not found'
       });
     }
 
-    const summary = activity.getSummary();
+    const analytics = {
+      view_count: activity.analytics.view_count,
+      interaction_count: activity.analytics.interaction_count,
+      share_count: activity.analytics.share_count,
+      engagement_score: activity.analytics.engagement_score,
+      reactions: activity.reactions,
+      mentions: activity.mentions,
+      recipients: activity.recipients,
+      attachments: activity.attachments
+    };
 
     res.json({
       success: true,
-      data: {
-        activity_id: activity._id,
-        summary,
-        analytics: activity.analytics
-      },
-      message: 'Activity analytics retrieved successfully'
+      data: analytics
     });
   } catch (error) {
     console.error('Error fetching activity analytics by ID:', error);
     res.status(500).json({
       success: false,
-      error: {
-        code: 'ACTIVITY_ANALYTICS_FETCH_ERROR',
-        message: 'Failed to fetch activity analytics',
-        details: error.message
-      }
+      message: 'Error fetching activity analytics by ID',
+      error: error.message
     });
   }
 };
@@ -931,26 +718,25 @@ const getActivityAnalyticsById = async (req, res) => {
 const exportActivities = async (req, res) => {
   try {
     const { brandId } = req.params;
-    const { type, format = 'json', date_from, date_to } = req.query;
+    const { type, date_from, date_to, format = 'json' } = req.query;
 
-    let query = { brand_id: brandId };
+    const query = {
+      brand_id: new mongoose.Types.ObjectId(brandId),
+      status: 'active'
+    };
 
-    if (type) {
-      query.type = type;
-    }
+    if (type) query.type = type;
+
     if (date_from || date_to) {
       query.created_at = {};
-      if (date_from) {
-        query.created_at.$gte = new Date(date_from);
-      }
-      if (date_to) {
-        query.created_at.$lte = new Date(date_to);
-      }
+      if (date_from) query.created_at.$gte = new Date(date_from);
+      if (date_to) query.created_at.$lte = new Date(date_to);
     }
 
     const activities = await Activity.find(query)
-      .populate('actor', 'name email')
-      .populate('target.id', 'name title task')
+      .populate('created_by', 'name email')
+      .populate('recipients.user', 'name email')
+      .populate('mentions.user', 'name email')
       .sort({ created_at: -1 });
 
     if (format === 'csv') {
@@ -958,93 +744,86 @@ const exportActivities = async (req, res) => {
       const csvData = activities.map(activity => ({
         id: activity._id,
         type: activity.type,
-        action: activity.action,
+        title: activity.title,
         description: activity.description,
-        actor: activity.actor.name,
-        target_type: activity.target.type,
-        target_name: activity.target.name,
-        created_at: activity.created_at,
+        created_by: activity.created_by.name,
         priority: activity.priority,
-        status: activity.status
+        visibility: activity.visibility,
+        created_at: activity.created_at,
+        reactions: activity.reactions.length,
+        mentions: activity.mentions.length,
+        recipients: activity.recipients.length
       }));
 
       res.setHeader('Content-Type', 'text/csv');
-      res.setHeader('Content-Disposition', 'attachment; filename="activities.csv"');
+      res.setHeader('Content-Disposition', 'attachment; filename=activities.csv');
       res.json({
         success: true,
-        data: csvData,
-        message: 'Activities exported successfully'
+        data: csvData
       });
     } else {
       res.json({
         success: true,
-        data: activities,
-        message: 'Activities exported successfully'
+        data: activities
       });
     }
   } catch (error) {
     console.error('Error exporting activities:', error);
     res.status(500).json({
       success: false,
-      error: {
-        code: 'ACTIVITY_EXPORT_ERROR',
-        message: 'Failed to export activities',
-        details: error.message
-      }
+      message: 'Error exporting activities',
+      error: error.message
     });
   }
 };
 
-// Get activity notifications
-const getActivityNotifications = async (req, res) => {
+// Get notifications
+const getNotifications = async (req, res) => {
   try {
     const { brandId } = req.params;
-    const { page = 1, limit = 20, unread_only = false } = req.query;
+    const { page = 1, limit = 20, read, notified } = req.query;
+    const userId = req.user.id;
 
-    let query = {
-      brand_id: brandId,
-      'recipients.user_id': req.user.id,
+    const query = {
+      brand_id: new mongoose.Types.ObjectId(brandId),
+      'recipients.user': new mongoose.Types.ObjectId(userId),
       status: 'active'
     };
 
-    if (unread_only === 'true') {
-      query['recipients.read_at'] = { $exists: false };
+    if (read !== undefined) {
+      query['recipients.read'] = read === 'true';
     }
 
-    const skip = (parseInt(page) - 1) * parseInt(limit);
+    if (notified !== undefined) {
+      query['recipients.notified'] = notified === 'true';
+    }
 
     const activities = await Activity.find(query)
-      .populate('actor', 'name email avatar')
-      .populate('target.id', 'name title task')
+      .populate('created_by', 'name email avatar')
+      .populate('recipients.user', 'name email avatar')
       .sort({ created_at: -1 })
-      .skip(skip)
-      .limit(parseInt(limit));
+      .limit(limit * 1)
+      .skip((page - 1) * limit);
 
-    const totalActivities = await Activity.countDocuments(query);
+    const total = await Activity.countDocuments(query);
 
     res.json({
       success: true,
       data: {
         activities,
         pagination: {
-          currentPage: parseInt(page),
-          totalPages: Math.ceil(totalActivities / parseInt(limit)),
-          totalActivities,
-          hasNextPage: skip + activities.length < totalActivities,
-          hasPrevPage: parseInt(page) > 1
+          current: page,
+          pages: Math.ceil(total / limit),
+          total
         }
-      },
-      message: 'Activity notifications retrieved successfully'
+      }
     });
   } catch (error) {
-    console.error('Error fetching activity notifications:', error);
+    console.error('Error fetching notifications:', error);
     res.status(500).json({
       success: false,
-      error: {
-        code: 'ACTIVITY_NOTIFICATIONS_FETCH_ERROR',
-        message: 'Failed to fetch activity notifications',
-        details: error.message
-      }
+      message: 'Error fetching notifications',
+      error: error.message
     });
   }
 };
@@ -1053,45 +832,35 @@ const getActivityNotifications = async (req, res) => {
 const markNotificationAsRead = async (req, res) => {
   try {
     const { brandId, id } = req.params;
+    const userId = req.user.id;
 
-    const activity = await Activity.findOne({ _id: id, brand_id: brandId });
+    const activity = await Activity.findOne({
+      _id: id,
+      brand_id: new mongoose.Types.ObjectId(brandId),
+      'recipients.user': new mongoose.Types.ObjectId(userId)
+    });
 
     if (!activity) {
       return res.status(404).json({
         success: false,
-        error: {
-          code: 'ACTIVITY_NOT_FOUND',
-          message: 'Activity not found in this brand'
-        }
+        message: 'Activity not found'
       });
     }
 
-    const result = await activity.markAsRead(req.user.id);
-
-    if (!result) {
-      return res.status(403).json({
-        success: false,
-        error: {
-          code: 'ACCESS_DENIED',
-          message: 'You are not a recipient of this activity'
-        }
-      });
-    }
+    // Mark as read
+    await activity.markAsRead(userId);
 
     res.json({
       success: true,
-      data: activity,
-      message: 'Notification marked as read successfully'
+      message: 'Notification marked as read',
+      data: activity
     });
   } catch (error) {
     console.error('Error marking notification as read:', error);
     res.status(500).json({
       success: false,
-      error: {
-        code: 'NOTIFICATION_READ_ERROR',
-        message: 'Failed to mark notification as read',
-        details: error.message
-      }
+      message: 'Error marking notification as read',
+      error: error.message
     });
   }
 };
@@ -1100,47 +869,40 @@ const markNotificationAsRead = async (req, res) => {
 const markNotificationAsUnread = async (req, res) => {
   try {
     const { brandId, id } = req.params;
+    const userId = req.user.id;
 
-    const activity = await Activity.findOne({ _id: id, brand_id: brandId });
+    const activity = await Activity.findOne({
+      _id: id,
+      brand_id: new mongoose.Types.ObjectId(brandId),
+      'recipients.user': new mongoose.Types.ObjectId(userId)
+    });
 
     if (!activity) {
       return res.status(404).json({
         success: false,
-        error: {
-          code: 'ACTIVITY_NOT_FOUND',
-          message: 'Activity not found in this brand'
-        }
+        message: 'Activity not found'
       });
     }
 
-    const recipient = activity.recipients.find(r => r.user_id.toString() === req.user.id.toString());
-    if (!recipient) {
-      return res.status(403).json({
-        success: false,
-        error: {
-          code: 'ACCESS_DENIED',
-          message: 'You are not a recipient of this activity'
-        }
-      });
+    // Mark as unread
+    const recipient = activity.recipients.find(r => r.user.toString() === userId.toString());
+    if (recipient) {
+      recipient.read = false;
+      recipient.read_at = null;
     }
-
-    recipient.read_at = undefined;
     await activity.save();
 
     res.json({
       success: true,
-      data: activity,
-      message: 'Notification marked as unread successfully'
+      message: 'Notification marked as unread',
+      data: activity
     });
   } catch (error) {
     console.error('Error marking notification as unread:', error);
     res.status(500).json({
       success: false,
-      error: {
-        code: 'NOTIFICATION_UNREAD_ERROR',
-        message: 'Failed to mark notification as unread',
-        details: error.message
-      }
+      message: 'Error marking notification as unread',
+      error: error.message
     });
   }
 };
@@ -1149,34 +911,29 @@ const markNotificationAsUnread = async (req, res) => {
 const getActivityPreferences = async (req, res) => {
   try {
     const { brandId } = req.params;
+    const userId = req.user.id;
 
-    // This would typically come from user preferences
+    // Get user preferences (this would typically be stored in user profile or separate preferences model)
+    const user = await User.findById(userId);
+    
     const preferences = {
-      email_notifications: true,
-      in_app_notifications: true,
-      activity_types: ['task_created', 'task_updated', 'comment_created'],
-      notification_frequency: 'immediate',
-      quiet_hours: {
-        enabled: false,
-        start: '22:00',
-        end: '08:00'
-      }
+      email_notifications: user.email_notifications || true,
+      push_notifications: user.push_notifications || true,
+      activity_types: user.activity_types || ['task_created', 'task_updated', 'comment_added'],
+      notification_frequency: user.notification_frequency || 'immediate',
+      quiet_hours: user.quiet_hours || { start: '22:00', end: '08:00' }
     };
 
     res.json({
       success: true,
-      data: preferences,
-      message: 'Activity preferences retrieved successfully'
+      data: preferences
     });
   } catch (error) {
     console.error('Error fetching activity preferences:', error);
     res.status(500).json({
       success: false,
-      error: {
-        code: 'ACTIVITY_PREFERENCES_FETCH_ERROR',
-        message: 'Failed to fetch activity preferences',
-        details: error.message
-      }
+      message: 'Error fetching activity preferences',
+      error: error.message
     });
   }
 };
@@ -1185,35 +942,49 @@ const getActivityPreferences = async (req, res) => {
 const updateActivityPreferences = async (req, res) => {
   try {
     const { brandId } = req.params;
-    const { email_notifications, in_app_notifications, activity_types, notification_frequency, quiet_hours } = req.body;
+    const { 
+      email_notifications, 
+      push_notifications, 
+      activity_types, 
+      notification_frequency, 
+      quiet_hours 
+    } = req.body;
+    const userId = req.user.id;
 
-    // This would typically update user preferences in database
-    const preferences = {
-      email_notifications: email_notifications !== undefined ? email_notifications : true,
-      in_app_notifications: in_app_notifications !== undefined ? in_app_notifications : true,
-      activity_types: activity_types || ['task_created', 'task_updated', 'comment_created'],
-      notification_frequency: notification_frequency || 'immediate',
-      quiet_hours: quiet_hours || {
-        enabled: false,
-        start: '22:00',
-        end: '08:00'
-      }
-    };
+    const user = await User.findById(userId);
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: 'User not found'
+      });
+    }
+
+    // Update preferences
+    if (email_notifications !== undefined) user.email_notifications = email_notifications;
+    if (push_notifications !== undefined) user.push_notifications = push_notifications;
+    if (activity_types) user.activity_types = activity_types;
+    if (notification_frequency) user.notification_frequency = notification_frequency;
+    if (quiet_hours) user.quiet_hours = quiet_hours;
+
+    await user.save();
 
     res.json({
       success: true,
-      data: preferences,
-      message: 'Activity preferences updated successfully'
+      message: 'Activity preferences updated successfully',
+      data: {
+        email_notifications: user.email_notifications,
+        push_notifications: user.push_notifications,
+        activity_types: user.activity_types,
+        notification_frequency: user.notification_frequency,
+        quiet_hours: user.quiet_hours
+      }
     });
   } catch (error) {
     console.error('Error updating activity preferences:', error);
     res.status(500).json({
       success: false,
-      error: {
-        code: 'ACTIVITY_PREFERENCES_UPDATE_ERROR',
-        message: 'Failed to update activity preferences',
-        details: error.message
-      }
+      message: 'Error updating activity preferences',
+      error: error.message
     });
   }
 };
@@ -1236,7 +1007,7 @@ module.exports = {
   getActivityAnalytics,
   getActivityAnalyticsById,
   exportActivities,
-  getActivityNotifications,
+  getNotifications,
   markNotificationAsRead,
   markNotificationAsUnread,
   getActivityPreferences,

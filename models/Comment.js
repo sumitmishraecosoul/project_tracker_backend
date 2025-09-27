@@ -1,108 +1,122 @@
 const mongoose = require('mongoose');
 
 const commentSchema = new mongoose.Schema({
+  // Brand isolation
   brand_id: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'Brand',
-    required: true
+    required: true,
+    index: true
   },
-  // Entity this comment belongs to (task, project, subtask)
-  entity_type: {
-    type: String,
-    enum: ['task', 'project', 'subtask'],
-    required: true
-  },
-  entity_id: {
-    type: mongoose.Schema.Types.ObjectId,
-    required: true
-  },
-  // Comment content (Markdown formatted)
+
+  // Comment content
   content: {
     type: String,
     required: true,
     trim: true,
     maxlength: 5000
   },
-  // Rendered HTML for display
-  contentHtml: {
-    type: String,
-    trim: true
-  },
+
   // Comment author
   author: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'User',
-    required: true
+    required: true,
+    index: true
   },
-  // Parent comment for threading
-  parentCommentId: {
+
+  // Entity this comment belongs to (task, project, subtask, etc.)
+  entity_type: {
+    type: String,
+    required: true,
+    enum: ['task', 'project', 'subtask', 'user', 'brand'],
+    index: true
+  },
+
+  entity_id: {
+    type: mongoose.Schema.Types.ObjectId,
+    required: true,
+    index: true
+  },
+
+  // Comment threading
+  parent_comment: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'Comment',
     default: null
   },
-  // Array of reply IDs
-  replies: [{
-    type: mongoose.Schema.Types.ObjectId,
-    ref: 'Comment'
-  }],
-  // Reply count
-  replyCount: {
-    type: Number,
-    default: 0
-  },
+
   // Comment status
   status: {
     type: String,
-    enum: ['active', 'edited', 'deleted', 'moderated'],
-    default: 'active'
+    enum: ['active', 'deleted', 'hidden', 'moderated'],
+    default: 'active',
+    index: true
   },
-  // Comment type
-  type: {
+
+  // Comment moderation
+  moderation_status: {
     type: String,
-    enum: ['comment', 'reply', 'mention', 'system', 'status_change', 'assignment'],
-    default: 'comment'
+    enum: ['pending', 'approved', 'rejected', 'flagged'],
+    default: 'approved',
+    index: true
   },
-  // Mentions in the comment
-  mentions: [{
-    user_id: {
+
+  // Comment permissions
+  permissions: {
+    can_edit: {
+      type: Boolean,
+      default: true
+    },
+    can_delete: {
+      type: Boolean,
+      default: true
+    },
+    can_react: {
+      type: Boolean,
+      default: true
+    },
+    can_reply: {
+      type: Boolean,
+      default: true
+    }
+  },
+
+  // Comment reactions
+  reactions: [{
+    user: {
       type: mongoose.Schema.Types.ObjectId,
-      ref: 'User'
-    },
-    name: {
-      type: String,
+      ref: 'User',
       required: true
     },
-    email: {
+    emoji: {
       type: String,
-      required: true
+      required: true,
+      enum: ['👍', '👎', '❤️', '😂', '😮', '😢', '😡', '🎉', '👏', '🔥']
     },
-    mentionedAt: {
+    created_at: {
       type: Date,
       default: Date.now
     }
   }],
-  // Links shared in the comment
-  links: [{
-    url: {
-      type: String,
+
+  // Comment mentions
+  mentions: [{
+    user: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'User',
       required: true
     },
-    title: {
-      type: String
+    mentioned_at: {
+      type: Date,
+      default: Date.now
     },
-    description: {
-      type: String
-    },
-    type: {
-      type: String,
-      enum: ['onedrive', 'googledrive', 'external', 'internal'],
-      default: 'external'
-    },
-    preview: {
-      image: String,
-      domain: String
+    notified: {
+      type: Boolean,
+      default: false
     }
   }],
+
   // Comment attachments
   attachments: [{
     filename: {
@@ -117,11 +131,11 @@ const commentSchema = new mongoose.Schema({
       type: Number,
       required: true
     },
-    mime_type: {
+    file_type: {
       type: String,
       required: true
     },
-    url: {
+    file_url: {
       type: String,
       required: true
     },
@@ -130,106 +144,17 @@ const commentSchema = new mongoose.Schema({
       default: Date.now
     }
   }],
-  // Comment reactions
-  reactions: [{
-    userId: {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: 'User'
-    },
-    emoji: {
-      type: String,
-      required: true
-    },
-    createdAt: {
-      type: Date,
-      default: Date.now
-    }
-  }],
-  // Comment visibility
-  visibility: {
-    type: String,
-    enum: ['public', 'private', 'team', 'mentioned'],
-    default: 'public'
-  },
-  // Comment permissions
-  permissions: {
-    can_edit: [{
-      type: mongoose.Schema.Types.ObjectId,
-      ref: 'User'
-    }],
-    can_delete: [{
-      type: mongoose.Schema.Types.ObjectId,
-      ref: 'User'
-    }],
-    can_react: [{
-      type: mongoose.Schema.Types.ObjectId,
-      ref: 'User'
-    }]
-  },
-  // Comment metadata
-  metadata: {
-    is_edited: {
-      type: Boolean,
-      default: false
-    },
-    edit_count: {
-      type: Number,
-      default: 0
-    },
-    last_edited_at: {
-      type: Date
-    },
-    is_pinned: {
-      type: Boolean,
-      default: false
-    },
-    pinned_at: {
-      type: Date
-    },
-    pinned_by: {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: 'User'
-    }
-  },
-  // Editing support
-  editedAt: {
-    type: Date
-  },
-  // Edit history
-  editHistory: [{
-    content: {
-      type: String,
-      required: true
-    },
-    editedAt: {
-      type: Date,
-      default: Date.now
-    },
-    editedBy: {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: 'User',
-      required: true
-    }
-  }],
-  // Deletion support
-  isDeleted: {
+
+  // Comment pinning
+  is_pinned: {
     type: Boolean,
-    default: false
+    default: false,
+    index: true
   },
-  deletedAt: {
-    type: Date
-  },
-  deletedBy: {
-    type: mongoose.Schema.Types.ObjectId,
-    ref: 'User'
-  },
+
   // Comment analytics
   analytics: {
     view_count: {
-      type: Number,
-      default: 0
-    },
-    reaction_count: {
       type: Number,
       default: 0
     },
@@ -237,15 +162,38 @@ const commentSchema = new mongoose.Schema({
       type: Number,
       default: 0
     },
+    reaction_count: {
+      type: Number,
+      default: 0
+    },
     mention_count: {
       type: Number,
       default: 0
     }
+  },
+
+  // Comment history for editing
+  history: [{
+    content: String,
+    edited_at: {
+      type: Date,
+      default: Date.now
+    },
+    edited_by: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'User'
+    }
+  }],
+
+  // Comment metadata
+  metadata: {
+    ip_address: String,
+    user_agent: String,
+    device_type: String,
+    browser: String
   }
 }, {
-  timestamps: true,
-  toJSON: { virtuals: true },
-  toObject: { virtuals: true }
+  timestamps: true
 });
 
 // Indexes for performance
@@ -253,255 +201,227 @@ commentSchema.index({ brand_id: 1, entity_type: 1, entity_id: 1 });
 commentSchema.index({ brand_id: 1, author: 1 });
 commentSchema.index({ brand_id: 1, parent_comment: 1 });
 commentSchema.index({ brand_id: 1, status: 1 });
-commentSchema.index({ brand_id: 1, type: 1 });
+commentSchema.index({ brand_id: 1, is_pinned: 1 });
 commentSchema.index({ brand_id: 1, created_at: -1 });
-commentSchema.index({ brand_id: 1, 'mentions.user_id': 1 });
-commentSchema.index({ brand_id: 1, 'reactions.user_id': 1 });
 
-// Virtual for author details
-commentSchema.virtual('author_details', {
-  ref: 'User',
-  localField: 'author',
-  foreignField: '_id',
-  justOne: true
+// Virtual for reply count
+commentSchema.virtual('reply_count').get(function() {
+  return this.analytics.reply_count;
 });
 
-// Virtual for parent comment details
-commentSchema.virtual('parent', {
-  ref: 'Comment',
-  localField: 'parent_comment',
-  foreignField: '_id',
-  justOne: true
+// Virtual for reaction count
+commentSchema.virtual('reaction_count').get(function() {
+  return this.analytics.reaction_count;
 });
 
-// Virtual for child comments (replies)
-commentSchema.virtual('childComments', {
-  ref: 'Comment',
-  localField: '_id',
-  foreignField: 'parentCommentId'
+// Virtual for mention count
+commentSchema.virtual('mention_count').get(function() {
+  return this.analytics.mention_count;
 });
-
-// Virtual for entity details
-commentSchema.virtual('entity', {
-  ref: function() {
-    switch (this.entity_type) {
-      case 'task': return 'Task';
-      case 'project': return 'Project';
-      case 'subtask': return 'Subtask';
-      default: return null;
-    }
-  },
-  localField: 'entity_id',
-  foreignField: '_id',
-  justOne: true
-});
-
-// Method to check if user can edit comment
-commentSchema.methods.canUserEdit = function(userId, userRole) {
-  // Author can always edit
-  if (this.author.toString() === userId.toString()) {
-    return true;
-  }
-  
-  // Check if user is in edit permissions
-  const canEdit = this.permissions.can_edit.some(id => id.toString() === userId.toString());
-  if (canEdit) {
-    return true;
-  }
-  
-  // Admin and managers can edit
-  if (['admin', 'manager'].includes(userRole)) {
-    return true;
-  }
-  
-  return false;
-};
-
-// Method to check if user can delete comment
-commentSchema.methods.canUserDelete = function(userId, userRole) {
-  // Author can always delete
-  if (this.author.toString() === userId.toString()) {
-    return true;
-  }
-  
-  // Check if user is in delete permissions
-  const canDelete = this.permissions.can_delete.some(id => id.toString() === userId.toString());
-  if (canDelete) {
-    return true;
-  }
-  
-  // Admin and managers can delete
-  if (['admin', 'manager'].includes(userRole)) {
-    return true;
-  }
-  
-  return false;
-};
-
-// Method to check if user can react to comment
-commentSchema.methods.canUserReact = function(userId) {
-  // Check if user is in react permissions
-  const canReact = this.permissions.can_react.some(id => id.toString() === userId.toString());
-  if (canReact) {
-    return true;
-  }
-  
-  // Default: all users can react
-  return true;
-};
-
-// Method to add reaction
-commentSchema.methods.addReaction = function(userId, emoji) {
-  // Remove existing reaction from this user
-  this.reactions = this.reactions.filter(r => r.user_id.toString() !== userId.toString());
-  
-  // Add new reaction
-  this.reactions.push({
-    user_id: userId,
-    emoji: emoji
-  });
-  
-  // Update analytics
-  this.analytics.reaction_count = this.reactions.length;
-  
-  return this.save();
-};
-
-// Method to remove reaction
-commentSchema.methods.removeReaction = function(userId) {
-  this.reactions = this.reactions.filter(r => r.user_id.toString() !== userId.toString());
-  this.analytics.reaction_count = this.reactions.length;
-  return this.save();
-};
-
-// Method to add mention
-commentSchema.methods.addMention = function(userId, position, length) {
-  this.mentions.push({
-    user_id: userId,
-    position: position,
-    length: length
-  });
-  this.analytics.mention_count = this.mentions.length;
-  return this.save();
-};
-
-// Method to get comment thread
-commentSchema.methods.getThread = async function() {
-  const Comment = mongoose.model('Comment');
-  return await Comment.find({
-    $or: [
-      { _id: this._id },
-      { parent_comment: this._id }
-    ],
-    brand_id: this.brand_id
-  }).populate('author', 'name email avatar')
-    .populate('mentions.user_id', 'name email')
-    .populate('reactions.user_id', 'name email')
-    .sort({ createdAt: 1 });
-};
-
-// Method to get comment statistics
-commentSchema.methods.getStatistics = function() {
-  return {
-    total_reactions: this.analytics.reaction_count,
-    total_replies: this.analytics.reply_count,
-    total_mentions: this.analytics.mention_count,
-    total_views: this.analytics.view_count,
-    is_edited: this.metadata.is_edited,
-    edit_count: this.metadata.edit_count,
-    is_pinned: this.metadata.is_pinned
-  };
-};
-
-// Static method to get comments by entity
-commentSchema.statics.getCommentsByEntity = function(brandId, entityType, entityId, options = {}) {
-  const query = {
-    brand_id: brandId,
-    entity_type: entityType,
-    entity_id: entityId,
-    status: { $ne: 'deleted' }
-  };
-  
-  if (options.parent_comment === null) {
-    query.parent_comment = null;
-  }
-  
-  if (options.type) {
-    query.type = options.type;
-  }
-  
-  if (options.author) {
-    query.author = options.author;
-  }
-  
-  return this.find(query)
-    .populate('author', 'name email avatar')
-    .populate('mentions.user_id', 'name email')
-    .populate('reactions.user_id', 'name email')
-    .sort({ createdAt: -1 });
-};
-
-// Static method to get comment analytics
-commentSchema.statics.getCommentAnalytics = function(brandId, entityType, entityId) {
-  return this.aggregate([
-    { $match: { brand_id: mongoose.Types.ObjectId(brandId), entity_type: entityType, entity_id: mongoose.Types.ObjectId(entityId) } },
-    {
-      $group: {
-        _id: null,
-        total_comments: { $sum: 1 },
-        total_reactions: { $sum: '$analytics.reaction_count' },
-        total_mentions: { $sum: '$analytics.mention_count' },
-        total_views: { $sum: '$analytics.view_count' },
-        avg_reactions_per_comment: { $avg: '$analytics.reaction_count' }
-      }
-    }
-  ]);
-};
 
 // Pre-save middleware to update analytics
 commentSchema.pre('save', function(next) {
   if (this.isModified('reactions')) {
     this.analytics.reaction_count = this.reactions.length;
   }
-  
   if (this.isModified('mentions')) {
     this.analytics.mention_count = this.mentions.length;
   }
-  
-  if (this.isModified('content') && !this.isNew) {
-    this.metadata.is_edited = true;
-    this.metadata.edit_count += 1;
-    this.metadata.last_edited_at = new Date();
-    
-    // Add to history
-    this.history.push({
-      content: this.content,
-      edited_by: this.author,
-      edited_at: new Date()
-    });
-  }
-  
   next();
 });
 
-// Post-save middleware to update parent comment reply count
-commentSchema.post('save', async function() {
-  if (this.parent_comment) {
-    const Comment = mongoose.model('Comment');
-    await Comment.findByIdAndUpdate(this.parent_comment, {
-      $inc: { 'analytics.reply_count': 1 }
-    });
-  }
-});
+// Static method to get comment thread
+commentSchema.statics.getCommentThread = function(commentId, brandId) {
+  return this.find({
+    $or: [
+      { _id: commentId },
+      { parent_comment: commentId }
+    ],
+    brand_id: brandId,
+    status: 'active'
+  })
+  .populate('author', 'name email avatar')
+  .populate('mentions.user', 'name email')
+  .sort({ created_at: 1 });
+};
 
-// Post-remove middleware to update parent comment reply count
-commentSchema.post('remove', async function() {
-  if (this.parent_comment) {
-    const Comment = mongoose.model('Comment');
-    await Comment.findByIdAndUpdate(this.parent_comment, {
-      $inc: { 'analytics.reply_count': -1 }
+// Static method to get entity comments
+commentSchema.statics.getEntityComments = function(entityType, entityId, brandId, options = {}) {
+  const query = {
+    entity_type: entityType,
+    entity_id: entityId,
+    brand_id: brandId,
+    status: 'active'
+  };
+
+  if (options.parent_comment === null) {
+    query.parent_comment = null;
+  }
+
+  return this.find(query)
+    .populate('author', 'name email avatar')
+    .populate('mentions.user', 'name email')
+    .sort({ is_pinned: -1, created_at: 1 })
+    .limit(options.limit || 50)
+    .skip(options.skip || 0);
+};
+
+// Static method to search comments
+commentSchema.statics.searchComments = function(brandId, searchQuery, options = {}) {
+  const query = {
+    brand_id: brandId,
+    status: 'active',
+    $or: [
+      { content: { $regex: searchQuery, $options: 'i' } },
+      { 'author.name': { $regex: searchQuery, $options: 'i' } }
+    ]
+  };
+
+  return this.find(query)
+    .populate('author', 'name email avatar')
+    .populate('mentions.user', 'name email')
+    .sort({ created_at: -1 })
+    .limit(options.limit || 20)
+    .skip(options.skip || 0);
+};
+
+// Static method to get comment analytics
+commentSchema.statics.getCommentAnalytics = function(brandId, options = {}) {
+  const matchStage = {
+    brand_id: new mongoose.Types.ObjectId(brandId),
+    status: 'active'
+  };
+
+  if (options.entity_type) {
+    matchStage.entity_type = options.entity_type;
+  }
+
+  if (options.entity_id) {
+    matchStage.entity_id = new mongoose.Types.ObjectId(options.entity_id);
+  }
+
+  if (options.date_from) {
+    matchStage.created_at = { $gte: new Date(options.date_from) };
+  }
+
+  if (options.date_to) {
+    matchStage.created_at = { ...matchStage.created_at, $lte: new Date(options.date_to) };
+  }
+
+  return this.aggregate([
+    { $match: matchStage },
+    {
+      $group: {
+        _id: null,
+        total_comments: { $sum: 1 },
+        total_reactions: { $sum: { $size: '$reactions' } },
+        total_mentions: { $sum: { $size: '$mentions' } },
+        total_attachments: { $sum: { $size: '$attachments' } },
+        avg_reactions_per_comment: { $avg: { $size: '$reactions' } },
+        avg_mentions_per_comment: { $avg: { $size: '$mentions' } },
+        comments_by_entity_type: {
+          $push: {
+            entity_type: '$entity_type',
+            entity_id: '$entity_id'
+          }
+        }
+      }
+    }
+  ]);
+};
+
+// Static method to get user comment statistics
+commentSchema.statics.getUserCommentStats = function(userId, brandId) {
+  return this.aggregate([
+    {
+      $match: {
+        author: new mongoose.Types.ObjectId(userId),
+        brand_id: new mongoose.Types.ObjectId(brandId),
+        status: 'active'
+      }
+    },
+    {
+      $group: {
+        _id: null,
+        total_comments: { $sum: 1 },
+        total_reactions_received: { $sum: { $size: '$reactions' } },
+        total_mentions: { $sum: { $size: '$mentions' } },
+        total_attachments: { $sum: { $size: '$attachments' } },
+        comments_by_entity_type: {
+          $push: '$entity_type'
+        }
+      }
+    }
+  ]);
+};
+
+// Method to add reaction
+commentSchema.methods.addReaction = function(userId, emoji) {
+  // Remove existing reaction from this user
+  this.reactions = this.reactions.filter(r => r.user.toString() !== userId.toString());
+  
+  // Add new reaction
+  this.reactions.push({
+    user: userId,
+    emoji: emoji,
+    created_at: new Date()
+  });
+  
+  return this.save();
+};
+
+// Method to remove reaction
+commentSchema.methods.removeReaction = function(userId) {
+  this.reactions = this.reactions.filter(r => r.user.toString() !== userId.toString());
+  return this.save();
+};
+
+// Method to add mention
+commentSchema.methods.addMention = function(userId) {
+  const existingMention = this.mentions.find(m => m.user.toString() === userId.toString());
+  if (!existingMention) {
+    this.mentions.push({
+      user: userId,
+      mentioned_at: new Date(),
+      notified: false
     });
   }
-});
+  return this.save();
+};
+
+// Method to pin comment
+commentSchema.methods.pinComment = function() {
+  this.is_pinned = true;
+  return this.save();
+};
+
+// Method to unpin comment
+commentSchema.methods.unpinComment = function() {
+  this.is_pinned = false;
+  return this.save();
+};
+
+// Method to moderate comment
+commentSchema.methods.moderateComment = function(status, moderatorId) {
+  this.moderation_status = status;
+  if (status === 'rejected') {
+    this.status = 'hidden';
+  }
+  return this.save();
+};
+
+// Method to edit comment
+commentSchema.methods.editComment = function(newContent, editorId) {
+  // Add to history
+  this.history.push({
+    content: this.content,
+    edited_at: new Date(),
+    edited_by: editorId
+  });
+  
+  // Update content
+  this.content = newContent;
+  return this.save();
+};
 
 module.exports = mongoose.model('Comment', commentSchema);

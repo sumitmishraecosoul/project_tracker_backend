@@ -47,6 +47,7 @@ app.use('/api/brands', require('./routes/brandSubtasks'));
 app.use('/api/brands', require('./routes/brandComments'));
 app.use('/api/brands', require('./routes/brandActivities'));
 app.use('/api/brands', require('./routes/brandNotifications'));
+app.use('/api/brands', require('./routes/brandInvitations'));
 
 // Advanced Comment System Routes
 app.use('/api', require('./routes/advancedComments'));

@@ -5,6 +5,7 @@ let authToken = '';
 let brandId = '';
 let projectId = '';
 let taskId = '';
+let subtaskId = '';
 let commentId = '';
 let activityId = '';
 let userId = '';
@@ -12,11 +13,11 @@ let userId = '';
 // Test configuration
 const testConfig = {
   admin: {
-    name: 'Phase6 Test Admin',
-    email: `phase6test${Date.now()}@test.com`,
+    name: 'Phase6 Admin',
+    email: 'phase6admin@test.com',
     password: 'Test123!',
     department: 'Data Analytics',
-    employeeNumber: `EMP${Date.now()}`
+    employeeNumber: 'EMP001'
   },
   brand: {
     name: `Phase6 Test Brand ${Date.now()}`,
@@ -40,6 +41,14 @@ const testConfig = {
     status: 'Yet to Start',
     estimatedHours: 8,
     eta: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString()
+  },
+  subtask: {
+    title: 'Phase 6 Test Subtask',
+    description: 'Test subtask for Phase 6 testing',
+    status: 'To Do',
+    priority: 'Medium',
+    estimatedHours: 4,
+    eta: new Date(Date.now() + 3 * 24 * 60 * 60 * 1000).toISOString()
   }
 };
 
@@ -63,8 +72,6 @@ const apiCall = async (method, url, data = null, headers = {}) => {
     const response = await axios(config);
     return { success: true, data: response.data, status: response.status };
   } catch (error) {
-    console.log(`API Call failed: ${method} ${url}`);
-    console.log(`Error:`, error.response?.data || error.message);
     return { 
       success: false, 
       error: error.response?.data || error.message, 
@@ -86,15 +93,30 @@ const testServerHealth = async () => {
   }
 };
 
-const testAdminRegistration = async () => {
-  console.log('🔍 Testing Admin Registration...');
-  const result = await apiCall('POST', '/auth/register', testConfig.admin);
+const testAdminLogin = async () => {
+  console.log('🔍 Testing Admin Login...');
+  
+  // First try to login
+  let result = await apiCall('POST', '/auth/login', {
+    email: testConfig.admin.email,
+    password: testConfig.admin.password
+  });
+  
+  if (result.success) {
+    authToken = result.data.token;
+    userId = result.data.user._id;
+    console.log('✅ Admin login successful');
+    return true;
+  }
+  
+  // If login fails, try to register
+  console.log('🔍 Admin not found, creating admin...');
+  result = await apiCall('POST', '/auth/register', testConfig.admin);
   
   if (result.success) {
     authToken = result.data.token;
     userId = result.data.user._id;
     console.log('✅ Admin registration successful');
-    console.log(`   User ID: ${userId}`);
     return true;
   } else {
     console.log('❌ Admin registration failed:', result.error);
@@ -147,6 +169,26 @@ const testTaskCreation = async () => {
     return true;
   } else {
     console.log('❌ Task creation failed:', result.error);
+    return false;
+  }
+};
+
+const testSubtaskCreation = async () => {
+  console.log('🔍 Testing Subtask Creation...');
+  const result = await apiCall('POST', `/brands/${brandId}/tasks/${taskId}/subtasks`, {
+    ...testConfig.subtask,
+    task_id: taskId,
+    assignedTo: userId,
+    reporter: userId
+  });
+  
+  if (result.success) {
+    subtaskId = result.data.data._id;
+    console.log('✅ Subtask created successfully');
+    console.log(`   Subtask ID: ${subtaskId}`);
+    return true;
+  } else {
+    console.log('❌ Subtask creation failed:', result.error);
     return false;
   }
 };
@@ -209,6 +251,22 @@ const testCommentReaction = async () => {
     return true;
   } else {
     console.log('❌ Comment reaction failed:', result.error);
+    return false;
+  }
+};
+
+const testCommentReply = async () => {
+  console.log('🔍 Testing Comment Reply...');
+  const result = await apiCall('POST', `/brands/${brandId}/comments/${commentId}/reply`, {
+    content: 'This is a reply to the test comment',
+    mentions: [userId]
+  });
+  
+  if (result.success) {
+    console.log('✅ Comment reply created successfully');
+    return true;
+  } else {
+    console.log('❌ Comment reply failed:', result.error);
     return false;
   }
 };
@@ -301,6 +359,38 @@ const testActivityFeed = async () => {
   }
 };
 
+const testActivityUpdate = async () => {
+  console.log('🔍 Testing Activity Update...');
+  const result = await apiCall('PUT', `/brands/${brandId}/activities/${activityId}`, {
+    title: 'Updated Test Task Created',
+    description: 'An updated test task was created for Phase 6 testing',
+    priority: 'high'
+  });
+  
+  if (result.success) {
+    console.log('✅ Activity updated successfully');
+    return true;
+  } else {
+    console.log('❌ Activity update failed:', result.error);
+    return false;
+  }
+};
+
+const testActivityReaction = async () => {
+  console.log('🔍 Testing Activity Reaction...');
+  const result = await apiCall('POST', `/brands/${brandId}/activities/${activityId}/react`, {
+    emoji: '🎉'
+  });
+  
+  if (result.success) {
+    console.log('✅ Activity reaction added successfully');
+    return true;
+  } else {
+    console.log('❌ Activity reaction failed:', result.error);
+    return false;
+  }
+};
+
 const testActivitySearch = async () => {
   console.log('🔍 Testing Activity Search...');
   const result = await apiCall('GET', `/brands/${brandId}/activities/search?q=test`);
@@ -353,6 +443,32 @@ const testActivityPreferences = async () => {
   }
 };
 
+const testCommentDeletion = async () => {
+  console.log('🔍 Testing Comment Deletion...');
+  const result = await apiCall('DELETE', `/brands/${brandId}/comments/${commentId}`);
+  
+  if (result.success) {
+    console.log('✅ Comment deleted successfully');
+    return true;
+  } else {
+    console.log('❌ Comment deletion failed:', result.error);
+    return false;
+  }
+};
+
+const testActivityDeletion = async () => {
+  console.log('🔍 Testing Activity Deletion...');
+  const result = await apiCall('DELETE', `/brands/${brandId}/activities/${activityId}`);
+  
+  if (result.success) {
+    console.log('✅ Activity deleted successfully');
+    return true;
+  } else {
+    console.log('❌ Activity deletion failed:', result.error);
+    return false;
+  }
+};
+
 // Edge Cases Tests
 const testEdgeCases = async () => {
   console.log('🔍 Testing Edge Cases...');
@@ -395,34 +511,20 @@ const testEdgeCases = async () => {
     console.log('❌ Invalid activity type validation failed');
   }
   
+  // Test activity with missing required fields
+  const missingFieldsResult = await apiCall('POST', `/brands/${brandId}/activities`, {
+    type: 'task_created'
+    // Missing title and description
+  });
+  
+  if (!missingFieldsResult.success) {
+    console.log('✅ Missing fields validation working');
+  } else {
+    console.log('❌ Missing fields validation failed');
+  }
+  
   console.log('✅ Edge cases testing completed');
   return true;
-};
-
-const testCommentDeletion = async () => {
-  console.log('🔍 Testing Comment Deletion...');
-  const result = await apiCall('DELETE', `/brands/${brandId}/comments/${commentId}`);
-  
-  if (result.success) {
-    console.log('✅ Comment deleted successfully');
-    return true;
-  } else {
-    console.log('❌ Comment deletion failed:', result.error);
-    return false;
-  }
-};
-
-const testActivityDeletion = async () => {
-  console.log('🔍 Testing Activity Deletion...');
-  const result = await apiCall('DELETE', `/brands/${brandId}/activities/${activityId}`);
-  
-  if (result.success) {
-    console.log('✅ Activity deleted successfully');
-    return true;
-  } else {
-    console.log('❌ Activity deletion failed:', result.error);
-    return false;
-  }
 };
 
 // Main test runner
@@ -435,19 +537,23 @@ const runPhase6Tests = async () => {
   
   const tests = [
     { name: 'Server Health', fn: testServerHealth },
-    { name: 'Admin Registration', fn: testAdminRegistration },
+    { name: 'Admin Login', fn: testAdminLogin },
     { name: 'Brand Creation', fn: testBrandCreation },
     { name: 'Project Creation', fn: testProjectCreation },
     { name: 'Task Creation', fn: testTaskCreation },
+    { name: 'Subtask Creation', fn: testSubtaskCreation },
     { name: 'Comment Creation', fn: testCommentCreation },
     { name: 'Comment Retrieval', fn: testCommentRetrieval },
     { name: 'Comment Update', fn: testCommentUpdate },
     { name: 'Comment Reaction', fn: testCommentReaction },
+    { name: 'Comment Reply', fn: testCommentReply },
     { name: 'Comment Search', fn: testCommentSearch },
     { name: 'Comment Analytics', fn: testCommentAnalytics },
     { name: 'Activity Creation', fn: testActivityCreation },
     { name: 'Activity Retrieval', fn: testActivityRetrieval },
     { name: 'Activity Feed', fn: testActivityFeed },
+    { name: 'Activity Update', fn: testActivityUpdate },
+    { name: 'Activity Reaction', fn: testActivityReaction },
     { name: 'Activity Search', fn: testActivitySearch },
     { name: 'Activity Analytics', fn: testActivityAnalytics },
     { name: 'Notifications', fn: testNotifications },

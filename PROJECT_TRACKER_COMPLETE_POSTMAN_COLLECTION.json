@@ -1,0 +1,1087 @@
+{
+  "info": {
+    "name": "Project Tracker Backend - Complete API Collection",
+    "description": "Comprehensive Postman collection for Project Tracker Backend covering all phases from Phase 1 to Phase 7",
+    "version": "1.0.0",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "auth": {
+    "type": "bearer",
+    "bearer": [
+      {
+        "key": "token",
+        "value": "{{authToken}}",
+        "type": "string"
+      }
+    ]
+  },
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:5000/api",
+      "type": "string"
+    },
+    {
+      "key": "authToken",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "brandId",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "projectId",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "taskId",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "userId",
+      "value": "",
+      "type": "string"
+    }
+  ],
+  "item": [
+    {
+      "name": "Phase 1: Authentication & User Management",
+      "item": [
+        {
+          "name": "Authentication",
+          "item": [
+            {
+              "name": "Register User",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"name\": \"John Doe\",\n  \"email\": \"john@example.com\",\n  \"password\": \"password123\",\n  \"department\": \"Data Analytics\",\n  \"employeeNumber\": \"EMP001\"\n}"
+                },
+                "url": {
+                  "raw": "{{baseUrl}}/auth/register",
+                  "host": ["{{baseUrl}}"],
+                  "path": ["auth", "register"]
+                }
+              }
+            },
+            {
+              "name": "Login User",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"email\": \"john@example.com\",\n  \"password\": \"password123\"\n}"
+                },
+                "url": {
+                  "raw": "{{baseUrl}}/auth/login",
+                  "host": ["{{baseUrl}}"],
+                  "path": ["auth", "login"]
+                }
+              }
+            },
+            {
+              "name": "Get Current User",
+              "request": {
+                "method": "GET",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{authToken}}"
+                  }
+                ],
+                "url": {
+                  "raw": "{{baseUrl}}/auth/me",
+                  "host": ["{{baseUrl}}"],
+                  "path": ["auth", "me"]
+                }
+              }
+            },
+            {
+              "name": "Refresh Token",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"refreshToken\": \"{{refreshToken}}\"\n}"
+                },
+                "url": {
+                  "raw": "{{baseUrl}}/auth/refresh",
+                  "host": ["{{baseUrl}}"],
+                  "path": ["auth", "refresh"]
+                }
+              }
+            },
+            {
+              "name": "Logout User",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{authToken}}"
+                  }
+                ],
+                "url": {
+                  "raw": "{{baseUrl}}/auth/logout",
+                  "host": ["{{baseUrl}}"],
+                  "path": ["auth", "logout"]
+                }
+              }
+            }
+          ]
+        },
+        {
+          "name": "User Management",
+          "item": [
+            {
+              "name": "Get All Users",
+              "request": {
+                "method": "GET",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{authToken}}"
+                  }
+                ],
+                "url": {
+                  "raw": "{{baseUrl}}/users",
+                  "host": ["{{baseUrl}}"],
+                  "path": ["users"]
+                }
+              }
+            },
+            {
+              "name": "Get User by ID",
+              "request": {
+                "method": "GET",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{authToken}}"
+                  }
+                ],
+                "url": {
+                  "raw": "{{baseUrl}}/users/{{userId}}",
+                  "host": ["{{baseUrl}}"],
+                  "path": ["users", "{{userId}}"]
+                }
+              }
+            },
+            {
+              "name": "Create User",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{authToken}}"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"name\": \"Jane Smith\",\n  \"email\": \"jane@example.com\",\n  \"password\": \"password123\",\n  \"department\": \"Data Analytics\",\n  \"employeeNumber\": \"EMP002\"\n}"
+                },
+                "url": {
+                  "raw": "{{baseUrl}}/users",
+                  "host": ["{{baseUrl}}"],
+                  "path": ["users"]
+                }
+              }
+            },
+            {
+              "name": "Update User",
+              "request": {
+                "method": "PUT",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{authToken}}"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"name\": \"Jane Smith Updated\",\n  \"department\": \"Engineering\"\n}"
+                },
+                "url": {
+                  "raw": "{{baseUrl}}/users/{{userId}}",
+                  "host": ["{{baseUrl}}"],
+                  "path": ["users", "{{userId}}"]
+                }
+              }
+            },
+            {
+              "name": "Delete User",
+              "request": {
+                "method": "DELETE",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{authToken}}"
+                  }
+                ],
+                "url": {
+                  "raw": "{{baseUrl}}/users/{{userId}}",
+                  "host": ["{{baseUrl}}"],
+                  "path": ["users", "{{userId}}"]
+                }
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Phase 2: Project Management",
+      "item": [
+        {
+          "name": "Project CRUD",
+          "item": [
+            {
+              "name": "Get All Projects",
+              "request": {
+                "method": "GET",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{authToken}}"
+                  }
+                ],
+                "url": {
+                  "raw": "{{baseUrl}}/projects",
+                  "host": ["{{baseUrl}}"],
+                  "path": ["projects"]
+                }
+              }
+            },
+            {
+              "name": "Get Project by ID",
+              "request": {
+                "method": "GET",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{authToken}}"
+                  }
+                ],
+                "url": {
+                  "raw": "{{baseUrl}}/projects/{{projectId}}",
+                  "host": ["{{baseUrl}}"],
+                  "path": ["projects", "{{projectId}}"]
+                }
+              }
+            },
+            {
+              "name": "Create Project",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{authToken}}"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"title\": \"E-commerce Platform\",\n  \"description\": \"Build a modern e-commerce platform\",\n  \"status\": \"Active\",\n  \"priority\": \"High\",\n  \"startDate\": \"2024-01-01\",\n  \"dueDate\": \"2024-12-31\",\n  \"assignedTo\": [\"{{userId}}\"],\n  \"teamMembers\": [\n    {\n      \"user\": \"{{userId}}\",\n      \"role\": \"developer\"\n    }\n  ]\n}"
+                },
+                "url": {
+                  "raw": "{{baseUrl}}/projects",
+                  "host": ["{{baseUrl}}"],
+                  "path": ["projects"]
+                }
+              }
+            },
+            {
+              "name": "Update Project",
+              "request": {
+                "method": "PUT",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{authToken}}"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"title\": \"Updated E-commerce Platform\",\n  \"description\": \"Updated description\",\n  \"status\": \"Active\",\n  \"priority\": \"Critical\"\n}"
+                },
+                "url": {
+                  "raw": "{{baseUrl}}/projects/{{projectId}}",
+                  "host": ["{{baseUrl}}"],
+                  "path": ["projects", "{{projectId}}"]
+                }
+              }
+            },
+            {
+              "name": "Delete Project",
+              "request": {
+                "method": "DELETE",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{authToken}}"
+                  }
+                ],
+                "url": {
+                  "raw": "{{baseUrl}}/projects/{{projectId}}",
+                  "host": ["{{baseUrl}}"],
+                  "path": ["projects", "{{projectId}}"]
+                }
+              }
+            }
+          ]
+        },
+        {
+          "name": "Project Analytics",
+          "item": [
+            {
+              "name": "Get Project Analytics",
+              "request": {
+                "method": "GET",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{authToken}}"
+                  }
+                ],
+                "url": {
+                  "raw": "{{baseUrl}}/projects/{{projectId}}/analytics",
+                  "host": ["{{baseUrl}}"],
+                  "path": ["projects", "{{projectId}}", "analytics"]
+                }
+              }
+            },
+            {
+              "name": "Get Project Overview",
+              "request": {
+                "method": "GET",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{authToken}}"
+                  }
+                ],
+                "url": {
+                  "raw": "{{baseUrl}}/projects/{{projectId}}/analytics/overview",
+                  "host": ["{{baseUrl}}"],
+                  "path": ["projects", "{{projectId}}", "analytics", "overview"]
+                }
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Phase 3: Task Management",
+      "item": [
+        {
+          "name": "Task CRUD",
+          "item": [
+            {
+              "name": "Get All Tasks",
+              "request": {
+                "method": "GET",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{authToken}}"
+                  }
+                ],
+                "url": {
+                  "raw": "{{baseUrl}}/tasks",
+                  "host": ["{{baseUrl}}"],
+                  "path": ["tasks"]
+                }
+              }
+            },
+            {
+              "name": "Get Task by ID",
+              "request": {
+                "method": "GET",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{authToken}}"
+                  }
+                ],
+                "url": {
+                  "raw": "{{baseUrl}}/tasks/{{taskId}}",
+                  "host": ["{{baseUrl}}"],
+                  "path": ["tasks", "{{taskId}}"]
+                }
+              }
+            },
+            {
+              "name": "Create Task",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{authToken}}"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"projectId\": \"{{projectId}}\",\n  \"task\": \"Implement User Authentication\",\n  \"description\": \"Create login and registration functionality\",\n  \"taskType\": \"Feature\",\n  \"priority\": \"High\",\n  \"status\": \"To Do\",\n  \"assignedTo\": \"{{userId}}\",\n  \"reporter\": \"{{userId}}\",\n  \"eta\": \"2024-12-31\",\n  \"estimatedHours\": 8\n}"
+                },
+                "url": {
+                  "raw": "{{baseUrl}}/tasks",
+                  "host": ["{{baseUrl}}"],
+                  "path": ["tasks"]
+                }
+              }
+            },
+            {
+              "name": "Update Task",
+              "request": {
+                "method": "PUT",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{authToken}}"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"task\": \"Updated Task Title\",\n  \"description\": \"Updated description\",\n  \"status\": \"In Progress\",\n  \"priority\": \"Critical\"\n}"
+                },
+                "url": {
+                  "raw": "{{baseUrl}}/tasks/{{taskId}}",
+                  "host": ["{{baseUrl}}"],
+                  "path": ["tasks", "{{taskId}}"]
+                }
+              }
+            },
+            {
+              "name": "Delete Task",
+              "request": {
+                "method": "DELETE",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{authToken}}"
+                  }
+                ],
+                "url": {
+                  "raw": "{{baseUrl}}/tasks/{{taskId}}",
+                  "host": ["{{baseUrl}}"],
+                  "path": ["tasks", "{{taskId}}"]
+                }
+              }
+            }
+          ]
+        },
+        {
+          "name": "Task Assignment",
+          "item": [
+            {
+              "name": "Assign Task",
+              "request": {
+                "method": "PUT",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{authToken}}"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"assignedTo\": \"{{userId}}\"\n}"
+                },
+                "url": {
+                  "raw": "{{baseUrl}}/tasks/{{taskId}}/assign",
+                  "host": ["{{baseUrl}}"],
+                  "path": ["tasks", "{{taskId}}", "assign"]
+                }
+              }
+            },
+            {
+              "name": "Unassign Task",
+              "request": {
+                "method": "PUT",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{authToken}}"
+                  }
+                ],
+                "url": {
+                  "raw": "{{baseUrl}}/tasks/{{taskId}}/unassign",
+                  "host": ["{{baseUrl}}"],
+                  "path": ["tasks", "{{taskId}}", "unassign"]
+                }
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Phase 4: Brand Management",
+      "item": [
+        {
+          "name": "Brand CRUD",
+          "item": [
+            {
+              "name": "Get All Brands",
+              "request": {
+                "method": "GET",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{authToken}}"
+                  }
+                ],
+                "url": {
+                  "raw": "{{baseUrl}}/brands",
+                  "host": ["{{baseUrl}}"],
+                  "path": ["brands"]
+                }
+              }
+            },
+            {
+              "name": "Get Brand by ID",
+              "request": {
+                "method": "GET",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{authToken}}"
+                  }
+                ],
+                "url": {
+                  "raw": "{{baseUrl}}/brands/{{brandId}}",
+                  "host": ["{{baseUrl}}"],
+                  "path": ["brands", "{{brandId}}"]
+                }
+              }
+            },
+            {
+              "name": "Create Brand",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{authToken}}"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"name\": \"Acme Corporation\",\n  \"description\": \"Leading technology company\",\n  \"industry\": \"Technology\",\n  \"website\": \"https://acme.com\"\n}"
+                },
+                "url": {
+                  "raw": "{{baseUrl}}/brands",
+                  "host": ["{{baseUrl}}"],
+                  "path": ["brands"]
+                }
+              }
+            },
+            {
+              "name": "Update Brand",
+              "request": {
+                "method": "PUT",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{authToken}}"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"name\": \"Updated Acme Corporation\",\n  \"description\": \"Updated description\"\n}"
+                },
+                "url": {
+                  "raw": "{{baseUrl}}/brands/{{brandId}}",
+                  "host": ["{{baseUrl}}"],
+                  "path": ["brands", "{{brandId}}"]
+                }
+              }
+            },
+            {
+              "name": "Delete Brand",
+              "request": {
+                "method": "DELETE",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{authToken}}"
+                  }
+                ],
+                "url": {
+                  "raw": "{{baseUrl}}/brands/{{brandId}}",
+                  "host": ["{{baseUrl}}"],
+                  "path": ["brands", "{{brandId}}"]
+                }
+              }
+            }
+          ]
+        },
+        {
+          "name": "Brand Projects",
+          "item": [
+            {
+              "name": "Get Brand Projects",
+              "request": {
+                "method": "GET",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{authToken}}"
+                  }
+                ],
+                "url": {
+                  "raw": "{{baseUrl}}/brands/{{brandId}}/projects",
+                  "host": ["{{baseUrl}}"],
+                  "path": ["brands", "{{brandId}}", "projects"]
+                }
+              }
+            },
+            {
+              "name": "Create Brand Project",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{authToken}}"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"title\": \"Brand Project\",\n  \"description\": \"Project for brand\",\n  \"department\": \"Data Analytics\",\n  \"priority\": \"High\",\n  \"startDate\": \"2024-01-01\",\n  \"dueDate\": \"2024-12-31\"\n}"
+                },
+                "url": {
+                  "raw": "{{baseUrl}}/brands/{{brandId}}/projects",
+                  "host": ["{{baseUrl}}"],
+                  "path": ["brands", "{{brandId}}", "projects"]
+                }
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Phase 5: Advanced Task Features",
+      "item": [
+        {
+          "name": "Brand Tasks",
+          "item": [
+            {
+              "name": "Get Brand Tasks",
+              "request": {
+                "method": "GET",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{authToken}}"
+                  }
+                ],
+                "url": {
+                  "raw": "{{baseUrl}}/brands/{{brandId}}/tasks",
+                  "host": ["{{baseUrl}}"],
+                  "path": ["brands", "{{brandId}}", "tasks"]
+                }
+              }
+            },
+            {
+              "name": "Create Brand Task",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{authToken}}"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"task\": \"Brand Task\",\n  \"description\": \"Task for brand\",\n  \"taskType\": \"Daily\",\n  \"priority\": \"High\",\n  \"status\": \"Yet to Start\",\n  \"assignedTo\": \"{{userId}}\",\n  \"reporter\": \"{{userId}}\",\n  \"estimatedHours\": 8,\n  \"eta\": \"2024-12-31\"\n}"
+                },
+                "url": {
+                  "raw": "{{baseUrl}}/brands/{{brandId}}/tasks",
+                  "host": ["{{baseUrl}}"],
+                  "path": ["brands", "{{brandId}}", "tasks"]
+                }
+              }
+            }
+          ]
+        },
+        {
+          "name": "Brand Subtasks",
+          "item": [
+            {
+              "name": "Get Brand Subtasks",
+              "request": {
+                "method": "GET",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{authToken}}"
+                  }
+                ],
+                "url": {
+                  "raw": "{{baseUrl}}/brands/{{brandId}}/subtasks",
+                  "host": ["{{baseUrl}}"],
+                  "path": ["brands", "{{brandId}}", "subtasks"]
+                }
+              }
+            },
+            {
+              "name": "Create Brand Subtask",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{authToken}}"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"title\": \"Subtask Title\",\n  \"description\": \"Subtask description\",\n  \"task_id\": \"{{taskId}}\",\n  \"status\": \"Yet to Start\",\n  \"priority\": \"Medium\",\n  \"assignedTo\": \"{{userId}}\"\n}"
+                },
+                "url": {
+                  "raw": "{{baseUrl}}/brands/{{brandId}}/subtasks",
+                  "host": ["{{baseUrl}}"],
+                  "path": ["brands", "{{brandId}}", "subtasks"]
+                }
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Phase 6: Comments & Communication",
+      "item": [
+        {
+          "name": "Comment System",
+          "item": [
+            {
+              "name": "Get Brand Comments",
+              "request": {
+                "method": "GET",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{authToken}}"
+                  }
+                ],
+                "url": {
+                  "raw": "{{baseUrl}}/brands/{{brandId}}/comments",
+                  "host": ["{{baseUrl}}"],
+                  "path": ["brands", "{{brandId}}", "comments"]
+                }
+              }
+            },
+            {
+              "name": "Create Comment",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{authToken}}"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"content\": \"This is a test comment\",\n  \"mentions\": [\"{{userId}}\"]\n}"
+                },
+                "url": {
+                  "raw": "{{baseUrl}}/brands/{{brandId}}/task/{{taskId}}/comments",
+                  "host": ["{{baseUrl}}"],
+                  "path": ["brands", "{{brandId}}", "task", "{{taskId}}", "comments"]
+                }
+              }
+            },
+            {
+              "name": "React to Comment",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{authToken}}"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"emoji\": \"👍\"\n}"
+                },
+                "url": {
+                  "raw": "{{baseUrl}}/brands/{{brandId}}/comments/{{commentId}}/react",
+                  "host": ["{{baseUrl}}"],
+                  "path": ["brands", "{{brandId}}", "comments", "{{commentId}}", "react"]
+                }
+              }
+            }
+          ]
+        },
+        {
+          "name": "Activity System",
+          "item": [
+            {
+              "name": "Get Brand Activities",
+              "request": {
+                "method": "GET",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{authToken}}"
+                  }
+                ],
+                "url": {
+                  "raw": "{{baseUrl}}/brands/{{brandId}}/activities",
+                  "host": ["{{baseUrl}}"],
+                  "path": ["brands", "{{brandId}}", "activities"]
+                }
+              }
+            },
+            {
+              "name": "Create Activity",
+              "request": {
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Content-Type",
+                    "value": "application/json"
+                  },
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{authToken}}"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"type\": \"task_created\",\n  \"title\": \"Task Created\",\n  \"description\": \"A new task was created\",\n  \"metadata\": {\n    \"entity_type\": \"task\",\n    \"entity_id\": \"{{taskId}}\",\n    \"entity_title\": \"Task Title\",\n    \"old_values\": null,\n    \"new_values\": { \"task\": \"Task Name\" },\n    \"additional_data\": {}\n  },\n  \"recipients\": [\n    {\n      \"user\": \"{{userId}}\",\n      \"role\": \"primary\"\n    }\n  ],\n  \"priority\": \"medium\",\n  \"visibility\": \"public\",\n  \"tags\": [\"test\"],\n  \"mentions\": [\"{{userId}}\"]\n}"
+                },
+                "url": {
+                  "raw": "{{baseUrl}}/brands/{{brandId}}/activities",
+                  "host": ["{{baseUrl}}"],
+                  "path": ["brands", "{{brandId}}", "activities"]
+                }
+              }
+            },
+            {
+              "name": "Get Activity Feed",
+              "request": {
+                "method": "GET",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{authToken}}"
+                  }
+                ],
+                "url": {
+                  "raw": "{{baseUrl}}/brands/{{brandId}}/activities/feed",
+                  "host": ["{{baseUrl}}"],
+                  "path": ["brands", "{{brandId}}", "activities", "feed"]
+                }
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "Phase 7: Notifications & Analytics",
+      "item": [
+        {
+          "name": "Notifications",
+          "item": [
+            {
+              "name": "Get Notifications",
+              "request": {
+                "method": "GET",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{authToken}}"
+                  }
+                ],
+                "url": {
+                  "raw": "{{baseUrl}}/brands/{{brandId}}/activities/notifications",
+                  "host": ["{{baseUrl}}"],
+                  "path": ["brands", "{{brandId}}", "activities", "notifications"]
+                }
+              }
+            },
+            {
+              "name": "Mark Notification as Read",
+              "request": {
+                "method": "PUT",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{authToken}}"
+                  }
+                ],
+                "url": {
+                  "raw": "{{baseUrl}}/brands/{{brandId}}/activities/notifications/{{notificationId}}/read",
+                  "host": ["{{baseUrl}}"],
+                  "path": ["brands", "{{brandId}}", "activities", "notifications", "{{notificationId}}", "read"]
+                }
+              }
+            }
+          ]
+        },
+        {
+          "name": "Analytics",
+          "item": [
+            {
+              "name": "Get Brand Analytics",
+              "request": {
+                "method": "GET",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{authToken}}"
+                  }
+                ],
+                "url": {
+                  "raw": "{{baseUrl}}/brands/{{brandId}}/analytics",
+                  "host": ["{{baseUrl}}"],
+                  "path": ["brands", "{{brandId}}", "analytics"]
+                }
+              }
+            },
+            {
+              "name": "Get Task Analytics",
+              "request": {
+                "method": "GET",
+                "header": [
+                  {
+                    "key": "Authorization",
+                    "value": "Bearer {{authToken}}"
+                  }
+                ],
+                "url": {
+                  "raw": "{{baseUrl}}/brands/{{brandId}}/tasks/analytics",
+                  "host": ["{{baseUrl}}"],
+                  "path": ["brands", "{{brandId}}", "tasks", "analytics"]
+                }
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "name": "System APIs",
+      "item": [
+        {
+          "name": "Health Check",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{baseUrl}}/health",
+              "host": ["{{baseUrl}}"],
+              "path": ["health"]
+            }
+          }
+        },
+        {
+          "name": "Dashboard",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{authToken}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/dashboard",
+              "host": ["{{baseUrl}}"],
+              "path": ["dashboard"]
+            }
+          }
+        }
+      ]
+    }
+  ]
+}

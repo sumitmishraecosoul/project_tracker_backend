@@ -290,7 +290,7 @@ userBrandSchema.statics.getUserBrands = function(userId) {
 
 // Static method to get brand's users
 userBrandSchema.statics.getBrandUsers = function(brandId) {
-  return this.find({ brand_id: brandId, status: 'active' })
+  return this.find({ brand_id: brandId })
     .populate('user_id', 'name email avatarUrl')
     .populate('invited_by', 'name email');
 };

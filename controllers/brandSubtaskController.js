@@ -38,10 +38,26 @@ const getBrandSubtasks = async (req, res) => {
 
     // Get subtasks with pagination
     const subtasks = await Subtask.find(query)
-      .populate('assignedTo', 'name email')
-      .populate('reporter', 'name email')
-      .populate('task_id', 'id task')
-      .populate('createdBy', 'name email')
+      .populate({
+        path: 'assignedTo',
+        select: 'name email avatar',
+        model: 'User'
+      })
+      .populate({
+        path: 'reporter',
+        select: 'name email avatar',
+        model: 'User'
+      })
+      .populate({
+        path: 'task_id',
+        select: 'id task title',
+        model: 'Task'
+      })
+      .populate({
+        path: 'createdBy',
+        select: 'name email avatar',
+        model: 'User'
+      })
       .sort({ order: 1, createdAt: -1 })
       .skip(skip)
       .limit(parseInt(limit));
@@ -52,7 +68,46 @@ const getBrandSubtasks = async (req, res) => {
     res.json({
       success: true,
       data: {
-        subtasks,
+        subtasks: subtasks.map(subtask => ({
+          _id: subtask._id,
+          id: subtask.id,
+          title: subtask.title,
+          description: subtask.description,
+          status: subtask.status,
+          priority: subtask.priority,
+          assignedTo: subtask.assignedTo ? {
+            _id: subtask.assignedTo._id,
+            name: subtask.assignedTo.name,
+            email: subtask.assignedTo.email,
+            avatar: subtask.assignedTo.avatar || null
+          } : null,
+          reporter: subtask.reporter ? {
+            _id: subtask.reporter._id,
+            name: subtask.reporter.name,
+            email: subtask.reporter.email,
+            avatar: subtask.reporter.avatar || null
+          } : null,
+          task: subtask.task_id ? {
+            _id: subtask.task_id._id,
+            id: subtask.task_id.id,
+            title: subtask.task_id.task || subtask.task_id.title
+          } : null,
+          createdBy: subtask.createdBy ? {
+            _id: subtask.createdBy._id,
+            name: subtask.createdBy.name,
+            email: subtask.createdBy.email,
+            avatar: subtask.createdBy.avatar || null
+          } : null,
+          startDate: subtask.startDate,
+          dueDate: subtask.dueDate,
+          estimatedHours: subtask.estimatedHours,
+          actualHours: subtask.actualHours,
+          order: subtask.order,
+          is_completed: subtask.is_completed,
+          brand_id: subtask.brand_id,
+          created_at: subtask.created_at,
+          updated_at: subtask.updated_at
+        })),
         pagination: {
           currentPage: parseInt(page),
           totalPages: Math.ceil(totalSubtasks / parseInt(limit)),

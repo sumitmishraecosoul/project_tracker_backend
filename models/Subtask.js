@@ -29,8 +29,8 @@ const subtaskSchema = new mongoose.Schema({
   },
   status: {
     type: String,
-    enum: ['To Do', 'In Progress', 'Completed', 'Blocked', 'On Hold'],
-    default: 'To Do'
+    enum: ['Yet to Start', 'In Progress', 'Completed', 'Blocked', 'On Hold', 'Cancelled', 'Recurring'],
+    default: 'Yet to Start'
   },
   priority: {
     type: String,

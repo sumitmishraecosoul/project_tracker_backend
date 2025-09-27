@@ -1,113 +1,54 @@
-const mongoose = require('mongoose');
 const Comment = require('../models/Comment');
 const Activity = require('../models/Activity');
 const User = require('../models/User');
-const Task = require('../models/Task');
-const Project = require('../models/Project');
-const Subtask = require('../models/Subtask');
-const multer = require('multer');
-const path = require('path');
-const fs = require('fs');
+const mongoose = require('mongoose');
 
-// Configure multer for file uploads
-const storage = multer.diskStorage({
-  destination: function (req, file, cb) {
-    const uploadPath = 'uploads/comments';
-    if (!fs.existsSync(uploadPath)) {
-      fs.mkdirSync(uploadPath, { recursive: true });
-    }
-    cb(null, uploadPath);
-  },
-  filename: function (req, file, cb) {
-    const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
-    cb(null, file.fieldname + '-' + uniqueSuffix + path.extname(file.originalname));
-  }
-});
-
-const upload = multer({
-  storage: storage,
-  limits: {
-    fileSize: 10 * 1024 * 1024 // 10MB limit
-  },
-  fileFilter: function (req, file, cb) {
-    // Allow common file types
-    const allowedTypes = /jpeg|jpg|png|gif|pdf|doc|docx|txt|zip|rar/;
-    const extname = allowedTypes.test(path.extname(file.originalname).toLowerCase());
-    const mimetype = allowedTypes.test(file.mimetype);
-    
-    if (mimetype && extname) {
-      return cb(null, true);
-    } else {
-      cb(new Error('Invalid file type. Only images, documents, and archives are allowed.'));
-    }
-  }
-});
-
-// Get all comments for a specific brand
+// Get all comments for a brand
 const getBrandComments = async (req, res) => {
   try {
     const { brandId } = req.params;
-    const { page = 1, limit = 20, entity_type, entity_id, type, author, status } = req.query;
+    const { page = 1, limit = 20, entity_type, entity_id, status = 'active' } = req.query;
 
-    // Build query with brand filter
-    let query = { brand_id: brandId };
+    const query = {
+      brand_id: new mongoose.Types.ObjectId(brandId),
+      status: status
+    };
 
-    // Apply additional filters
     if (entity_type) {
       query.entity_type = entity_type;
     }
+
     if (entity_id) {
-      query.entity_id = entity_id;
-    }
-    if (type) {
-      query.type = type;
-    }
-    if (author) {
-      query.author = author;
-    }
-    if (status) {
-      query.status = status;
+      query.entity_id = new mongoose.Types.ObjectId(entity_id);
     }
 
-    // Calculate pagination
-    const skip = (parseInt(page) - 1) * parseInt(limit);
-
-    // Get comments with pagination
     const comments = await Comment.find(query)
       .populate('author', 'name email avatar')
-      .populate('mentions.user_id', 'name email')
-      .populate('reactions.user_id', 'name email')
+      .populate('mentions.user', 'name email')
       .populate('parent_comment', 'content author')
-      .sort({ created_at: -1 })
-      .skip(skip)
-      .limit(parseInt(limit));
+      .sort({ is_pinned: -1, created_at: -1 })
+      .limit(limit * 1)
+      .skip((page - 1) * limit);
 
-    // Get total count for pagination
-    const totalComments = await Comment.countDocuments(query);
+    const total = await Comment.countDocuments(query);
 
     res.json({
       success: true,
       data: {
         comments,
         pagination: {
-          currentPage: parseInt(page),
-          totalPages: Math.ceil(totalComments / parseInt(limit)),
-          totalComments,
-          hasNextPage: skip + comments.length < totalComments,
-          hasPrevPage: parseInt(page) > 1
+          current: page,
+          pages: Math.ceil(total / limit),
+          total
         }
-      },
-      message: 'Brand comments retrieved successfully'
+      }
     });
   } catch (error) {
     console.error('Error fetching brand comments:', error);
     res.status(500).json({
       success: false,
-      error: {
-        code: 'BRAND_COMMENTS_FETCH_ERROR',
-        message: 'Failed to fetch brand comments',
-        details: error.message
-      }
+      message: 'Error fetching brand comments',
+      error: error.message
     });
   }
 };
@@ -116,390 +57,278 @@ const getBrandComments = async (req, res) => {
 const getEntityComments = async (req, res) => {
   try {
     const { brandId, entityType, entityId } = req.params;
-    const { page = 1, limit = 20, parent_comment, type } = req.query;
+    const { page = 1, limit = 20, parent_comment = null } = req.query;
 
-    // Validate entity type
-    if (!['task', 'project', 'subtask'].includes(entityType)) {
-      return res.status(400).json({
-        success: false,
-        error: {
-          code: 'INVALID_ENTITY_TYPE',
-          message: 'Invalid entity type. Must be task, project, or subtask'
-        }
-      });
-    }
-
-    // Check if entity exists
-    let entity;
-    switch (entityType) {
-      case 'task':
-        entity = await Task.findOne({ _id: entityId, brand_id: brandId });
-        break;
-      case 'project':
-        entity = await Project.findOne({ _id: entityId, brand_id: brandId });
-        break;
-      case 'subtask':
-        entity = await Subtask.findOne({ _id: entityId, brand_id: brandId });
-        break;
-    }
-
-    if (!entity) {
-      return res.status(404).json({
-        success: false,
-        error: {
-          code: 'ENTITY_NOT_FOUND',
-          message: 'Entity not found in this brand'
-        }
-      });
-    }
-
-    // Build query
-    let query = {
-      brand_id: brandId,
+    const query = {
+      brand_id: new mongoose.Types.ObjectId(brandId),
       entity_type: entityType,
-      entity_id: entityId,
-      status: { $ne: 'deleted' }
+      entity_id: new mongoose.Types.ObjectId(entityId),
+      status: 'active'
     };
 
     if (parent_comment === 'null' || parent_comment === null) {
       query.parent_comment = null;
-    } else if (parent_comment) {
-      query.parent_comment = parent_comment;
     }
-
-    if (type) {
-      query.type = type;
-    }
-
-    const skip = (parseInt(page) - 1) * parseInt(limit);
 
     const comments = await Comment.find(query)
       .populate('author', 'name email avatar')
-      .populate('mentions.user_id', 'name email')
-      .populate('reactions.user_id', 'name email')
+      .populate('mentions.user', 'name email')
       .populate('parent_comment', 'content author')
-      .sort({ created_at: -1 })
-      .skip(skip)
-      .limit(parseInt(limit));
+      .sort({ is_pinned: -1, created_at: 1 })
+      .limit(limit * 1)
+      .skip((page - 1) * limit);
 
-    const totalComments = await Comment.countDocuments(query);
+    const total = await Comment.countDocuments(query);
 
     res.json({
       success: true,
       data: {
         comments,
         pagination: {
-          currentPage: parseInt(page),
-          totalPages: Math.ceil(totalComments / parseInt(limit)),
-          totalComments,
-          hasNextPage: skip + comments.length < totalComments,
-          hasPrevPage: parseInt(page) > 1
+          current: page,
+          pages: Math.ceil(total / limit),
+          total
         }
-      },
-      message: 'Entity comments retrieved successfully'
+      }
     });
   } catch (error) {
     console.error('Error fetching entity comments:', error);
     res.status(500).json({
       success: false,
-      error: {
-        code: 'ENTITY_COMMENTS_FETCH_ERROR',
-        message: 'Failed to fetch entity comments',
-        details: error.message
-      }
+      message: 'Error fetching entity comments',
+      error: error.message
     });
   }
 };
 
-// Get comment details within a brand
+// Get comment details
 const getBrandCommentById = async (req, res) => {
   try {
     const { brandId, id } = req.params;
 
-    const comment = await Comment.findOne({ _id: id, brand_id: brandId })
+    const comment = await Comment.findOne({
+      _id: id,
+      brand_id: new mongoose.Types.ObjectId(brandId)
+    })
       .populate('author', 'name email avatar')
-      .populate('mentions.user_id', 'name email')
-      .populate('reactions.user_id', 'name email')
-      .populate('parent_comment', 'content author');
+      .populate('mentions.user', 'name email')
+      .populate('parent_comment', 'content author')
+      .populate('reactions.user', 'name email avatar');
 
     if (!comment) {
       return res.status(404).json({
         success: false,
-        error: {
-          code: 'COMMENT_NOT_FOUND',
-          message: 'Comment not found in this brand'
-        }
+        message: 'Comment not found'
       });
     }
 
-    // Increment view count
-    comment.analytics.view_count += 1;
-    await comment.save();
-
     res.json({
       success: true,
-      data: comment,
-      message: 'Brand comment details retrieved successfully'
+      data: comment
     });
   } catch (error) {
-    console.error('Error fetching brand comment details:', error);
+    console.error('Error fetching comment details:', error);
     res.status(500).json({
       success: false,
-      error: {
-        code: 'BRAND_COMMENT_FETCH_ERROR',
-        message: 'Failed to fetch brand comment details',
-        details: error.message
-      }
+      message: 'Error fetching comment details',
+      error: error.message
     });
   }
 };
 
-// Create comment within a brand
+// Create comment
 const createBrandComment = async (req, res) => {
   try {
     const { brandId, entityType, entityId } = req.params;
-    const { content, parent_comment, type, visibility, mentions } = req.body;
+    const { content, parent_comment, mentions = [], attachments = [] } = req.body;
+    const userId = req.user.id;
 
-    // Validate required fields
-    if (!content || !content.trim()) {
+    // Validate content
+    if (!content || content.trim().length === 0) {
       return res.status(400).json({
         success: false,
-        error: {
-          code: 'VALIDATION_ERROR',
-          message: 'Comment content is required'
-        }
+        message: 'Comment content is required'
       });
     }
 
-    // Validate entity type
-    if (!['task', 'project', 'subtask'].includes(entityType)) {
+    if (content.length > 5000) {
       return res.status(400).json({
         success: false,
-        error: {
-          code: 'INVALID_ENTITY_TYPE',
-          message: 'Invalid entity type. Must be task, project, or subtask'
-        }
+        message: 'Comment content is too long (max 5000 characters)'
       });
-    }
-
-    // Check if entity exists
-    let entity;
-    switch (entityType) {
-      case 'task':
-        entity = await Task.findOne({ _id: entityId, brand_id: brandId });
-        break;
-      case 'project':
-        entity = await Project.findOne({ _id: entityId, brand_id: brandId });
-        break;
-      case 'subtask':
-        entity = await Subtask.findOne({ _id: entityId, brand_id: brandId });
-        break;
-    }
-
-    if (!entity) {
-      return res.status(404).json({
-        success: false,
-        error: {
-          code: 'ENTITY_NOT_FOUND',
-          message: 'Entity not found in this brand'
-        }
-      });
-    }
-
-    // Process mentions
-    const processedMentions = [];
-    if (mentions && Array.isArray(mentions)) {
-      for (const mention of mentions) {
-        const user = await User.findOne({ _id: mention.user_id, brand_id: brandId });
-        if (user) {
-          processedMentions.push({
-            user_id: mention.user_id,
-            position: mention.position,
-            length: mention.length
-          });
-        }
-      }
     }
 
     // Create comment
-    const comment = await Comment.create({
-      brand_id: brandId,
-      entity_type: entityType,
-      entity_id: entityId,
+    const comment = new Comment({
+      brand_id: new mongoose.Types.ObjectId(brandId),
       content: content.trim(),
-      author: req.user.id,
-      parent_comment: parent_comment || null,
-      type: type || 'comment',
-      visibility: visibility || 'public',
-      mentions: processedMentions
+      author: new mongoose.Types.ObjectId(userId),
+      entity_type: entityType,
+      entity_id: new mongoose.Types.ObjectId(entityId),
+      parent_comment: parent_comment ? new mongoose.Types.ObjectId(parent_comment) : null,
+      mentions: mentions.map(mention => ({
+        user: new mongoose.Types.ObjectId(mention),
+        mentioned_at: new Date(),
+        notified: false
+      })),
+      attachments: attachments,
+      metadata: {
+        ip_address: req.ip,
+        user_agent: req.get('User-Agent'),
+        device_type: req.get('X-Device-Type') || 'unknown',
+        browser: req.get('X-Browser') || 'unknown'
+      }
     });
 
-    // Populate the created comment
-    const populatedComment = await Comment.findById(comment._id)
-      .populate('author', 'name email avatar')
-      .populate('mentions.user_id', 'name email')
-      .populate('parent_comment', 'content author');
+    await comment.save();
+
+    // Populate the comment
+    await comment.populate('author', 'name email avatar');
+    await comment.populate('mentions.user', 'name email');
 
     // Create activity
-    await Activity.createActivity({
-      brand_id: brandId,
-      type: 'comment_created',
-      action: 'created a comment',
-      description: `Commented on ${entityType}: ${entity.title || entity.task || entity.name}`,
-      actor: req.user.id,
-      target: {
-        type: entityType,
-        id: entityId,
-        name: entity.title || entity.task || entity.name
+    const activity = new Activity({
+      brand_id: new mongoose.Types.ObjectId(brandId),
+      created_by: new mongoose.Types.ObjectId(userId),
+      type: 'comment_added',
+      title: 'New comment added',
+      description: `A new comment was added to ${entityType}`,
+      metadata: {
+        entity_type: entityType,
+        entity_id: new mongoose.Types.ObjectId(entityId),
+        entity_title: `${entityType} comment`,
+        old_values: null,
+        new_values: { content: content.trim() },
+        additional_data: { comment_id: comment._id }
       },
-      context: {
-        project_id: entityType === 'project' ? entityId : entity.projectId,
-        task_id: entityType === 'task' ? entityId : (entityType === 'subtask' ? entity.task_id : null),
-        subtask_id: entityType === 'subtask' ? entityId : null
-      },
-      recipients: [
-        { user_id: req.user.id, role: 'actor' }
-      ]
+      recipients: mentions.map(mention => ({
+        user: new mongoose.Types.ObjectId(mention),
+        role: 'mentioned',
+        notification_sent: false,
+        read: false,
+        notified: false
+      }))
     });
+
+    await activity.save();
 
     res.status(201).json({
       success: true,
-      data: populatedComment,
-      message: 'Brand comment created successfully'
+      message: 'Comment created successfully',
+      data: comment
     });
   } catch (error) {
-    console.error('Error creating brand comment:', error);
+    console.error('Error creating comment:', error);
     res.status(500).json({
       success: false,
-      error: {
-        code: 'BRAND_COMMENT_CREATE_ERROR',
-        message: 'Failed to create brand comment',
-        details: error.message
-      }
+      message: 'Error creating comment',
+      error: error.message
     });
   }
 };
 
-// Update comment within a brand
+// Update comment
 const updateBrandComment = async (req, res) => {
   try {
     const { brandId, id } = req.params;
-    const { content, visibility, mentions } = req.body;
+    const { content } = req.body;
+    const userId = req.user.id;
 
-    const comment = await Comment.findOne({ _id: id, brand_id: brandId });
+    const comment = await Comment.findOne({
+      _id: id,
+      brand_id: new mongoose.Types.ObjectId(brandId)
+    });
 
     if (!comment) {
       return res.status(404).json({
         success: false,
-        error: {
-          code: 'COMMENT_NOT_FOUND',
-          message: 'Comment not found in this brand'
-        }
+        message: 'Comment not found'
       });
     }
 
-    // Check if user can edit comment
-    if (!comment.canUserEdit(req.user.id, req.user.role)) {
+    // Check if user can edit this comment
+    if (comment.author.toString() !== userId && req.user.role !== 'admin') {
       return res.status(403).json({
         success: false,
-        error: {
-          code: 'PERMISSION_DENIED',
-          message: 'You do not have permission to edit this comment'
-        }
+        message: 'You do not have permission to edit this comment'
       });
     }
 
-    // Process mentions
-    const processedMentions = [];
-    if (mentions && Array.isArray(mentions)) {
-      for (const mention of mentions) {
-        const user = await User.findOne({ _id: mention.user_id, brand_id: brandId });
-        if (user) {
-          processedMentions.push({
-            user_id: mention.user_id,
-            position: mention.position,
-            length: mention.length
-          });
-        }
-      }
+    // Validate content
+    if (!content || content.trim().length === 0) {
+      return res.status(400).json({
+        success: false,
+        message: 'Comment content is required'
+      });
+    }
+
+    if (content.length > 5000) {
+      return res.status(400).json({
+        success: false,
+        message: 'Comment content is too long (max 5000 characters)'
+      });
     }
 
     // Update comment
-    const updatedComment = await Comment.findByIdAndUpdate(
-      id,
-      {
-        content: content || comment.content,
-        visibility: visibility || comment.visibility,
-        mentions: processedMentions.length > 0 ? processedMentions : comment.mentions
-      },
-      { new: true, runValidators: true }
-    ).populate('author', 'name email avatar')
-     .populate('mentions.user_id', 'name email')
-     .populate('reactions.user_id', 'name email');
+    await comment.editComment(content.trim(), userId);
+    await comment.populate('author', 'name email avatar');
+    await comment.populate('mentions.user', 'name email');
 
     res.json({
       success: true,
-      data: updatedComment,
-      message: 'Brand comment updated successfully'
+      message: 'Comment updated successfully',
+      data: comment
     });
   } catch (error) {
-    console.error('Error updating brand comment:', error);
+    console.error('Error updating comment:', error);
     res.status(500).json({
       success: false,
-      error: {
-        code: 'BRAND_COMMENT_UPDATE_ERROR',
-        message: 'Failed to update brand comment',
-        details: error.message
-      }
+      message: 'Error updating comment',
+      error: error.message
     });
   }
 };
 
-// Delete comment within a brand
+// Delete comment
 const deleteBrandComment = async (req, res) => {
   try {
     const { brandId, id } = req.params;
+    const userId = req.user.id;
 
-    const comment = await Comment.findOne({ _id: id, brand_id: brandId });
+    const comment = await Comment.findOne({
+      _id: id,
+      brand_id: new mongoose.Types.ObjectId(brandId)
+    });
 
     if (!comment) {
       return res.status(404).json({
         success: false,
-        error: {
-          code: 'COMMENT_NOT_FOUND',
-          message: 'Comment not found in this brand'
-        }
+        message: 'Comment not found'
       });
     }
 
-    // Check if user can delete comment
-    if (!comment.canUserDelete(req.user.id, req.user.role)) {
+    // Check if user can delete this comment
+    if (comment.author.toString() !== userId && req.user.role !== 'admin') {
       return res.status(403).json({
         success: false,
-        error: {
-          code: 'PERMISSION_DENIED',
-          message: 'You do not have permission to delete this comment'
-        }
+        message: 'You do not have permission to delete this comment'
       });
     }
 
-    // Soft delete comment
+    // Soft delete
     comment.status = 'deleted';
     await comment.save();
 
     res.json({
       success: true,
-      message: 'Brand comment deleted successfully'
+      message: 'Comment deleted successfully'
     });
   } catch (error) {
-    console.error('Error deleting brand comment:', error);
+    console.error('Error deleting comment:', error);
     res.status(500).json({
       success: false,
-      error: {
-        code: 'BRAND_COMMENT_DELETE_ERROR',
-        message: 'Failed to delete brand comment',
-        details: error.message
-      }
+      message: 'Error deleting comment',
+      error: error.message
     });
   }
 };
@@ -508,76 +337,64 @@ const deleteBrandComment = async (req, res) => {
 const replyToComment = async (req, res) => {
   try {
     const { brandId, id } = req.params;
-    const { content, mentions } = req.body;
+    const { content, mentions = [] } = req.body;
+    const userId = req.user.id;
 
-    if (!content || !content.trim()) {
-      return res.status(400).json({
-        success: false,
-        error: {
-          code: 'VALIDATION_ERROR',
-          message: 'Reply content is required'
-        }
-      });
-    }
-
-    const parentComment = await Comment.findOne({ _id: id, brand_id: brandId });
+    // Find parent comment
+    const parentComment = await Comment.findOne({
+      _id: id,
+      brand_id: new mongoose.Types.ObjectId(brandId)
+    });
 
     if (!parentComment) {
       return res.status(404).json({
         success: false,
-        error: {
-          code: 'COMMENT_NOT_FOUND',
-          message: 'Parent comment not found in this brand'
-        }
+        message: 'Parent comment not found'
       });
     }
 
-    // Process mentions
-    const processedMentions = [];
-    if (mentions && Array.isArray(mentions)) {
-      for (const mention of mentions) {
-        const user = await User.findOne({ _id: mention.user_id, brand_id: brandId });
-        if (user) {
-          processedMentions.push({
-            user_id: mention.user_id,
-            position: mention.position,
-            length: mention.length
-          });
-        }
-      }
-    }
-
     // Create reply
-    const reply = await Comment.create({
-      brand_id: brandId,
+    const reply = new Comment({
+      brand_id: new mongoose.Types.ObjectId(brandId),
+      content: content.trim(),
+      author: new mongoose.Types.ObjectId(userId),
       entity_type: parentComment.entity_type,
       entity_id: parentComment.entity_id,
-      content: content.trim(),
-      author: req.user.id,
-      parent_comment: id,
-      type: 'reply',
-      mentions: processedMentions
+      parent_comment: new mongoose.Types.ObjectId(id),
+      mentions: mentions.map(mention => ({
+        user: new mongoose.Types.ObjectId(mention),
+        mentioned_at: new Date(),
+        notified: false
+      })),
+      metadata: {
+        ip_address: req.ip,
+        user_agent: req.get('User-Agent'),
+        device_type: req.get('X-Device-Type') || 'unknown',
+        browser: req.get('X-Browser') || 'unknown'
+      }
     });
 
-    const populatedReply = await Comment.findById(reply._id)
-      .populate('author', 'name email avatar')
-      .populate('mentions.user_id', 'name email')
-      .populate('parent_comment', 'content author');
+    await reply.save();
+
+    // Update parent comment reply count
+    parentComment.analytics.reply_count += 1;
+    await parentComment.save();
+
+    // Populate the reply
+    await reply.populate('author', 'name email avatar');
+    await reply.populate('mentions.user', 'name email');
 
     res.status(201).json({
       success: true,
-      data: populatedReply,
-      message: 'Comment reply created successfully'
+      message: 'Reply created successfully',
+      data: reply
     });
   } catch (error) {
-    console.error('Error creating comment reply:', error);
+    console.error('Error creating reply:', error);
     res.status(500).json({
       success: false,
-      error: {
-        code: 'COMMENT_REPLY_CREATE_ERROR',
-        message: 'Failed to create comment reply',
-        details: error.message
-      }
+      message: 'Error creating reply',
+      error: error.message
     });
   }
 };
@@ -587,34 +404,18 @@ const getCommentThread = async (req, res) => {
   try {
     const { brandId, id } = req.params;
 
-    const comment = await Comment.findOne({ _id: id, brand_id: brandId });
-
-    if (!comment) {
-      return res.status(404).json({
-        success: false,
-        error: {
-          code: 'COMMENT_NOT_FOUND',
-          message: 'Comment not found in this brand'
-        }
-      });
-    }
-
-    const thread = await comment.getThread();
+    const thread = await Comment.getCommentThread(id, new mongoose.Types.ObjectId(brandId));
 
     res.json({
       success: true,
-      data: thread,
-      message: 'Comment thread retrieved successfully'
+      data: thread
     });
   } catch (error) {
     console.error('Error fetching comment thread:', error);
     res.status(500).json({
       success: false,
-      error: {
-        code: 'COMMENT_THREAD_FETCH_ERROR',
-        message: 'Failed to fetch comment thread',
-        details: error.message
-      }
+      message: 'Error fetching comment thread',
+      error: error.message
     });
   }
 };
@@ -624,165 +425,109 @@ const reactToComment = async (req, res) => {
   try {
     const { brandId, id } = req.params;
     const { emoji } = req.body;
+    const userId = req.user.id;
 
-    if (!emoji) {
-      return res.status(400).json({
-        success: false,
-        error: {
-          code: 'VALIDATION_ERROR',
-          message: 'Emoji is required for reaction'
-        }
-      });
-    }
-
-    const comment = await Comment.findOne({ _id: id, brand_id: brandId });
+    const comment = await Comment.findOne({
+      _id: id,
+      brand_id: new mongoose.Types.ObjectId(brandId)
+    });
 
     if (!comment) {
       return res.status(404).json({
         success: false,
-        error: {
-          code: 'COMMENT_NOT_FOUND',
-          message: 'Comment not found in this brand'
-        }
+        message: 'Comment not found'
       });
     }
 
-    // Check if user can react
-    if (!comment.canUserReact(req.user.id)) {
-      return res.status(403).json({
-        success: false,
-        error: {
-          code: 'PERMISSION_DENIED',
-          message: 'You do not have permission to react to this comment'
-        }
-      });
-    }
-
-    await comment.addReaction(req.user.id, emoji);
-
-    const updatedComment = await Comment.findById(id)
-      .populate('author', 'name email avatar')
-      .populate('reactions.user_id', 'name email');
+    // Add reaction
+    await comment.addReaction(userId, emoji);
+    await comment.populate('reactions.user', 'name email avatar');
 
     res.json({
       success: true,
-      data: updatedComment,
-      message: 'Reaction added successfully'
+      message: 'Reaction added successfully',
+      data: comment
     });
   } catch (error) {
     console.error('Error adding reaction:', error);
     res.status(500).json({
       success: false,
-      error: {
-        code: 'REACTION_ADD_ERROR',
-        message: 'Failed to add reaction',
-        details: error.message
-      }
+      message: 'Error adding reaction',
+      error: error.message
     });
   }
 };
 
-// Remove reaction
-const removeReaction = async (req, res) => {
+// Remove reaction from comment
+const removeReactionFromComment = async (req, res) => {
   try {
     const { brandId, id } = req.params;
+    const userId = req.user.id;
 
-    const comment = await Comment.findOne({ _id: id, brand_id: brandId });
+    const comment = await Comment.findOne({
+      _id: id,
+      brand_id: new mongoose.Types.ObjectId(brandId)
+    });
 
     if (!comment) {
       return res.status(404).json({
         success: false,
-        error: {
-          code: 'COMMENT_NOT_FOUND',
-          message: 'Comment not found in this brand'
-        }
+        message: 'Comment not found'
       });
     }
 
-    await comment.removeReaction(req.user.id);
-
-    const updatedComment = await Comment.findById(id)
-      .populate('author', 'name email avatar')
-      .populate('reactions.user_id', 'name email');
+    // Remove reaction
+    await comment.removeReaction(userId);
+    await comment.populate('reactions.user', 'name email avatar');
 
     res.json({
       success: true,
-      data: updatedComment,
-      message: 'Reaction removed successfully'
+      message: 'Reaction removed successfully',
+      data: comment
     });
   } catch (error) {
     console.error('Error removing reaction:', error);
     res.status(500).json({
       success: false,
-      error: {
-        code: 'REACTION_REMOVE_ERROR',
-        message: 'Failed to remove reaction',
-        details: error.message
-      }
+      message: 'Error removing reaction',
+      error: error.message
     });
   }
 };
 
 // Mention user in comment
-const mentionUser = async (req, res) => {
+const mentionUserInComment = async (req, res) => {
   try {
     const { brandId, id } = req.params;
-    const { user_id, position, length } = req.body;
+    const { userId: mentionedUserId } = req.body;
 
-    if (!user_id || position === undefined || !length) {
-      return res.status(400).json({
-        success: false,
-        error: {
-          code: 'VALIDATION_ERROR',
-          message: 'user_id, position, and length are required'
-        }
-      });
-    }
-
-    const comment = await Comment.findOne({ _id: id, brand_id: brandId });
+    const comment = await Comment.findOne({
+      _id: id,
+      brand_id: new mongoose.Types.ObjectId(brandId)
+    });
 
     if (!comment) {
       return res.status(404).json({
         success: false,
-        error: {
-          code: 'COMMENT_NOT_FOUND',
-          message: 'Comment not found in this brand'
-        }
+        message: 'Comment not found'
       });
     }
 
-    // Check if user exists in brand
-    const user = await User.findOne({ _id: user_id, brand_id: brandId });
-    if (!user) {
-      return res.status(404).json({
-        success: false,
-        error: {
-          code: 'USER_NOT_FOUND',
-          message: 'User not found in this brand'
-        }
-      });
-    }
-
-    await comment.addMention(user_id, position, length);
-
-    const updatedComment = await Comment.findById(id)
-      .populate('author', 'name email avatar')
-      .populate('mentions.user_id', 'name email');
+    // Add mention
+    await comment.addMention(mentionedUserId);
+    await comment.populate('mentions.user', 'name email');
 
     res.json({
       success: true,
-      data: updatedComment,
-      message: 'User mentioned successfully'
+      message: 'User mentioned successfully',
+      data: comment
     });
   } catch (error) {
     console.error('Error mentioning user:', error);
     res.status(500).json({
       success: false,
-      error: {
-        code: 'MENTION_ERROR',
-        message: 'Failed to mention user',
-        details: error.message
-      }
+      message: 'Error mentioning user',
+      error: error.message
     });
   }
 };
@@ -791,47 +536,35 @@ const mentionUser = async (req, res) => {
 const updateCommentPermissions = async (req, res) => {
   try {
     const { brandId, id } = req.params;
-    const { can_edit, can_delete, can_react } = req.body;
+    const { permissions } = req.body;
 
-    const comment = await Comment.findOne({ _id: id, brand_id: brandId });
+    const comment = await Comment.findOne({
+      _id: id,
+      brand_id: new mongoose.Types.ObjectId(brandId)
+    });
 
     if (!comment) {
       return res.status(404).json({
         success: false,
-        error: {
-          code: 'COMMENT_NOT_FOUND',
-          message: 'Comment not found in this brand'
-        }
+        message: 'Comment not found'
       });
     }
 
     // Update permissions
-    if (can_edit) {
-      comment.permissions.can_edit = can_edit;
-    }
-    if (can_delete) {
-      comment.permissions.can_delete = can_delete;
-    }
-    if (can_react) {
-      comment.permissions.can_react = can_react;
-    }
-
+    comment.permissions = { ...comment.permissions, ...permissions };
     await comment.save();
 
     res.json({
       success: true,
-      data: comment,
-      message: 'Comment permissions updated successfully'
+      message: 'Comment permissions updated successfully',
+      data: comment
     });
   } catch (error) {
     console.error('Error updating comment permissions:', error);
     res.status(500).json({
       success: false,
-      error: {
-        code: 'COMMENT_PERMISSIONS_UPDATE_ERROR',
-        message: 'Failed to update comment permissions',
-        details: error.message
-      }
+      message: 'Error updating comment permissions',
+      error: error.message
     });
   }
 };
@@ -840,63 +573,35 @@ const updateCommentPermissions = async (req, res) => {
 const moderateComment = async (req, res) => {
   try {
     const { brandId, id } = req.params;
-    const { action, reason } = req.body;
+    const { status } = req.body;
+    const moderatorId = req.user.id;
 
-    if (!action || !['approve', 'reject', 'flag'].includes(action)) {
-      return res.status(400).json({
-        success: false,
-        error: {
-          code: 'VALIDATION_ERROR',
-          message: 'Invalid moderation action. Must be approve, reject, or flag'
-        }
-      });
-    }
-
-    const comment = await Comment.findOne({ _id: id, brand_id: brandId });
+    const comment = await Comment.findOne({
+      _id: id,
+      brand_id: new mongoose.Types.ObjectId(brandId)
+    });
 
     if (!comment) {
       return res.status(404).json({
         success: false,
-        error: {
-          code: 'COMMENT_NOT_FOUND',
-          message: 'Comment not found in this brand'
-        }
+        message: 'Comment not found'
       });
     }
 
-    // Update comment status based on action
-    switch (action) {
-      case 'approve':
-        comment.status = 'active';
-        break;
-      case 'reject':
-        comment.status = 'moderated';
-        break;
-      case 'flag':
-        comment.status = 'moderated';
-        break;
-    }
-
-    if (reason) {
-      comment.metadata.additional_data = { moderation_reason: reason };
-    }
-
-    await comment.save();
+    // Moderate comment
+    await comment.moderateComment(status, moderatorId);
 
     res.json({
       success: true,
-      data: comment,
-      message: 'Comment moderated successfully'
+      message: 'Comment moderated successfully',
+      data: comment
     });
   } catch (error) {
     console.error('Error moderating comment:', error);
     res.status(500).json({
       success: false,
-      error: {
-        code: 'COMMENT_MODERATION_ERROR',
-        message: 'Failed to moderate comment',
-        details: error.message
-      }
+      message: 'Error moderating comment',
+      error: error.message
     });
   }
 };
@@ -906,38 +611,32 @@ const pinComment = async (req, res) => {
   try {
     const { brandId, id } = req.params;
 
-    const comment = await Comment.findOne({ _id: id, brand_id: brandId });
+    const comment = await Comment.findOne({
+      _id: id,
+      brand_id: new mongoose.Types.ObjectId(brandId)
+    });
 
     if (!comment) {
       return res.status(404).json({
         success: false,
-        error: {
-          code: 'COMMENT_NOT_FOUND',
-          message: 'Comment not found in this brand'
-        }
+        message: 'Comment not found'
       });
     }
 
-    comment.metadata.is_pinned = true;
-    comment.metadata.pinned_at = new Date();
-    comment.metadata.pinned_by = req.user.id;
-
-    await comment.save();
+    // Pin comment
+    await comment.pinComment();
 
     res.json({
       success: true,
-      data: comment,
-      message: 'Comment pinned successfully'
+      message: 'Comment pinned successfully',
+      data: comment
     });
   } catch (error) {
     console.error('Error pinning comment:', error);
     res.status(500).json({
       success: false,
-      error: {
-        code: 'COMMENT_PIN_ERROR',
-        message: 'Failed to pin comment',
-        details: error.message
-      }
+      message: 'Error pinning comment',
+      error: error.message
     });
   }
 };
@@ -947,38 +646,32 @@ const unpinComment = async (req, res) => {
   try {
     const { brandId, id } = req.params;
 
-    const comment = await Comment.findOne({ _id: id, brand_id: brandId });
+    const comment = await Comment.findOne({
+      _id: id,
+      brand_id: new mongoose.Types.ObjectId(brandId)
+    });
 
     if (!comment) {
       return res.status(404).json({
         success: false,
-        error: {
-          code: 'COMMENT_NOT_FOUND',
-          message: 'Comment not found in this brand'
-        }
+        message: 'Comment not found'
       });
     }
 
-    comment.metadata.is_pinned = false;
-    comment.metadata.pinned_at = undefined;
-    comment.metadata.pinned_by = undefined;
-
-    await comment.save();
+    // Unpin comment
+    await comment.unpinComment();
 
     res.json({
       success: true,
-      data: comment,
-      message: 'Comment unpinned successfully'
+      message: 'Comment unpinned successfully',
+      data: comment
     });
   } catch (error) {
     console.error('Error unpinning comment:', error);
     res.status(500).json({
       success: false,
-      error: {
-        code: 'COMMENT_UNPIN_ERROR',
-        message: 'Failed to unpin comment',
-        details: error.message
-      }
+      message: 'Error unpinning comment',
+      error: error.message
     });
   }
 };
@@ -987,69 +680,38 @@ const unpinComment = async (req, res) => {
 const searchComments = async (req, res) => {
   try {
     const { brandId } = req.params;
-    const { q, page = 1, limit = 20, entity_type, entity_id } = req.query;
+    const { q, page = 1, limit = 20 } = req.query;
 
     if (!q) {
       return res.status(400).json({
         success: false,
-        error: {
-          code: 'VALIDATION_ERROR',
-          message: 'Search query is required'
-        }
+        message: 'Search query is required'
       });
     }
 
-    let query = {
-      brand_id: brandId,
-      $or: [
-        { content: { $regex: q, $options: 'i' } },
-        { 'mentions.user_id': { $regex: q, $options: 'i' } }
-      ],
-      status: { $ne: 'deleted' }
-    };
-
-    if (entity_type) {
-      query.entity_type = entity_type;
-    }
-    if (entity_id) {
-      query.entity_id = entity_id;
-    }
-
-    const skip = (parseInt(page) - 1) * parseInt(limit);
-
-    const comments = await Comment.find(query)
-      .populate('author', 'name email avatar')
-      .populate('mentions.user_id', 'name email')
-      .populate('reactions.user_id', 'name email')
-      .sort({ created_at: -1 })
-      .skip(skip)
-      .limit(parseInt(limit));
-
-    const totalComments = await Comment.countDocuments(query);
+    const comments = await Comment.searchComments(
+      new mongoose.Types.ObjectId(brandId),
+      q,
+      { limit: limit * 1, skip: (page - 1) * limit }
+    );
 
     res.json({
       success: true,
       data: {
         comments,
         pagination: {
-          currentPage: parseInt(page),
-          totalPages: Math.ceil(totalComments / parseInt(limit)),
-          totalComments,
-          hasNextPage: skip + comments.length < totalComments,
-          hasPrevPage: parseInt(page) > 1
+          current: page,
+          pages: Math.ceil(comments.length / limit),
+          total: comments.length
         }
-      },
-      message: 'Comment search completed successfully'
+      }
     });
   } catch (error) {
     console.error('Error searching comments:', error);
     res.status(500).json({
       success: false,
-      error: {
-        code: 'COMMENT_SEARCH_ERROR',
-        message: 'Failed to search comments',
-        details: error.message
-      }
+      message: 'Error searching comments',
+      error: error.message
     });
   }
 };
@@ -1058,70 +720,50 @@ const searchComments = async (req, res) => {
 const filterComments = async (req, res) => {
   try {
     const { brandId } = req.params;
-    const { entity_type, entity_id, type, author, status, date_from, date_to, page = 1, limit = 20 } = req.query;
+    const { entity_type, entity_id, author, status, is_pinned, date_from, date_to, page = 1, limit = 20 } = req.query;
 
-    let query = { brand_id: brandId };
+    const query = {
+      brand_id: new mongoose.Types.ObjectId(brandId)
+    };
 
-    if (entity_type) {
-      query.entity_type = entity_type;
-    }
-    if (entity_id) {
-      query.entity_id = entity_id;
-    }
-    if (type) {
-      query.type = type;
-    }
-    if (author) {
-      query.author = author;
-    }
-    if (status) {
-      query.status = status;
-    }
+    if (entity_type) query.entity_type = entity_type;
+    if (entity_id) query.entity_id = new mongoose.Types.ObjectId(entity_id);
+    if (author) query.author = new mongoose.Types.ObjectId(author);
+    if (status) query.status = status;
+    if (is_pinned !== undefined) query.is_pinned = is_pinned === 'true';
+
     if (date_from || date_to) {
       query.created_at = {};
-      if (date_from) {
-        query.created_at.$gte = new Date(date_from);
-      }
-      if (date_to) {
-        query.created_at.$lte = new Date(date_to);
-      }
+      if (date_from) query.created_at.$gte = new Date(date_from);
+      if (date_to) query.created_at.$lte = new Date(date_to);
     }
-
-    const skip = (parseInt(page) - 1) * parseInt(limit);
 
     const comments = await Comment.find(query)
       .populate('author', 'name email avatar')
-      .populate('mentions.user_id', 'name email')
-      .populate('reactions.user_id', 'name email')
-      .sort({ created_at: -1 })
-      .skip(skip)
-      .limit(parseInt(limit));
+      .populate('mentions.user', 'name email')
+      .sort({ is_pinned: -1, created_at: -1 })
+      .limit(limit * 1)
+      .skip((page - 1) * limit);
 
-    const totalComments = await Comment.countDocuments(query);
+    const total = await Comment.countDocuments(query);
 
     res.json({
       success: true,
       data: {
         comments,
         pagination: {
-          currentPage: parseInt(page),
-          totalPages: Math.ceil(totalComments / parseInt(limit)),
-          totalComments,
-          hasNextPage: skip + comments.length < totalComments,
-          hasPrevPage: parseInt(page) > 1
+          current: page,
+          pages: Math.ceil(total / limit),
+          total
         }
-      },
-      message: 'Comment filtering completed successfully'
+      }
     });
   } catch (error) {
     console.error('Error filtering comments:', error);
     res.status(500).json({
       success: false,
-      error: {
-        code: 'COMMENT_FILTER_ERROR',
-        message: 'Failed to filter comments',
-        details: error.message
-      }
+      message: 'Error filtering comments',
+      error: error.message
     });
   }
 };
@@ -1132,34 +774,10 @@ const getCommentAnalytics = async (req, res) => {
     const { brandId } = req.params;
     const { entity_type, entity_id, date_from, date_to } = req.query;
 
-    let matchStage = { brand_id: new mongoose.Types.ObjectId(brandId) };
-
-    if (entity_type) {
-      matchStage.entity_type = entity_type;
-    }
-    if (entity_id) {
-      matchStage.entity_id = new mongoose.Types.ObjectId(entity_id);
-    }
-    if (date_from) {
-      matchStage.created_at = { $gte: new Date(date_from) };
-    }
-    if (date_to) {
-      matchStage.created_at = { ...matchStage.created_at, $lte: new Date(date_to) };
-    }
-
-    const analytics = await Comment.aggregate([
-      { $match: matchStage },
-      {
-        $group: {
-          _id: null,
-          total_comments: { $sum: 1 },
-          total_reactions: { $sum: '$analytics.reaction_count' },
-          total_mentions: { $sum: '$analytics.mention_count' },
-          total_views: { $sum: '$analytics.view_count' },
-          avg_reactions_per_comment: { $avg: '$analytics.reaction_count' }
-        }
-      }
-    ]);
+    const analytics = await Comment.getCommentAnalytics(
+      new mongoose.Types.ObjectId(brandId),
+      { entity_type, entity_id, date_from, date_to }
+    );
 
     res.json({
       success: true,
@@ -1167,20 +785,18 @@ const getCommentAnalytics = async (req, res) => {
         total_comments: 0,
         total_reactions: 0,
         total_mentions: 0,
-        total_views: 0,
-        avg_reactions_per_comment: 0
-      },
-      message: 'Comment analytics retrieved successfully'
+        total_attachments: 0,
+        avg_reactions_per_comment: 0,
+        avg_mentions_per_comment: 0,
+        comments_by_entity_type: []
+      }
     });
   } catch (error) {
     console.error('Error fetching comment analytics:', error);
     res.status(500).json({
       success: false,
-      error: {
-        code: 'COMMENT_ANALYTICS_FETCH_ERROR',
-        message: 'Failed to fetch comment analytics',
-        details: error.message
-      }
+      message: 'Error fetching comment analytics',
+      error: error.message
     });
   }
 };
@@ -1190,37 +806,38 @@ const getCommentAnalyticsById = async (req, res) => {
   try {
     const { brandId, id } = req.params;
 
-    const comment = await Comment.findOne({ _id: id, brand_id: brandId });
+    const comment = await Comment.findOne({
+      _id: id,
+      brand_id: new mongoose.Types.ObjectId(brandId)
+    });
 
     if (!comment) {
       return res.status(404).json({
         success: false,
-        error: {
-          code: 'COMMENT_NOT_FOUND',
-          message: 'Comment not found in this brand'
-        }
+        message: 'Comment not found'
       });
     }
 
-    const statistics = comment.getStatistics();
+    const analytics = {
+      view_count: comment.analytics.view_count,
+      reply_count: comment.analytics.reply_count,
+      reaction_count: comment.analytics.reaction_count,
+      mention_count: comment.analytics.mention_count,
+      reactions: comment.reactions,
+      mentions: comment.mentions,
+      attachments: comment.attachments
+    };
 
     res.json({
       success: true,
-      data: {
-        comment_id: comment._id,
-        statistics
-      },
-      message: 'Comment analytics retrieved successfully'
+      data: analytics
     });
   } catch (error) {
     console.error('Error fetching comment analytics by ID:', error);
     res.status(500).json({
       success: false,
-      error: {
-        code: 'COMMENT_ANALYTICS_FETCH_ERROR',
-        message: 'Failed to fetch comment analytics',
-        details: error.message
-      }
+      message: 'Error fetching comment analytics by ID',
+      error: error.message
     });
   }
 };
@@ -1229,78 +846,43 @@ const getCommentAnalyticsById = async (req, res) => {
 const uploadCommentAttachment = async (req, res) => {
   try {
     const { brandId, id } = req.params;
+    const { filename, original_name, file_size, file_type, file_url } = req.body;
 
-    const comment = await Comment.findOne({ _id: id, brand_id: brandId });
+    const comment = await Comment.findOne({
+      _id: id,
+      brand_id: new mongoose.Types.ObjectId(brandId)
+    });
 
     if (!comment) {
       return res.status(404).json({
         success: false,
-        error: {
-          code: 'COMMENT_NOT_FOUND',
-          message: 'Comment not found in this brand'
-        }
+        message: 'Comment not found'
       });
     }
 
-    // Check if user can edit comment
-    if (!comment.canUserEdit(req.user.id, req.user.role)) {
-      return res.status(403).json({
-        success: false,
-        error: {
-          code: 'PERMISSION_DENIED',
-          message: 'You do not have permission to edit this comment'
-        }
-      });
-    }
+    // Add attachment
+    comment.attachments.push({
+      filename,
+      original_name,
+      file_size,
+      file_type,
+      file_url,
+      uploaded_at: new Date()
+    });
 
-    // Handle file upload
-    upload.single('attachment')(req, res, async (err) => {
-      if (err) {
-        return res.status(400).json({
-          success: false,
-          error: {
-            code: 'FILE_UPLOAD_ERROR',
-            message: err.message
-          }
-        });
-      }
+    await comment.save();
 
-      if (!req.file) {
-        return res.status(400).json({
-          success: false,
-          error: {
-            code: 'VALIDATION_ERROR',
-            message: 'No file uploaded'
-          }
-        });
-      }
-
-      // Add attachment to comment
-      comment.attachments.push({
-        filename: req.file.filename,
-        original_name: req.file.originalname,
-        file_size: req.file.size,
-        mime_type: req.file.mimetype,
-        url: `/uploads/comments/${req.file.filename}`
-      });
-
-      await comment.save();
-
-      res.json({
-        success: true,
-        data: comment,
-        message: 'Comment attachment uploaded successfully'
-      });
+    res.json({
+      success: true,
+      message: 'Attachment uploaded successfully',
+      data: comment
     });
   } catch (error) {
-    console.error('Error uploading comment attachment:', error);
+    console.error('Error uploading attachment:', error);
     res.status(500).json({
       success: false,
-      error: {
-        code: 'COMMENT_ATTACHMENT_UPLOAD_ERROR',
-        message: 'Failed to upload comment attachment',
-        details: error.message
-      }
+      message: 'Error uploading attachment',
+      error: error.message
     });
   }
 };
@@ -1310,64 +892,36 @@ const deleteCommentAttachment = async (req, res) => {
   try {
     const { brandId, id, attachmentId } = req.params;
 
-    const comment = await Comment.findOne({ _id: id, brand_id: brandId });
+    const comment = await Comment.findOne({
+      _id: id,
+      brand_id: new mongoose.Types.ObjectId(brandId)
+    });
 
     if (!comment) {
       return res.status(404).json({
         success: false,
-        error: {
-          code: 'COMMENT_NOT_FOUND',
-          message: 'Comment not found in this brand'
-        }
+        message: 'Comment not found'
       });
     }
 
-    // Check if user can edit comment
-    if (!comment.canUserEdit(req.user.id, req.user.role)) {
-      return res.status(403).json({
-        success: false,
-        error: {
-          code: 'PERMISSION_DENIED',
-          message: 'You do not have permission to edit this comment'
-        }
-      });
-    }
+    // Remove attachment
+    comment.attachments = comment.attachments.filter(
+      attachment => attachment._id.toString() !== attachmentId
+    );
 
-    // Find and remove attachment
-    const attachment = comment.attachments.id(attachmentId);
-    if (!attachment) {
-      return res.status(404).json({
-        success: false,
-        error: {
-          code: 'ATTACHMENT_NOT_FOUND',
-          message: 'Attachment not found'
-        }
-      });
-    }
-
-    // Delete file from filesystem
-    const filePath = path.join(__dirname, '..', 'uploads', 'comments', attachment.filename);
-    if (fs.existsSync(filePath)) {
-      fs.unlinkSync(filePath);
-    }
-
-    attachment.remove();
     await comment.save();
 
     res.json({
       success: true,
-      data: comment,
-      message: 'Comment attachment deleted successfully'
+      message: 'Attachment deleted successfully',
+      data: comment
     });
   } catch (error) {
-    console.error('Error deleting comment attachment:', error);
+    console.error('Error deleting attachment:', error);
     res.status(500).json({
       success: false,
-      error: {
-        code: 'COMMENT_ATTACHMENT_DELETE_ERROR',
-        message: 'Failed to delete comment attachment',
-        details: error.message
-      }
+      message: 'Error deleting attachment',
+      error: error.message
     });
   }
 };
@@ -1377,35 +931,28 @@ const getCommentHistory = async (req, res) => {
   try {
     const { brandId, id } = req.params;
 
-    const comment = await Comment.findOne({ _id: id, brand_id: brandId });
+    const comment = await Comment.findOne({
+      _id: id,
+      brand_id: new mongoose.Types.ObjectId(brandId)
+    });
 
     if (!comment) {
       return res.status(404).json({
         success: false,
-        error: {
-          code: 'COMMENT_NOT_FOUND',
-          message: 'Comment not found in this brand'
-        }
+        message: 'Comment not found'
       });
     }
 
     res.json({
       success: true,
-      data: {
-        comment_id: comment._id,
-        history: comment.history
-      },
-      message: 'Comment history retrieved successfully'
+      data: comment.history
     });
   } catch (error) {
     console.error('Error fetching comment history:', error);
     res.status(500).json({
       success: false,
-      error: {
-        code: 'COMMENT_HISTORY_FETCH_ERROR',
-        message: 'Failed to fetch comment history',
-        details: error.message
-      }
+      message: 'Error fetching comment history',
+      error: error.message
     });
   }
 };
@@ -1414,20 +961,25 @@ const getCommentHistory = async (req, res) => {
 const exportComments = async (req, res) => {
   try {
     const { brandId } = req.params;
-    const { entity_type, entity_id, format = 'json' } = req.query;
+    const { entity_type, entity_id, date_from, date_to, format = 'json' } = req.query;
 
-    let query = { brand_id: brandId };
+    const query = {
+      brand_id: new mongoose.Types.ObjectId(brandId),
+      status: 'active'
+    };
 
-    if (entity_type) {
-      query.entity_type = entity_type;
-    }
-    if (entity_id) {
-      query.entity_id = entity_id;
+    if (entity_type) query.entity_type = entity_type;
+    if (entity_id) query.entity_id = new mongoose.Types.ObjectId(entity_id);
+
+    if (date_from || date_to) {
+      query.created_at = {};
+      if (date_from) query.created_at.$gte = new Date(date_from);
+      if (date_to) query.created_at.$lte = new Date(date_to);
     }
 
     const comments = await Comment.find(query)
       .populate('author', 'name email')
-      .populate('mentions.user_id', 'name email')
+      .populate('mentions.user', 'name email')
       .sort({ created_at: -1 });
 
     if (format === 'csv') {
@@ -1439,32 +991,28 @@ const exportComments = async (req, res) => {
         entity_type: comment.entity_type,
         entity_id: comment.entity_id,
         created_at: comment.created_at,
-        updated_at: comment.updated_at
+        reactions: comment.reactions.length,
+        mentions: comment.mentions.length
       }));
 
       res.setHeader('Content-Type', 'text/csv');
-      res.setHeader('Content-Disposition', 'attachment; filename="comments.csv"');
+      res.setHeader('Content-Disposition', 'attachment; filename=comments.csv');
       res.json({
         success: true,
-        data: csvData,
-        message: 'Comments exported successfully'
+        data: csvData
       });
     } else {
       res.json({
         success: true,
-        data: comments,
-        message: 'Comments exported successfully'
+        data: comments
       });
     }
   } catch (error) {
     console.error('Error exporting comments:', error);
     res.status(500).json({
       success: false,
-      error: {
-        code: 'COMMENT_EXPORT_ERROR',
-        message: 'Failed to export comments',
-        details: error.message
-      }
+      message: 'Error exporting comments',
+      error: error.message
     });
   }
 };
@@ -1479,8 +1027,8 @@ module.exports = {
   replyToComment,
   getCommentThread,
   reactToComment,
-  removeReaction,
-  mentionUser,
+  removeReactionFromComment,
+  mentionUserInComment,
   updateCommentPermissions,
   moderateComment,
   pinComment,

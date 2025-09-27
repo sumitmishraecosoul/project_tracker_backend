@@ -368,6 +368,17 @@ const assignTask = async (req, res) => {
       });
     }
 
+    // Validate that assignedTo is a valid ObjectId
+    if (!mongoose.Types.ObjectId.isValid(assignedTo)) {
+      return res.status(400).json({
+        success: false,
+        error: {
+          code: 'VALIDATION_ERROR',
+          message: 'assignedTo must be a valid ObjectId'
+        }
+      });
+    }
+
     // Check if id is a valid ObjectId, otherwise search by id field
     let task;
     if (mongoose.Types.ObjectId.isValid(id)) {

@@ -463,5 +463,337 @@ router.post('/:brandId/users/invite', auth, authorize(['admin', 'manager']), asy
   }
 });
 
+// @route   POST /api/brands/:brandId/users/accept
+// @desc    Accept brand invitation
+// @access  Private (Invited user only)
+router.post('/:brandId/users/accept', auth, async (req, res) => {
+  try {
+    const brandId = req.params.brandId;
+    const userId = req.user.id;
+
+    // Find pending invitation
+    const invitation = await UserBrand.findOne({
+      user_id: userId,
+      brand_id: brandId,
+      status: 'pending'
+    });
+
+    if (!invitation) {
+      return res.status(404).json({
+        success: false,
+        error: {
+          code: 'INVITATION_NOT_FOUND',
+          message: 'No pending invitation found for this brand'
+        }
+      });
+    }
+
+    // Accept invitation
+    invitation.status = 'active';
+    invitation.joined_at = new Date();
+    await invitation.save();
+
+    // Populate user and brand details
+    await invitation.populate('user_id', 'name email avatar');
+    await invitation.populate('brand_id', 'name description');
+
+    res.json({
+      success: true,
+      data: {
+        id: invitation._id,
+        user: {
+          id: invitation.user_id._id,
+          name: invitation.user_id.name,
+          email: invitation.user_id.email,
+          avatar: invitation.user_id.avatar
+        },
+        brand: {
+          id: invitation.brand_id._id,
+          name: invitation.brand_id.name,
+          description: invitation.brand_id.description
+        },
+        role: invitation.role,
+        status: invitation.status,
+        joined_at: invitation.joined_at,
+        permissions: invitation.permissions
+      },
+      message: 'Invitation accepted successfully'
+    });
+  } catch (error) {
+    console.error('Error accepting invitation:', error);
+    res.status(500).json({
+      success: false,
+      error: {
+        code: 'INVITATION_ACCEPT_ERROR',
+        message: 'Failed to accept invitation',
+        details: error.message
+      }
+    });
+  }
+});
+
+// @route   POST /api/brands/:brandId/users/decline
+// @desc    Decline brand invitation
+// @access  Private (Invited user only)
+router.post('/:brandId/users/decline', auth, async (req, res) => {
+  try {
+    const brandId = req.params.brandId;
+    const userId = req.user.id;
+
+    // Find pending invitation
+    const invitation = await UserBrand.findOne({
+      user_id: userId,
+      brand_id: brandId,
+      status: 'pending'
+    });
+
+    if (!invitation) {
+      return res.status(404).json({
+        success: false,
+        error: {
+          code: 'INVITATION_NOT_FOUND',
+          message: 'No pending invitation found for this brand'
+        }
+      });
+    }
+
+    // Decline invitation
+    invitation.status = 'declined';
+    await invitation.save();
+
+    res.json({
+      success: true,
+      message: 'Invitation declined successfully'
+    });
+  } catch (error) {
+    console.error('Error declining invitation:', error);
+    res.status(500).json({
+      success: false,
+      error: {
+        code: 'INVITATION_DECLINE_ERROR',
+        message: 'Failed to decline invitation',
+        details: error.message
+      }
+    });
+  }
+});
+
+// @route   GET /api/users/invitations
+// @desc    Get user's pending invitations
+// @access  Private (User only)
+router.get('/users/invitations', auth, async (req, res) => {
+  try {
+    const userId = req.user.id;
+
+    // Get all pending invitations for user
+    const invitations = await UserBrand.find({
+      user_id: userId,
+      status: 'pending'
+    })
+    .populate('brand_id', 'name description industry website')
+    .populate('invited_by', 'name email')
+    .sort({ created_at: -1 });
+
+    const formattedInvitations = invitations.map(invitation => ({
+      id: invitation._id,
+      brand: {
+        id: invitation.brand_id._id,
+        name: invitation.brand_id.name,
+        description: invitation.brand_id.description,
+        industry: invitation.brand_id.industry,
+        website: invitation.brand_id.website
+      },
+      role: invitation.role,
+      status: invitation.status,
+      invited_by: {
+        id: invitation.invited_by._id,
+        name: invitation.invited_by.name,
+        email: invitation.invited_by.email
+      },
+      invited_at: invitation.created_at,
+      expires_at: invitation.expires_at
+    }));
+
+    res.json({
+      success: true,
+      data: formattedInvitations,
+      message: 'User invitations retrieved successfully'
+    });
+  } catch (error) {
+    console.error('Error fetching user invitations:', error);
+    res.status(500).json({
+      success: false,
+      error: {
+        code: 'INVITATIONS_FETCH_ERROR',
+        message: 'Failed to fetch user invitations',
+        details: error.message
+      }
+    });
+  }
+});
+
+// @route   GET /api/brands/:brandId/users/pending
+// @desc    Get pending invitations for a brand
+// @access  Private (Admin/Manager only)
+router.get('/:brandId/users/pending', auth, authorize(['admin', 'manager']), async (req, res) => {
+  try {
+    const brandId = req.params.brandId;
+
+    // Check if user has permission to view pending invitations
+    const userBrand = await UserBrand.findOne({
+      user_id: req.user.id,
+      brand_id: brandId,
+      status: 'active'
+    });
+
+    if (!userBrand || !userBrand.hasPermission('can_manage_users')) {
+      return res.status(403).json({
+        success: false,
+        error: {
+          code: 'PERMISSION_DENIED',
+          message: 'Insufficient permissions to view pending invitations'
+        }
+      });
+    }
+
+    // Get pending invitations for this brand
+    const pendingInvitations = await UserBrand.find({
+      brand_id: brandId,
+      status: 'pending'
+    })
+    .populate('user_id', 'name email avatar')
+    .populate('invited_by', 'name email')
+    .sort({ created_at: -1 });
+
+    const formattedInvitations = pendingInvitations.map(invitation => ({
+      id: invitation._id,
+      user: {
+        id: invitation.user_id._id,
+        name: invitation.user_id.name,
+        email: invitation.user_id.email,
+        avatar: invitation.user_id.avatar
+      },
+      role: invitation.role,
+      status: invitation.status,
+      invited_by: {
+        id: invitation.invited_by._id,
+        name: invitation.invited_by.name,
+        email: invitation.invited_by.email
+      },
+      invited_at: invitation.created_at,
+      expires_at: invitation.expires_at
+    }));
+
+    res.json({
+      success: true,
+      data: formattedInvitations,
+      message: 'Pending invitations retrieved successfully'
+    });
+  } catch (error) {
+    console.error('Error fetching pending invitations:', error);
+    res.status(500).json({
+      success: false,
+      error: {
+        code: 'PENDING_INVITATIONS_FETCH_ERROR',
+        message: 'Failed to fetch pending invitations',
+        details: error.message
+      }
+    });
+  }
+});
+
+// @route   PUT /api/brands/:brandId/users/:userId/status
+// @desc    Update user status in brand
+// @access  Private (Admin/Manager only)
+router.put('/:brandId/users/:userId/status', auth, authorize(['admin', 'manager']), async (req, res) => {
+  try {
+    const { brandId, userId } = req.params;
+    const { status } = req.body;
+
+    // Validate status
+    const validStatuses = ['active', 'pending', 'suspended', 'expired'];
+    if (!validStatuses.includes(status)) {
+      return res.status(400).json({
+        success: false,
+        error: {
+          code: 'INVALID_STATUS',
+          message: 'Invalid status. Must be one of: ' + validStatuses.join(', ')
+        }
+      });
+    }
+
+    // Check if user has permission to manage users
+    const userBrand = await UserBrand.findOne({
+      user_id: req.user.id,
+      brand_id: brandId,
+      status: 'active'
+    });
+
+    if (!userBrand || !userBrand.hasPermission('can_manage_users')) {
+      return res.status(403).json({
+        success: false,
+        error: {
+          code: 'PERMISSION_DENIED',
+          message: 'Insufficient permissions to update user status'
+        }
+      });
+    }
+
+    // Find the user-brand relationship
+    const targetUserBrand = await UserBrand.findOne({
+      user_id: userId,
+      brand_id: brandId
+    });
+
+    if (!targetUserBrand) {
+      return res.status(404).json({
+        success: false,
+        error: {
+          code: 'USER_NOT_FOUND',
+          message: 'User not found in this brand'
+        }
+      });
+    }
+
+    // Update status
+    targetUserBrand.status = status;
+    if (status === 'active' && !targetUserBrand.joined_at) {
+      targetUserBrand.joined_at = new Date();
+    }
+    await targetUserBrand.save();
+
+    // Populate user details
+    await targetUserBrand.populate('user_id', 'name email avatar');
+
+    res.json({
+      success: true,
+      data: {
+        id: targetUserBrand._id,
+        user: {
+          id: targetUserBrand.user_id._id,
+          name: targetUserBrand.user_id.name,
+          email: targetUserBrand.user_id.email,
+          avatar: targetUserBrand.user_id.avatar
+        },
+        role: targetUserBrand.role,
+        status: targetUserBrand.status,
+        joined_at: targetUserBrand.joined_at,
+        updated_at: targetUserBrand.updated_at
+      },
+      message: 'User status updated successfully'
+    });
+  } catch (error) {
+    console.error('Error updating user status:', error);
+    res.status(500).json({
+      success: false,
+      error: {
+        code: 'USER_STATUS_UPDATE_ERROR',
+        message: 'Failed to update user status',
+        details: error.message
+      }
+    });
+  }
+});
+
 module.exports = router;
 
