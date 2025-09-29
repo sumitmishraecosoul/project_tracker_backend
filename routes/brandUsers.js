@@ -433,7 +433,8 @@ router.post('/:brandId/users/invite', auth, authorize(['admin', 'manager']), asy
       role,
       permissions: {},
       invited_by: req.user.id,
-      status: 'pending'
+      status: 'pending',
+      expires_at: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000) // 7 days from now
     });
 
     // TODO: Send invitation email
@@ -446,7 +447,9 @@ router.post('/:brandId/users/invite', auth, authorize(['admin', 'manager']), asy
         email: user.email,
         role: invitation.role,
         status: invitation.status,
-        invited_at: invitation.created_at
+        created_at: invitation.created_at,
+        invited_at: invitation.created_at,
+        expires_at: invitation.expires_at
       },
       message: 'Invitation sent successfully'
     });
@@ -610,6 +613,7 @@ router.get('/users/invitations', auth, async (req, res) => {
         name: invitation.invited_by.name,
         email: invitation.invited_by.email
       },
+      created_at: invitation.created_at,
       invited_at: invitation.created_at,
       expires_at: invitation.expires_at
     }));
