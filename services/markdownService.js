@@ -1,16 +1,27 @@
-const marked = require('marked');
 const cheerio = require('cheerio');
 
 class MarkdownService {
   constructor() {
-    // Configure marked options
-    marked.setOptions({
-      breaks: true,
-      gfm: true,
-      sanitize: false, // We'll handle sanitization separately
-      smartLists: true,
-      smartypants: true
-    });
+    this.marked = null;
+    this.initializeMarked();
+  }
+
+  async initializeMarked() {
+    try {
+      const { marked } = await import('marked');
+      this.marked = marked;
+      
+      // Configure marked options
+      this.marked.setOptions({
+        breaks: true,
+        gfm: true,
+        sanitize: false, // We'll handle sanitization separately
+        smartLists: true,
+        smartypants: true
+      });
+    } catch (error) {
+      console.error('Error initializing marked:', error);
+    }
   }
 
   /**
@@ -24,8 +35,14 @@ class MarkdownService {
         return '';
       }
 
+      // If marked is not initialized yet, return original markdown
+      if (!this.marked) {
+        console.warn('Marked not initialized yet, returning original markdown');
+        return markdown;
+      }
+
       // Convert markdown to HTML
-      const html = marked.parse(markdown);
+      const html = this.marked.parse(markdown);
       
       // Sanitize HTML
       const sanitizedHtml = this.sanitizeHtml(html);
