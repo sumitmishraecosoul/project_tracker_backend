@@ -16,8 +16,28 @@ if (!process.env.MONGODB_URI && !process.env.MONGO_URI) {
 }
 
 const app = express();
-app.use(cors());
+
+// CORS Configuration for Production (Vercel)
+const corsOptions = {
+  origin: [
+    'http://localhost:3000',
+    'http://localhost:3001',
+    'https://project-tracker-frontend-bunapfdxj-sumits-projects-6ae8f679.vercel.app',
+    /\.vercel\.app$/ // Allow all Vercel preview deployments
+  ],
+  credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization'],
+  exposedHeaders: ['Content-Range', 'X-Content-Range'],
+  maxAge: 86400 // 24 hours
+};
+
+app.use(cors(corsOptions));
 app.use(express.json());
+
+// Handle preflight requests
+app.options('*', cors(corsOptions));
+
 // Serve uploaded files
 app.use('/uploads', express.static('uploads'));
 
