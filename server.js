@@ -75,27 +75,32 @@ app.use('/api', require('./routes/advancedComments'));
 // MongoDB Connection
 const port = process.env.PORT || 5000;
 
-// Check for required environment variables
-// Environment variables are now set with defaults above
-
 // Use MONGODB_URI (Vercel standard) or fallback to MONGO_URI
 const mongoUri = process.env.MONGODB_URI || process.env.MONGO_URI;
 
+// Connect to MongoDB
 mongoose
   .connect(mongoUri)
   .then(() => {
-    console.log('MongoDB connected');
-    
-    // Create HTTP server
-    const server = http.createServer(app);
-    
-    // Initialize WebSocket server
-    const wsServer = new WebSocketServer(server);
-    
-    // Start server
-    server.listen(port, () => {
-      console.log(`Server running on port ${port}`);
-      console.log(`WebSocket server available at ws://localhost:${port}/api/ws`);
-    });
+    console.log('MongoDB connected successfully');
   })
-  .catch(err => console.error('MongoDB connection error:', err));
+  .catch(err => {
+    console.error('MongoDB connection error:', err);
+  });
+
+// For Vercel serverless functions, we need to export the app
+// For local development, start the server
+if (process.env.NODE_ENV !== 'production') {
+  const server = http.createServer(app);
+  
+  // Initialize WebSocket server only for local development
+  const wsServer = new WebSocketServer(server);
+  
+  server.listen(port, () => {
+    console.log(`Server running on port ${port}`);
+    console.log(`WebSocket server available at ws://localhost:${port}/api/ws`);
+  });
+}
+
+// Export the app for Vercel
+module.exports = app;
