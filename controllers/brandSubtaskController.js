@@ -203,6 +203,17 @@ const createBrandSubtask = async (req, res) => {
       });
     }
 
+    // Validate assignedTo is a valid ObjectId if provided
+    if (subtaskData.assignedTo && !mongoose.Types.ObjectId.isValid(subtaskData.assignedTo)) {
+      return res.status(400).json({
+        success: false,
+        error: {
+          code: 'VALIDATION_ERROR',
+          message: 'Invalid assignedTo user ID. Please provide a valid user ID, not a username.'
+        }
+      });
+    }
+
     // Create subtask
     const subtask = await Subtask.create(subtaskData);
 

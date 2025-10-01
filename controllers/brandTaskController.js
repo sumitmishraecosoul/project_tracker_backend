@@ -164,6 +164,28 @@ const createBrandTask = async (req, res) => {
       });
     }
 
+    // Validate assignedTo is a valid ObjectId
+    if (!mongoose.Types.ObjectId.isValid(taskData.assignedTo)) {
+      return res.status(400).json({
+        success: false,
+        error: {
+          code: 'VALIDATION_ERROR',
+          message: 'Invalid assignedTo user ID. Please provide a valid user ID, not a username.'
+        }
+      });
+    }
+
+    // Validate reporter is a valid ObjectId
+    if (!mongoose.Types.ObjectId.isValid(taskData.reporter)) {
+      return res.status(400).json({
+        success: false,
+        error: {
+          code: 'VALIDATION_ERROR',
+          message: 'Invalid reporter user ID. Please provide a valid user ID, not a username.'
+        }
+      });
+    }
+
     // Generate unique task ID if not provided
     if (!taskData.id) {
       // Use timestamp-based ID to ensure uniqueness
