@@ -4,6 +4,7 @@ const ProjectSection = require('../models/ProjectSection');
 const ProjectView = require('../models/ProjectView');
 const Task = require('../models/Task');
 const User = require('../models/User');
+const Category = require('../models/Category');
 
 // Get all projects for a specific brand
 const getBrandProjects = async (req, res) => {
@@ -142,6 +143,14 @@ const createBrandProject = async (req, res) => {
 
     // Create project
     const project = await Project.create(projectData);
+
+    // Auto-create 3 default categories for the project
+    try {
+      await Category.createDefaultCategories(project._id, brandId, req.user.id);
+    } catch (categoryError) {
+      console.error('Error creating default categories:', categoryError);
+      // Continue even if category creation fails - we don't want to fail the project creation
+    }
 
     // Populate the created project
     const populatedProject = await Project.findById(project._id)

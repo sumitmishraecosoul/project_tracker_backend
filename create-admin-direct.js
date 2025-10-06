@@ -7,7 +7,7 @@ async function createAdminDirect() {
     console.log('👤 Creating admin user directly...');
     
     // Connect to MongoDB
-    const mongoUri = process.env.MONGODB_URI || 'mongodb://localhost:27017/asana';
+    const mongoUri = process.env.MONGODB_URI || 'mongodb://localhost:27017/asana_dev';
     await mongoose.connect(mongoUri);
     console.log('✅ Connected to MongoDB');
     

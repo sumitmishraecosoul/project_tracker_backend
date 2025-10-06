@@ -12,7 +12,7 @@ if (!process.env.JWT_SECRET) {
   process.env.JWT_SECRET = 'your-super-secret-jwt-key-here-make-it-very-long-and-secure-for-production-use';
 }
 if (!process.env.MONGODB_URI && !process.env.MONGO_URI) {
-  process.env.MONGODB_URI = 'mongodb://localhost:27017/asana';
+  process.env.MONGODB_URI = 'mongodb+srv://sumitmishrasm004:Ecosoul%40123@cluster0.jvgspc2.mongodb.net/asana_dev?retryWrites=true&w=majority';
 }
 
 const app = express();
@@ -34,6 +34,21 @@ const corsOptions = {
 
 app.use(cors(corsOptions));
 app.use(express.json());
+
+// JSON parsing error handler
+app.use((error, req, res, next) => {
+  if (error instanceof SyntaxError && error.status === 400 && 'body' in error) {
+    return res.status(400).json({
+      success: false,
+      error: {
+        code: 'INVALID_JSON',
+        message: 'Invalid JSON format in request body',
+        details: 'Please ensure your request body is valid JSON'
+      }
+    });
+  }
+  next(error);
+});
 
 // Handle preflight requests
 app.options('*', cors(corsOptions));
@@ -62,6 +77,7 @@ app.use('/api/dashboard', require('./routes/dashboard'));
 app.use('/api/brands', require('./routes/brands'));
 app.use('/api/brands', require('./routes/brandUsers'));
 app.use('/api/brands', require('./routes/brandProjects'));
+app.use('/api/brands', require('./routes/categories'));
 app.use('/api/brands', require('./routes/brandTasks'));
 app.use('/api/brands', require('./routes/brandSubtasks'));
 app.use('/api/brands', require('./routes/brandComments'));

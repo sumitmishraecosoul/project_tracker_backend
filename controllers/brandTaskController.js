@@ -154,12 +154,23 @@ const createBrandTask = async (req, res) => {
     };
 
     // Validate required fields
-    if (!taskData.task || !taskData.projectId || !taskData.assignedTo || !taskData.reporter || !taskData.eta) {
+    if (!taskData.task || !taskData.projectId || !taskData.category_id || !taskData.assignedTo || !taskData.reporter || !taskData.eta) {
       return res.status(400).json({
         success: false,
         error: {
           code: 'VALIDATION_ERROR',
-          message: 'Task, projectId, assignedTo, reporter, and eta are required'
+          message: 'Task, projectId, category_id, assignedTo, reporter, and eta are required'
+        }
+      });
+    }
+
+    // Validate category_id is a valid ObjectId
+    if (!mongoose.Types.ObjectId.isValid(taskData.category_id)) {
+      return res.status(400).json({
+        success: false,
+        error: {
+          code: 'VALIDATION_ERROR',
+          message: 'Invalid category_id. Please provide a valid category ID.'
         }
       });
     }
@@ -247,10 +258,18 @@ const updateBrandTask = async (req, res) => {
       });
     }
 
+    // Filter out null/undefined values to prevent validation errors
+    const updateData = {};
+    Object.keys(req.body).forEach(key => {
+      if (req.body[key] !== null && req.body[key] !== undefined) {
+        updateData[key] = req.body[key];
+      }
+    });
+
     // Update task using the found task's _id
     const updatedTask = await Task.findByIdAndUpdate(
       task._id,
-      req.body,
+      updateData,
       { new: true, runValidators: true }
     ).populate('assignedTo', 'name email')
      .populate('reporter', 'name email')
@@ -502,7 +521,7 @@ const updateTaskStatus = async (req, res) => {
       });
     }
 
-    const validStatuses = ['Yet to Start', 'In Progress', 'Completed', 'Blocked', 'On Hold', 'Cancelled', 'Recurring'];
+    const validStatuses = ['Yet to Start', 'In Progress', 'Under Review', 'Completed', 'Blocked', 'On Hold', 'Cancelled', 'Recurring'];
     if (!validStatuses.includes(status)) {
       return res.status(400).json({
         success: false,

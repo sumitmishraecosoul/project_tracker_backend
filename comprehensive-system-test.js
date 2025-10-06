@@ -37,7 +37,7 @@ async function testDatabaseConnection() {
     
     try {
         // Set default MongoDB URI if not provided
-        const mongoUri = process.env.MONGODB_URI || process.env.MONGO_URI || 'mongodb://localhost:27017/asana';
+        const mongoUri = process.env.MONGODB_URI || process.env.MONGO_URI || 'mongodb://localhost:27017/asana_dev';
         log(`🔗 Connecting to MongoDB: ${mongoUri}`, 'blue');
         
         await mongoose.connect(mongoUri);
