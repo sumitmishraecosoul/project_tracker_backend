@@ -1,0 +1,717 @@
+{
+  "info": {
+    "name": "Project Tracker - Category & Role System",
+    "description": "Complete API collection for Category and Role-based access control system",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:5000/api",
+      "type": "string"
+    },
+    {
+      "key": "token",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "brandId",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "projectId",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "categoryId",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "taskId",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "userId",
+      "value": "",
+      "type": "string"
+    }
+  ],
+  "item": [
+    {
+      "name": "1. Authentication",
+      "item": [
+        {
+          "name": "1.1 Signup - Admin",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Admin User\",\n  \"email\": \"admin@test.com\",\n  \"password\": \"password123\",\n  \"role\": \"admin\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/auth/signup",
+              "host": ["{{baseUrl}}"],
+              "path": ["auth", "signup"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "1.2 Signup - Brand Admin",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Brand Admin User\",\n  \"email\": \"brandadmin@test.com\",\n  \"password\": \"password123\",\n  \"role\": \"brand_admin\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/auth/signup",
+              "host": ["{{baseUrl}}"],
+              "path": ["auth", "signup"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "1.3 Signup - User",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Regular User\",\n  \"email\": \"user@test.com\",\n  \"password\": \"password123\",\n  \"role\": \"user\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/auth/signup",
+              "host": ["{{baseUrl}}"],
+              "path": ["auth", "signup"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "1.4 Login",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 200) {",
+                  "    var jsonData = pm.response.json();",
+                  "    pm.collectionVariables.set('token', jsonData.token);",
+                  "    if (jsonData.user && jsonData.user._id) {",
+                  "        pm.collectionVariables.set('userId', jsonData.user._id);",
+                  "    }",
+                  "    console.log('Token saved:', jsonData.token);",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"admin@test.com\",\n  \"password\": \"password123\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/auth/login",
+              "host": ["{{baseUrl}}"],
+              "path": ["auth", "login"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "1.5 Get Profile",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/auth/profile",
+              "host": ["{{baseUrl}}"],
+              "path": ["auth", "profile"]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "2. Brand Management",
+      "item": [
+        {
+          "name": "2.1 Get All Brands (Role-Based)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/brands",
+              "host": ["{{baseUrl}}"],
+              "path": ["brands"]
+            },
+            "description": "Admin sees ALL brands\nBrand Admin sees own/invited brands\nUser sees invited brands"
+          },
+          "response": []
+        },
+        {
+          "name": "2.2 Create Brand",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 201) {",
+                  "    var jsonData = pm.response.json();",
+                  "    if (jsonData.data && jsonData.data._id) {",
+                  "        pm.collectionVariables.set('brandId', jsonData.data._id);",
+                  "        console.log('Brand ID saved:', jsonData.data._id);",
+                  "    }",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Test Brand\",\n  \"description\": \"Test brand for category system\",\n  \"logo\": \"https://example.com/logo.png\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/brands",
+              "host": ["{{baseUrl}}"],
+              "path": ["brands"]
+            },
+            "description": "Only Admin and Brand Admin can create brands"
+          },
+          "response": []
+        },
+        {
+          "name": "2.3 Get Brand by ID",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/brands/{{brandId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["brands", "{{brandId}}"]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "3. Project Management",
+      "item": [
+        {
+          "name": "3.1 Create Project",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 201) {",
+                  "    var jsonData = pm.response.json();",
+                  "    if (jsonData.data && jsonData.data._id) {",
+                  "        pm.collectionVariables.set('projectId', jsonData.data._id);",
+                  "        console.log('Project ID saved:', jsonData.data._id);",
+                  "    }",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"title\": \"Test Project with Categories\",\n  \"description\": \"This project will auto-create 3 default categories\",\n  \"status\": \"active\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/brands/{{brandId}}/projects",
+              "host": ["{{baseUrl}}"],
+              "path": ["brands", "{{brandId}}", "projects"]
+            },
+            "description": "Creating a project automatically creates 3 default categories:\n- Yet to Start\n- In Progress\n- Completed"
+          },
+          "response": []
+        },
+        {
+          "name": "3.2 Get All Projects",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/brands/{{brandId}}/projects",
+              "host": ["{{baseUrl}}"],
+              "path": ["brands", "{{brandId}}", "projects"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "3.3 Get Project by ID",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/brands/{{brandId}}/projects/{{projectId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["brands", "{{brandId}}", "projects", "{{projectId}}"]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "4. Category Management",
+      "item": [
+        {
+          "name": "4.1 Get All Categories",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 200) {",
+                  "    var jsonData = pm.response.json();",
+                  "    if (jsonData.data && jsonData.data.length > 0) {",
+                  "        pm.collectionVariables.set('categoryId', jsonData.data[0]._id);",
+                  "        console.log('Category ID saved:', jsonData.data[0]._id);",
+                  "        console.log('Total categories:', jsonData.data.length);",
+                  "    }",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/brands/{{brandId}}/projects/{{projectId}}/categories",
+              "host": ["{{baseUrl}}"],
+              "path": ["brands", "{{brandId}}", "projects", "{{projectId}}", "categories"]
+            },
+            "description": "Should return 3 default categories if project was just created"
+          },
+          "response": []
+        },
+        {
+          "name": "4.2 Create Custom Category",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Design\",\n  \"description\": \"Design team tasks\",\n  \"color\": \"#8B5CF6\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/brands/{{brandId}}/projects/{{projectId}}/categories",
+              "host": ["{{baseUrl}}"],
+              "path": ["brands", "{{brandId}}", "projects", "{{projectId}}", "categories"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "4.3 Get Category by ID",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/brands/{{brandId}}/projects/{{projectId}}/categories/{{categoryId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["brands", "{{brandId}}", "projects", "{{projectId}}", "categories", "{{categoryId}}"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "4.4 Update Category",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Design & UX\",\n  \"description\": \"Updated description\",\n  \"color\": \"#10B981\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/brands/{{brandId}}/projects/{{projectId}}/categories/{{categoryId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["brands", "{{brandId}}", "projects", "{{projectId}}", "categories", "{{categoryId}}"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "4.5 Reorder Categories",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"categoryOrders\": [\n    {\n      \"categoryId\": \"CATEGORY_ID_1\",\n      \"order\": 0\n    },\n    {\n      \"categoryId\": \"CATEGORY_ID_2\",\n      \"order\": 1\n    },\n    {\n      \"categoryId\": \"CATEGORY_ID_3\",\n      \"order\": 2\n    }\n  ]\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/brands/{{brandId}}/projects/{{projectId}}/categories-reorder",
+              "host": ["{{baseUrl}}"],
+              "path": ["brands", "{{brandId}}", "projects", "{{projectId}}", "categories-reorder"]
+            },
+            "description": "Drag & drop reordering"
+          },
+          "response": []
+        },
+        {
+          "name": "4.6 Get Tasks in Category",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/brands/{{brandId}}/projects/{{projectId}}/categories/{{categoryId}}/tasks",
+              "host": ["{{baseUrl}}"],
+              "path": ["brands", "{{brandId}}", "projects", "{{projectId}}", "categories", "{{categoryId}}", "tasks"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "4.7 Delete Category",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/brands/{{brandId}}/projects/{{projectId}}/categories/{{categoryId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["brands", "{{brandId}}", "projects", "{{projectId}}", "categories", "{{categoryId}}"]
+            },
+            "description": "⚠️ WARNING: This will delete all tasks inside the category!"
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "5. Task Management (Updated)",
+      "item": [
+        {
+          "name": "5.1 Create Task (with category_id)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 201) {",
+                  "    var jsonData = pm.response.json();",
+                  "    if (jsonData.data && jsonData.data._id) {",
+                  "        pm.collectionVariables.set('taskId', jsonData.data._id);",
+                  "        console.log('Task ID saved:', jsonData.data._id);",
+                  "    }",
+                  "}"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"task\": \"Test Task in Category\",\n  \"category_id\": \"{{categoryId}}\",\n  \"projectId\": \"{{projectId}}\",\n  \"assignedTo\": \"{{userId}}\",\n  \"reporter\": \"{{userId}}\",\n  \"eta\": \"2025-12-31\",\n  \"priority\": \"High\",\n  \"status\": \"Yet to Start\",\n  \"description\": \"This task belongs to a category\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/brands/{{brandId}}/tasks",
+              "host": ["{{baseUrl}}"],
+              "path": ["brands", "{{brandId}}", "tasks"]
+            },
+            "description": "⚠️ REQUIRED: category_id must be provided!\nTask will fail if category_id is missing or invalid."
+          },
+          "response": []
+        },
+        {
+          "name": "5.2 Get All Tasks",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/brands/{{brandId}}/tasks",
+              "host": ["{{baseUrl}}"],
+              "path": ["brands", "{{brandId}}", "tasks"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "5.3 Update Task",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"task\": \"Updated Task Name\",\n  \"category_id\": \"{{categoryId}}\",\n  \"status\": \"In Progress\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/brands/{{brandId}}/tasks/{{taskId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["brands", "{{brandId}}", "tasks", "{{taskId}}"]
+            },
+            "description": "Can update category_id to move task between categories"
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "6. Validation Tests",
+      "item": [
+        {
+          "name": "6.1 Create Task WITHOUT category_id (Should Fail)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"task\": \"Task without category\",\n  \"projectId\": \"{{projectId}}\",\n  \"assignedTo\": \"{{userId}}\",\n  \"reporter\": \"{{userId}}\",\n  \"eta\": \"2025-12-31\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/brands/{{brandId}}/tasks",
+              "host": ["{{baseUrl}}"],
+              "path": ["brands", "{{brandId}}", "tasks"]
+            },
+            "description": "Expected: 400 Error\nMessage: 'category_id is required'"
+          },
+          "response": []
+        },
+        {
+          "name": "6.2 Create Task with Invalid category_id (Should Fail)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"task\": \"Task with invalid category\",\n  \"category_id\": \"invalid_id\",\n  \"projectId\": \"{{projectId}}\",\n  \"assignedTo\": \"{{userId}}\",\n  \"reporter\": \"{{userId}}\",\n  \"eta\": \"2025-12-31\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/brands/{{brandId}}/tasks",
+              "host": ["{{baseUrl}}"],
+              "path": ["brands", "{{brandId}}", "tasks"]
+            },
+            "description": "Expected: 400 Error\nMessage: 'Invalid category_id'"
+          },
+          "response": []
+        },
+        {
+          "name": "6.3 Create Brand as User (Should Fail)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Unauthorized Brand\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/brands",
+              "host": ["{{baseUrl}}"],
+              "path": ["brands"]
+            },
+            "description": "Login as 'user' role first, then run this.\nExpected: 403 Error\nMessage: 'Only admins and brand admins can create brands'"
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "7. Health Check",
+      "item": [
+        {
+          "name": "7.1 Server Health",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/health",
+              "host": ["{{baseUrl}}"],
+              "path": ["health"]
+            }
+          },
+          "response": []
+        }
+      ]
+    }
+  ]
+}
+
+

@@ -81,15 +81,32 @@ exports.login = async (req, res) => {
     if (!isMatch) return res.status(400).json({ message: 'Invalid credentials' });
 
     // Get user's brands
-    const userBrands = await UserBrand.getUserBrands(user._id);
-    const brands = userBrands.map(ub => ({
-      id: ub.brand_id._id,
-      name: ub.brand_id.name,
-      slug: ub.brand_id.slug,
-      role: ub.role,
-      permissions: ub.permissions,
-      status: ub.status
-    }));
+    let userBrands = [];
+    let brands = [];
+    
+    if (user.role === 'admin') {
+      // Admin users can see ALL brands
+      const allBrands = await Brand.find({ status: { $ne: 'deleted' } });
+      brands = allBrands.map(brand => ({
+        id: brand._id,
+        name: brand.name,
+        slug: brand.slug,
+        role: 'admin',
+        permissions: {},
+        status: 'active'
+      }));
+    } else {
+      // Non-admin users get brands from UserBrand relationships
+      userBrands = await UserBrand.getUserBrands(user._id);
+      brands = userBrands.map(ub => ({
+        id: ub.brand_id._id,
+        name: ub.brand_id.name,
+        slug: ub.brand_id.slug,
+        role: ub.role,
+        permissions: ub.permissions,
+        status: ub.status
+      }));
+    }
 
     // Determine current brand
     let currentBrand = null;
@@ -229,20 +246,45 @@ exports.switchBrand = async (req, res) => {
     }
 
     // Check if user has access to this brand
-    const userBrand = await UserBrand.findOne({
-      user_id: userId,
-      brand_id: brandId,
-      status: 'active'
-    }).populate('brand_id', 'name slug status subscription');
+    // Admin users have access to ALL brands
+    let userBrand;
+    if (req.user.role === 'admin') {
+      // Admin users don't need UserBrand entry - they have access to all brands
+      const brand = await Brand.findById(brandId).select('name slug status subscription');
+      if (!brand) {
+        return res.status(404).json({
+          success: false,
+          error: {
+            code: 'BRAND_NOT_FOUND',
+            message: 'Brand not found'
+          }
+        });
+      }
+      
+      userBrand = {
+        user_id: userId,
+        brand_id: brand,
+        role: 'admin',
+        permissions: {},
+        status: 'active'
+      };
+    } else {
+      // Non-admin users need UserBrand entry
+      userBrand = await UserBrand.findOne({
+        user_id: userId,
+        brand_id: brandId,
+        status: 'active'
+      }).populate('brand_id', 'name slug status subscription');
 
-    if (!userBrand) {
-      return res.status(403).json({
-        success: false,
-        error: {
-          code: 'ACCESS_DENIED',
-          message: 'Access denied to this brand'
-        }
-      });
+      if (!userBrand) {
+        return res.status(403).json({
+          success: false,
+          error: {
+            code: 'ACCESS_DENIED',
+            message: 'Access denied to this brand'
+          }
+        });
+      }
     }
 
     // Check if brand is active

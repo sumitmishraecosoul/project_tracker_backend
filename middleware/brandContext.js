@@ -30,12 +30,24 @@ const brandContext = async (req, res, next) => {
       brandId = req.currentBrand.id;
     }
 
-    if (!brandId) {
+    if (!brandId || brandId === 'undefined' || brandId === 'null') {
       return res.status(400).json({
         success: false,
         error: {
           code: 'MISSING_BRAND_ID',
           message: 'Brand ID is required'
+        }
+      });
+    }
+
+    // Validate brandId is a valid ObjectId
+    const mongoose = require('mongoose');
+    if (!mongoose.Types.ObjectId.isValid(brandId)) {
+      return res.status(400).json({
+        success: false,
+        error: {
+          code: 'INVALID_BRAND_ID',
+          message: 'Invalid brand ID format'
         }
       });
     }
@@ -63,28 +75,44 @@ const brandContext = async (req, res, next) => {
     }
 
     // Check user access to this brand
-    const userBrand = await UserBrand.findOne({
-      user_id: req.user.id,
-      brand_id: brandId,
-      status: 'active'
-    });
-
-    if (!userBrand) {
-      return res.status(403).json({
-        success: false,
-        error: {
-          code: 'ACCESS_DENIED',
-          message: 'Access denied to this brand'
-        }
+    // Admin users have access to ALL brands
+    if (req.user.role === 'admin') {
+      // Admin users don't need UserBrand entry - they have access to all brands
+      req.userBrand = {
+        user_id: req.user.id,
+        brand_id: brandId,
+        role: 'admin',
+        permissions: {},
+        status: 'active'
+      };
+      req.userRole = 'admin';
+      req.userPermissions = {};
+    } else {
+      // Non-admin users need UserBrand entry
+      const userBrand = await UserBrand.findOne({
+        user_id: req.user.id,
+        brand_id: brandId,
+        status: 'active'
       });
+
+      if (!userBrand) {
+        return res.status(403).json({
+          success: false,
+          error: {
+            code: 'ACCESS_DENIED',
+            message: 'Access denied to this brand'
+          }
+        });
+      }
+
+      req.userBrand = userBrand;
+      req.userRole = userBrand.role;
+      req.userPermissions = userBrand.permissions;
     }
 
     // Add brand context to request
     req.brand = brand;
-    req.userBrand = userBrand;
     req.brandId = brandId;
-    req.userRole = userBrand.role;
-    req.userPermissions = userBrand.permissions;
 
     next();
   } catch (error) {
@@ -163,28 +191,44 @@ const optionalBrandContext = async (req, res, next) => {
     }
 
     // Check user access to this brand
-    const userBrand = await UserBrand.findOne({
-      user_id: req.user.id,
-      brand_id: brandId,
-      status: 'active'
-    });
-
-    if (!userBrand) {
-      return res.status(403).json({
-        success: false,
-        error: {
-          code: 'ACCESS_DENIED',
-          message: 'Access denied to this brand'
-        }
+    // Admin users have access to ALL brands
+    if (req.user.role === 'admin') {
+      // Admin users don't need UserBrand entry - they have access to all brands
+      req.userBrand = {
+        user_id: req.user.id,
+        brand_id: brandId,
+        role: 'admin',
+        permissions: {},
+        status: 'active'
+      };
+      req.userRole = 'admin';
+      req.userPermissions = {};
+    } else {
+      // Non-admin users need UserBrand entry
+      const userBrand = await UserBrand.findOne({
+        user_id: req.user.id,
+        brand_id: brandId,
+        status: 'active'
       });
+
+      if (!userBrand) {
+        return res.status(403).json({
+          success: false,
+          error: {
+            code: 'ACCESS_DENIED',
+            message: 'Access denied to this brand'
+          }
+        });
+      }
+
+      req.userBrand = userBrand;
+      req.userRole = userBrand.role;
+      req.userPermissions = userBrand.permissions;
     }
 
     // Add brand context to request
     req.brand = brand;
-    req.userBrand = userBrand;
     req.brandId = brandId;
-    req.userRole = userBrand.role;
-    req.userPermissions = userBrand.permissions;
 
     next();
   } catch (error) {

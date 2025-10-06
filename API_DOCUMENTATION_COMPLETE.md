@@ -1159,7 +1159,7 @@ curl -X POST http://localhost:5000/api/brands \
 
 ### Required Environment Variables
 ```env
-MONGODB_URI=mongodb://localhost:27017/asana
+MONGODB_URI=mongodb://localhost:27017/asana_dev
 JWT_SECRET=your-super-secret-jwt-key-here-make-it-very-long-and-secure
 PORT=5000
 NODE_ENV=development
@@ -1176,7 +1176,7 @@ NODE_ENV=development
 npm install
 
 # Set environment variables
-export MONGODB_URI="mongodb://localhost:27017/asana"
+export MONGODB_URI="mongodb://localhost:27017/asana_dev"
 export JWT_SECRET="your-super-secret-jwt-key-here-make-it-very-long-and-secure"
 
 # Start server

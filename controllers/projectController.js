@@ -371,6 +371,15 @@ const createProject = async (req, res) => {
     const project = new Project(projectData);
     await project.save();
 
+    // Auto-create 5 default categories for the project
+    try {
+      const Category = require('../models/Category');
+      await Category.createDefaultCategories(project._id, brand_id, req.user.id);
+    } catch (categoryError) {
+      console.error('Error creating default categories:', categoryError);
+      // Continue even if category creation fails - we don't want to fail the project creation
+    }
+
     // Create notification for project creator
     await Notification.create({
       user: req.user.id,

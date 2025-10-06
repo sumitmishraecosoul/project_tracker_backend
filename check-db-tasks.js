@@ -4,7 +4,7 @@ const Task = require('./models/Task');
 const checkDbTasks = async () => {
   try {
     // Connect to MongoDB
-    await mongoose.connect('mongodb://localhost:27017/asana');
+    await mongoose.connect('mongodb://localhost:27017/asana_dev');
     console.log('Connected to MongoDB');
     
     // Check existing tasks

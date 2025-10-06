@@ -7,6 +7,11 @@ const taskSchema = new mongoose.Schema(
       ref: 'Brand',
       required: true
     },
+    category_id: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'Category',
+      required: true
+    },
     id: {
       type: String,
       unique: true,
@@ -37,7 +42,7 @@ const taskSchema = new mongoose.Schema(
     },
     status: {
       type: String,
-      enum: ['Yet to Start', 'In Progress', 'Completed', 'Blocked', 'On Hold', 'Cancelled', 'Recurring'],
+      enum: ['Yet to Start', 'In Progress', 'Under Review', 'Completed', 'Blocked', 'On Hold', 'Cancelled', 'Recurring'],
       default: 'Yet to Start'
     },
     assignedTo: {
@@ -195,6 +200,11 @@ taskSchema.methods.isInProgress = function() {
 // Method to check if task is blocked
 taskSchema.methods.isBlocked = function() {
   return this.status === 'Blocked';
+};
+
+// Method to check if task is under review
+taskSchema.methods.isUnderReview = function() {
+  return this.status === 'Under Review';
 };
 
 // Static method to get tasks by brand
