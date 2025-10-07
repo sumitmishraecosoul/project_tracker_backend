@@ -83,20 +83,23 @@ router.get('/:id', auth, async (req, res) => {
     const brandId = req.params.id;
     
     // Check if user has access to this brand
-    const userBrand = await UserBrand.findOne({
-      user_id: req.user.id,
-      brand_id: brandId,
-      status: 'active'
-    });
-
-    if (!userBrand) {
-      return res.status(403).json({
-        success: false,
-        error: {
-          code: 'ACCESS_DENIED',
-          message: 'Access denied to this brand'
-        }
+    // Admin users have access to ALL brands
+    if (req.user.role !== 'admin') {
+      const userBrand = await UserBrand.findOne({
+        user_id: req.user.id,
+        brand_id: brandId,
+        status: 'active'
       });
+
+      if (!userBrand) {
+        return res.status(403).json({
+          success: false,
+          error: {
+            code: 'ACCESS_DENIED',
+            message: 'Access denied to this brand'
+          }
+        });
+      }
     }
 
     const brand = await Brand.findById(brandId)

@@ -1,35 +1,40 @@
-const axios = require('axios');
-
-const BASE_URL = process.env.BASE_URL || 'http://localhost:5000/api';
+const mongoose = require('mongoose');
+const User = require('./models/User');
+const bcrypt = require('bcryptjs');
 
 async function testLoginDirect() {
-  console.log('Testing login endpoint directly...');
-  console.log('Base URL:', BASE_URL);
-  
-  const loginData = {
-    email: 'admin@system.local',
-    password: 'admin123'
-  };
-  
-  console.log('Login data:', loginData);
-  
   try {
-    const response = await axios.post(`${BASE_URL}/auth/login`, loginData, {
-      headers: {
-        'Content-Type': 'application/json'
-      }
-    });
-    console.log('✅ Login successful');
-    console.log('Status:', response.status);
-    console.log('Response:', JSON.stringify(response.data, null, 2));
+    console.log('🧪 Testing Login Directly...');
+    
+    // Connect to MongoDB
+    const mongoUri = process.env.MONGODB_URI || 'mongodb://localhost:27017/asana_dev';
+    await mongoose.connect(mongoUri);
+    console.log('✅ Connected to MongoDB');
+    
+    // Find user
+    const user = await User.findOne({ email: 'admin@system.local' });
+    if (!user) {
+      console.log('❌ User not found');
+      return;
+    }
+    console.log('✅ User found:', user.name);
+    
+    // Compare password
+    const isMatch = await bcrypt.compare('admin123', user.password);
+    if (!isMatch) {
+      console.log('❌ Password mismatch');
+      return;
+    }
+    console.log('✅ Password matches');
+    
+    console.log('🎉 Login logic works correctly!');
+    
   } catch (error) {
-    console.log('❌ Login failed');
-    console.log('Status:', error.response?.status);
-    console.log('Headers:', error.response?.headers);
-    console.log('Data:', JSON.stringify(error.response?.data, null, 2));
-    console.log('Full error:', error.message);
+    console.error('❌ Error:', error.message);
+  } finally {
+    await mongoose.disconnect();
+    console.log('🔌 Disconnected from MongoDB');
   }
 }
 
 testLoginDirect();
-

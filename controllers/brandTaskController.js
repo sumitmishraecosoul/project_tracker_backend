@@ -266,6 +266,32 @@ const updateBrandTask = async (req, res) => {
       }
     });
 
+    // Handle dependencies separately if provided
+    if (req.body.dependencies !== undefined) {
+      // Validate dependencies are valid ObjectIds
+      const dependencies = Array.isArray(req.body.dependencies) ? req.body.dependencies : [];
+      const validDependencies = dependencies.filter(dep => 
+        mongoose.Types.ObjectId.isValid(dep)
+      );
+      
+      // Check for self-dependency
+      const selfDependency = validDependencies.some(dep => 
+        dep.toString() === task._id.toString()
+      );
+      
+      if (selfDependency) {
+        return res.status(400).json({
+          success: false,
+          error: {
+            code: 'VALIDATION_ERROR',
+            message: 'Task cannot depend on itself'
+          }
+        });
+      }
+      
+      updateData.dependencies = validDependencies;
+    }
+
     // Update task using the found task's _id
     const updatedTask = await Task.findByIdAndUpdate(
       task._id,
@@ -274,7 +300,8 @@ const updateBrandTask = async (req, res) => {
     ).populate('assignedTo', 'name email')
      .populate('reporter', 'name email')
      .populate('projectId', 'title')
-     .populate('section_id', 'name');
+     .populate('section_id', 'name')
+     .populate('dependencies', 'id task status priority');
 
     res.json({
       success: true,
@@ -1288,6 +1315,397 @@ const filterTasks = async (req, res) => {
   }
 };
 
+// ==================== TASK LINKS MANAGEMENT ====================
+
+const getTaskLinks = async (req, res) => {
+  try {
+    const { brandId, taskId } = req.params;
+
+    if (!brandId || brandId === 'undefined' || !mongoose.Types.ObjectId.isValid(brandId)) {
+      return res.status(400).json({
+        success: false,
+        error: { code: 'INVALID_BRAND_ID', message: 'Invalid brand ID provided' }
+      });
+    }
+
+    if (!taskId || taskId === 'undefined' || !mongoose.Types.ObjectId.isValid(taskId)) {
+      return res.status(400).json({
+        success: false,
+        error: { code: 'INVALID_TASK_ID', message: 'Invalid task ID provided' }
+      });
+    }
+
+    // Verify task exists and user has access
+    const task = await Task.findOne({ _id: taskId, brand_id: brandId });
+    if (!task) {
+      return res.status(404).json({
+        success: false,
+        error: { code: 'TASK_NOT_FOUND', message: 'Task not found' }
+      });
+    }
+
+    const TaskLink = require('../models/TaskLink');
+    const links = await TaskLink.getTaskLinks(taskId, brandId);
+
+    res.status(200).json({
+      success: true,
+      data: links.map(link => link.getFormattedData()),
+      message: 'Task links retrieved successfully'
+    });
+
+  } catch (error) {
+    console.error('Error fetching task links:', error);
+    res.status(500).json({
+      success: false,
+      error: {
+        code: 'TASK_LINKS_ERROR',
+        message: 'Failed to fetch task links',
+        details: error.message
+      }
+    });
+  }
+};
+
+const createTaskLink = async (req, res) => {
+  try {
+    const { brandId, taskId } = req.params;
+    const { name, url, description } = req.body;
+
+    if (!brandId || brandId === 'undefined' || !mongoose.Types.ObjectId.isValid(brandId)) {
+      return res.status(400).json({
+        success: false,
+        error: { code: 'INVALID_BRAND_ID', message: 'Invalid brand ID provided' }
+      });
+    }
+
+    if (!taskId || taskId === 'undefined' || !mongoose.Types.ObjectId.isValid(taskId)) {
+      return res.status(400).json({
+        success: false,
+        error: { code: 'INVALID_TASK_ID', message: 'Invalid task ID provided' }
+      });
+    }
+
+    if (!name || !url) {
+      return res.status(400).json({
+        success: false,
+        error: { code: 'VALIDATION_ERROR', message: 'Name and URL are required' }
+      });
+    }
+
+    // Verify task exists and user has access
+    const task = await Task.findOne({ _id: taskId, brand_id: brandId });
+    if (!task) {
+      return res.status(404).json({
+        success: false,
+        error: { code: 'TASK_NOT_FOUND', message: 'Task not found' }
+      });
+    }
+
+    const TaskLink = require('../models/TaskLink');
+    
+    // Get the next order number
+    const lastLink = await TaskLink.findOne({ task_id: taskId, brand_id: brandId })
+      .sort('-order');
+    const nextOrder = lastLink ? lastLink.order + 1 : 0;
+
+    const taskLink = new TaskLink({
+      task_id: taskId,
+      brand_id: brandId,
+      name: name.trim(),
+      url: url.trim(),
+      description: description ? description.trim() : '',
+      order: nextOrder,
+      created_by: req.user.id
+    });
+
+    await taskLink.save();
+    await taskLink.populate('created_by', 'name email');
+
+    res.status(201).json({
+      success: true,
+      data: taskLink.getFormattedData(),
+      message: 'Task link created successfully'
+    });
+
+  } catch (error) {
+    console.error('Error creating task link:', error);
+    res.status(500).json({
+      success: false,
+      error: {
+        code: 'TASK_LINK_CREATE_ERROR',
+        message: 'Failed to create task link',
+        details: error.message
+      }
+    });
+  }
+};
+
+const updateTaskLink = async (req, res) => {
+  try {
+    const { brandId, taskId, linkId } = req.params;
+    const { name, url, description } = req.body;
+
+    if (!brandId || brandId === 'undefined' || !mongoose.Types.ObjectId.isValid(brandId)) {
+      return res.status(400).json({
+        success: false,
+        error: { code: 'INVALID_BRAND_ID', message: 'Invalid brand ID provided' }
+      });
+    }
+
+    if (!taskId || taskId === 'undefined' || !mongoose.Types.ObjectId.isValid(taskId)) {
+      return res.status(400).json({
+        success: false,
+        error: { code: 'INVALID_TASK_ID', message: 'Invalid task ID provided' }
+      });
+    }
+
+    if (!linkId || linkId === 'undefined' || !mongoose.Types.ObjectId.isValid(linkId)) {
+      return res.status(400).json({
+        success: false,
+        error: { code: 'INVALID_LINK_ID', message: 'Invalid link ID provided' }
+      });
+    }
+
+    const TaskLink = require('../models/TaskLink');
+    
+    const updateData = {};
+    if (name !== undefined) updateData.name = name.trim();
+    if (url !== undefined) updateData.url = url.trim();
+    if (description !== undefined) updateData.description = description.trim();
+
+    const taskLink = await TaskLink.findOneAndUpdate(
+      { _id: linkId, task_id: taskId, brand_id: brandId },
+      updateData,
+      { new: true, runValidators: true }
+    ).populate('created_by', 'name email');
+
+    if (!taskLink) {
+      return res.status(404).json({
+        success: false,
+        error: { code: 'TASK_LINK_NOT_FOUND', message: 'Task link not found' }
+      });
+    }
+
+    res.status(200).json({
+      success: true,
+      data: taskLink.getFormattedData(),
+      message: 'Task link updated successfully'
+    });
+
+  } catch (error) {
+    console.error('Error updating task link:', error);
+    res.status(500).json({
+      success: false,
+      error: {
+        code: 'TASK_LINK_UPDATE_ERROR',
+        message: 'Failed to update task link',
+        details: error.message
+      }
+    });
+  }
+};
+
+const deleteTaskLink = async (req, res) => {
+  try {
+    const { brandId, taskId, linkId } = req.params;
+
+    if (!brandId || brandId === 'undefined' || !mongoose.Types.ObjectId.isValid(brandId)) {
+      return res.status(400).json({
+        success: false,
+        error: { code: 'INVALID_BRAND_ID', message: 'Invalid brand ID provided' }
+      });
+    }
+
+    if (!taskId || taskId === 'undefined' || !mongoose.Types.ObjectId.isValid(taskId)) {
+      return res.status(400).json({
+        success: false,
+        error: { code: 'INVALID_TASK_ID', message: 'Invalid task ID provided' }
+      });
+    }
+
+    if (!linkId || linkId === 'undefined' || !mongoose.Types.ObjectId.isValid(linkId)) {
+      return res.status(400).json({
+        success: false,
+        error: { code: 'INVALID_LINK_ID', message: 'Invalid link ID provided' }
+      });
+    }
+
+    const TaskLink = require('../models/TaskLink');
+    
+    const taskLink = await TaskLink.findOneAndDelete({
+      _id: linkId,
+      task_id: taskId,
+      brand_id: brandId
+    });
+
+    if (!taskLink) {
+      return res.status(404).json({
+        success: false,
+        error: { code: 'TASK_LINK_NOT_FOUND', message: 'Task link not found' }
+      });
+    }
+
+    res.status(200).json({
+      success: true,
+      message: 'Task link deleted successfully'
+    });
+
+  } catch (error) {
+    console.error('Error deleting task link:', error);
+    res.status(500).json({
+      success: false,
+      error: {
+        code: 'TASK_LINK_DELETE_ERROR',
+        message: 'Failed to delete task link',
+        details: error.message
+      }
+    });
+  }
+};
+
+const reorderTaskLinks = async (req, res) => {
+  try {
+    const { brandId, taskId } = req.params;
+    const { linkOrders } = req.body;
+
+    if (!brandId || brandId === 'undefined' || !mongoose.Types.ObjectId.isValid(brandId)) {
+      return res.status(400).json({
+        success: false,
+        error: { code: 'INVALID_BRAND_ID', message: 'Invalid brand ID provided' }
+      });
+    }
+
+    if (!taskId || taskId === 'undefined' || !mongoose.Types.ObjectId.isValid(taskId)) {
+      return res.status(400).json({
+        success: false,
+        error: { code: 'INVALID_TASK_ID', message: 'Invalid task ID provided' }
+      });
+    }
+
+    if (!linkOrders || !Array.isArray(linkOrders)) {
+      return res.status(400).json({
+        success: false,
+        error: { code: 'VALIDATION_ERROR', message: 'linkOrders array is required' }
+      });
+    }
+
+    const TaskLink = require('../models/TaskLink');
+    
+    await TaskLink.reorderLinks(taskId, brandId, linkOrders);
+
+    res.status(200).json({
+      success: true,
+      message: 'Task links reordered successfully'
+    });
+
+  } catch (error) {
+    console.error('Error reordering task links:', error);
+    res.status(500).json({
+      success: false,
+      error: {
+        code: 'TASK_LINKS_REORDER_ERROR',
+        message: 'Failed to reorder task links',
+        details: error.message
+      }
+    });
+  }
+};
+
+// ==================== TASK DEPENDENCIES BULK UPDATE ====================
+
+const updateTaskDependencies = async (req, res) => {
+  try {
+    const { brandId, taskId } = req.params;
+    const { dependencies } = req.body;
+
+    if (!brandId || brandId === 'undefined' || !mongoose.Types.ObjectId.isValid(brandId)) {
+      return res.status(400).json({
+        success: false,
+        error: { code: 'INVALID_BRAND_ID', message: 'Invalid brand ID provided' }
+      });
+    }
+
+    if (!taskId || taskId === 'undefined' || !mongoose.Types.ObjectId.isValid(taskId)) {
+      return res.status(400).json({
+        success: false,
+        error: { code: 'INVALID_TASK_ID', message: 'Invalid task ID provided' }
+      });
+    }
+
+    if (!Array.isArray(dependencies)) {
+      return res.status(400).json({
+        success: false,
+        error: { code: 'VALIDATION_ERROR', message: 'Dependencies must be an array' }
+      });
+    }
+
+    // Verify task exists
+    const task = await Task.findOne({ _id: taskId, brand_id: brandId });
+    if (!task) {
+      return res.status(404).json({
+        success: false,
+        error: { code: 'TASK_NOT_FOUND', message: 'Task not found' }
+      });
+    }
+
+    // Validate all dependencies are valid ObjectIds
+    const validDependencies = dependencies.filter(dep => 
+      mongoose.Types.ObjectId.isValid(dep)
+    );
+
+    // Check for self-dependency
+    const selfDependency = validDependencies.some(dep => 
+      dep.toString() === taskId.toString()
+    );
+    
+    if (selfDependency) {
+      return res.status(400).json({
+        success: false,
+        error: { code: 'VALIDATION_ERROR', message: 'Task cannot depend on itself' }
+      });
+    }
+
+    // Check for circular dependencies (basic check)
+    for (const depId of validDependencies) {
+      const depTask = await Task.findOne({ _id: depId, brand_id: brandId });
+      if (depTask && depTask.dependencies.includes(taskId)) {
+        return res.status(400).json({
+          success: false,
+          error: { code: 'CIRCULAR_DEPENDENCY', message: 'Circular dependency detected' }
+        });
+      }
+    }
+
+    // Update task dependencies
+    const updatedTask = await Task.findByIdAndUpdate(
+      taskId,
+      { dependencies: validDependencies },
+      { new: true, runValidators: true }
+    ).populate('assignedTo', 'name email')
+     .populate('reporter', 'name email')
+     .populate('projectId', 'title')
+     .populate('section_id', 'name')
+     .populate('dependencies', 'id task status priority');
+
+    res.status(200).json({
+      success: true,
+      data: updatedTask,
+      message: 'Task dependencies updated successfully'
+    });
+
+  } catch (error) {
+    console.error('Error updating task dependencies:', error);
+    res.status(500).json({
+      success: false,
+      error: {
+        code: 'TASK_DEPENDENCIES_UPDATE_ERROR',
+        message: 'Failed to update task dependencies',
+        details: error.message
+      }
+    });
+  }
+};
+
 module.exports = {
   getBrandTasks,
   getBrandTaskById,
@@ -1313,5 +1731,13 @@ module.exports = {
   getTaskAnalytics,
   getTaskAnalyticsById,
   searchTasks,
-  filterTasks
+  filterTasks,
+  // Task Links Management
+  getTaskLinks,
+  createTaskLink,
+  updateTaskLink,
+  deleteTaskLink,
+  reorderTaskLinks,
+  // Task Dependencies Bulk Update
+  updateTaskDependencies
 };
