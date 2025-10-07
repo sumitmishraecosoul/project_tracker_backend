@@ -3,9 +3,14 @@ const mongoose = require('mongoose');
 const dotenv = require('dotenv');
 const cors = require('cors');
 const http = require('http');
-const WebSocketServer = require('./websocket/websocketServer');
 
-dotenv.config();
+// Only load dotenv in development
+if (process.env.NODE_ENV !== 'production') {
+  dotenv.config();
+}
+
+// Check if we're in Vercel environment
+const isVercel = process.env.VERCEL === '1';
 
 // Set default environment variables if not provided
 if (!process.env.JWT_SECRET) {
@@ -61,7 +66,10 @@ app.get('/api/health', (req, res) => {
   res.json({ 
     success: true, 
     message: 'Server is running', 
-    timestamp: new Date().toISOString() 
+    timestamp: new Date().toISOString(),
+    environment: process.env.NODE_ENV || 'development',
+    vercel: isVercel,
+    mongodb: mongoose.connection.readyState === 1 ? 'connected' : 'disconnected'
   });
 });
 
@@ -88,21 +96,41 @@ app.use('/api/brands', require('./routes/brandInvitations'));
 // Advanced Comment System Routes
 app.use('/api', require('./routes/advancedComments'));
 
-// MongoDB Connection
+// MongoDB Connection with Vercel compatibility
 const port = process.env.PORT || 5000;
 
 // Use MONGODB_URI (Vercel standard) or fallback to MONGO_URI
 const mongoUri = process.env.MONGODB_URI || process.env.MONGO_URI;
 
-// Connect to MongoDB
-mongoose
-  .connect(mongoUri)
-  .then(() => {
+// Connect to MongoDB with better error handling for Vercel
+const connectDB = async () => {
+  try {
+    // Skip connection if already connected
+    if (mongoose.connection.readyState === 1) {
+      console.log('MongoDB already connected');
+      return;
+    }
+    
+    await mongoose.connect(mongoUri, {
+      useNewUrlParser: true,
+      useUnifiedTopology: true,
+      serverSelectionTimeoutMS: 5000, // Timeout after 5s instead of 30s
+      bufferCommands: false // Disable mongoose buffering
+    });
     console.log('MongoDB connected successfully');
-  })
-  .catch(err => {
+  } catch (err) {
     console.error('MongoDB connection error:', err);
-  });
+    // Don't exit process in serverless environment
+    if (!isVercel && process.env.NODE_ENV !== 'production') {
+      process.exit(1);
+    }
+  }
+};
+
+// Connect to MongoDB (only if not in Vercel or if not already connected)
+if (!isVercel || mongoose.connection.readyState === 0) {
+  connectDB();
+}
 
 // For Vercel serverless functions, we need to export the app
 // For local development, start the server
@@ -110,12 +138,21 @@ if (process.env.NODE_ENV !== 'production') {
   const server = http.createServer(app);
   
   // Initialize WebSocket server only for local development
-  const wsServer = new WebSocketServer(server);
-  
-  server.listen(port, () => {
-    console.log(`Server running on port ${port}`);
-    console.log(`WebSocket server available at ws://localhost:${port}/api/ws`);
-  });
+  try {
+    const WebSocketServer = require('./websocket/websocketServer');
+    const wsServer = new WebSocketServer(server);
+    
+    server.listen(port, () => {
+      console.log(`Server running on port ${port}`);
+      console.log(`WebSocket server available at ws://localhost:${port}/api/ws`);
+    });
+  } catch (wsError) {
+    console.warn('WebSocket server not available:', wsError.message);
+    // Start server without WebSocket
+    server.listen(port, () => {
+      console.log(`Server running on port ${port} (without WebSocket)`);
+    });
+  }
 }
 
 // Export the app for Vercel
