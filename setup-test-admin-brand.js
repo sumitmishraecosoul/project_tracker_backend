@@ -5,7 +5,7 @@ async function setupTestAdminBrand() {
     console.log('🏢 Setting up Test Admin Brand...');
     
     try {
-        const mongoUri = process.env.MONGODB_URI || process.env.MONGO_URI || 'mongodb://localhost:27017/asana';
+        const mongoUri = process.env.MONGODB_URI || process.env.MONGO_URI || 'mongodb://localhost:27017/asana_dev';
         await mongoose.connect(mongoUri);
         console.log('✅ Connected to MongoDB');
         

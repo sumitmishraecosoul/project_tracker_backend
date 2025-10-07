@@ -259,10 +259,18 @@ const updateBrandSubtask = async (req, res) => {
       });
     }
 
+    // Filter out null/undefined values to prevent validation errors
+    const updateData = {};
+    Object.keys(req.body).forEach(key => {
+      if (req.body[key] !== null && req.body[key] !== undefined) {
+        updateData[key] = req.body[key];
+      }
+    });
+
     // Update subtask
     const updatedSubtask = await Subtask.findByIdAndUpdate(
       id,
-      req.body,
+      updateData,
       { new: true, runValidators: true }
     ).populate('assignedTo', 'name email')
      .populate('reporter', 'name email')
