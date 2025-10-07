@@ -42,18 +42,18 @@ router.get('/:brandId/tasks/filter', auth, brandContext, brandTaskController.fil
 router.get('/:brandId/tasks/:id', auth, brandContext, brandTaskController.getBrandTaskById);
 
 // Update task within a brand
-router.put('/:brandId/tasks/:id', auth, brandContext, authorize(['admin', 'manager', 'employee']), brandTaskController.updateBrandTask);
+router.put('/:brandId/tasks/:id', auth, brandContext, authorizeBrand(['admin', 'manager', 'member']), brandTaskController.updateBrandTask);
 
 // Delete task within a brand
 router.delete('/:brandId/tasks/:id', auth, brandContext, authorize(['admin', 'manager']), brandTaskController.deleteBrandTask);
 
 // Task assignment management
-router.post('/:brandId/tasks/:id/assign', auth, brandContext, authorize(['admin', 'manager']), brandTaskController.assignTask);
-router.post('/:brandId/tasks/:id/unassign', auth, brandContext, authorize(['admin', 'manager']), brandTaskController.unassignTask);
+router.post('/:brandId/tasks/:id/assign', auth, brandContext, authorizeBrand(['admin', 'manager']), brandTaskController.assignTask);
+router.post('/:brandId/tasks/:id/unassign', auth, brandContext, authorizeBrand(['admin', 'manager']), brandTaskController.unassignTask);
 
 // Task status management
-router.put('/:brandId/tasks/:id/status', auth, brandContext, authorize(['admin', 'manager', 'employee']), brandTaskController.updateTaskStatus);
-router.put('/:brandId/tasks/:id/priority', auth, brandContext, authorize(['admin', 'manager']), brandTaskController.updateTaskPriority);
+router.put('/:brandId/tasks/:id/status', auth, brandContext, authorizeBrand(['admin', 'manager', 'member']), brandTaskController.updateTaskStatus);
+router.put('/:brandId/tasks/:id/priority', auth, brandContext, authorizeBrand(['admin', 'manager']), brandTaskController.updateTaskPriority);
 
 // Task dependencies management
 router.get('/:brandId/tasks/:id/dependencies', auth, brandContext, brandTaskController.getTaskDependencies);
