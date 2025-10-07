@@ -61,6 +61,32 @@ app.options('*', cors(corsOptions));
 // Serve uploaded files
 app.use('/uploads', express.static('uploads'));
 
+// MongoDB connection middleware
+app.use(async (req, res, next) => {
+  // Skip health check and basic routes
+  if (req.path === '/api/health' || req.path === '/') {
+    return next();
+  }
+  
+  // Ensure MongoDB connection for API routes
+  if (mongoose.connection.readyState !== 1) {
+    try {
+      await connectDB();
+    } catch (error) {
+      console.error('MongoDB connection failed in middleware:', error);
+      return res.status(500).json({
+        success: false,
+        error: {
+          code: 'DATABASE_CONNECTION_ERROR',
+          message: 'Database connection failed',
+          details: error.message
+        }
+      });
+    }
+  }
+  next();
+});
+
 // Health check endpoint
 app.get('/api/health', (req, res) => {
   res.json({ 
@@ -127,10 +153,8 @@ const connectDB = async () => {
   }
 };
 
-// Connect to MongoDB (only if not in Vercel or if not already connected)
-if (!isVercel || mongoose.connection.readyState === 0) {
-  connectDB();
-}
+// Connect to MongoDB - always try to connect
+connectDB();
 
 // For Vercel serverless functions, we need to export the app
 // For local development, start the server
