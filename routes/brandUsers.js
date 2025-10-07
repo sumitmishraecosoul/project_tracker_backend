@@ -14,20 +14,23 @@ router.get('/:brandId/users', auth, async (req, res) => {
     const brandId = req.params.brandId;
 
     // Check if user has access to this brand
-    const userBrand = await UserBrand.findOne({
-      user_id: req.user.id,
-      brand_id: brandId,
-      status: 'active'
-    });
-
-    if (!userBrand) {
-      return res.status(403).json({
-        success: false,
-        error: {
-          code: 'ACCESS_DENIED',
-          message: 'Access denied to this brand'
-        }
+    // Admin users have access to ALL brands
+    if (req.user.role !== 'admin') {
+      const userBrand = await UserBrand.findOne({
+        user_id: req.user.id,
+        brand_id: brandId,
+        status: 'active'
       });
+
+      if (!userBrand) {
+        return res.status(403).json({
+          success: false,
+          error: {
+            code: 'ACCESS_DENIED',
+            message: 'Access denied to this brand'
+          }
+        });
+      }
     }
 
     const brandUsers = await UserBrand.getBrandUsers(brandId);
@@ -89,20 +92,23 @@ router.post('/:brandId/users', auth, authorize(['admin', 'manager']), async (req
     }
 
     // Check if user has permission to add users
-    const userBrand = await UserBrand.findOne({
-      user_id: req.user.id,
-      brand_id: brandId,
-      status: 'active'
-    });
-
-    if (!userBrand || !userBrand.hasPermission('can_invite_users')) {
-      return res.status(403).json({
-        success: false,
-        error: {
-          code: 'PERMISSION_DENIED',
-          message: 'Insufficient permissions to add users'
-        }
+    // Admin users have permission to add users to any brand
+    if (req.user.role !== 'admin') {
+      const userBrand = await UserBrand.findOne({
+        user_id: req.user.id,
+        brand_id: brandId,
+        status: 'active'
       });
+
+      if (!userBrand || !userBrand.hasPermission('can_invite_users')) {
+        return res.status(403).json({
+          success: false,
+          error: {
+            code: 'PERMISSION_DENIED',
+            message: 'Insufficient permissions to add users'
+          }
+        });
+      }
     }
 
     // Find user by email
@@ -193,20 +199,23 @@ router.put('/:brandId/users/:userId', auth, authorize(['admin', 'manager']), asy
     const { role, permissions } = req.body;
 
     // Check if user has permission to manage users
-    const userBrand = await UserBrand.findOne({
-      user_id: req.user.id,
-      brand_id: brandId,
-      status: 'active'
-    });
-
-    if (!userBrand || !userBrand.hasPermission('can_manage_users')) {
-      return res.status(403).json({
-        success: false,
-        error: {
-          code: 'PERMISSION_DENIED',
-          message: 'Insufficient permissions to manage users'
-        }
+    // Admin users have permission to manage users in any brand
+    if (req.user.role !== 'admin') {
+      const userBrand = await UserBrand.findOne({
+        user_id: req.user.id,
+        brand_id: brandId,
+        status: 'active'
       });
+
+      if (!userBrand || !userBrand.hasPermission('can_manage_users')) {
+        return res.status(403).json({
+          success: false,
+          error: {
+            code: 'PERMISSION_DENIED',
+            message: 'Insufficient permissions to manage users'
+          }
+        });
+      }
     }
 
     // Find the user-brand relationship to update
@@ -293,20 +302,23 @@ router.delete('/:brandId/users/:userId', auth, authorize(['admin', 'manager']), 
     const { brandId, userId } = req.params;
 
     // Check if user has permission to remove users
-    const userBrand = await UserBrand.findOne({
-      user_id: req.user.id,
-      brand_id: brandId,
-      status: 'active'
-    });
-
-    if (!userBrand || !userBrand.hasPermission('can_remove_users')) {
-      return res.status(403).json({
-        success: false,
-        error: {
-          code: 'PERMISSION_DENIED',
-          message: 'Insufficient permissions to remove users'
-        }
+    // Admin users have permission to remove users from any brand
+    if (req.user.role !== 'admin') {
+      const userBrand = await UserBrand.findOne({
+        user_id: req.user.id,
+        brand_id: brandId,
+        status: 'active'
       });
+
+      if (!userBrand || !userBrand.hasPermission('can_remove_users')) {
+        return res.status(403).json({
+          success: false,
+          error: {
+            code: 'PERMISSION_DENIED',
+            message: 'Insufficient permissions to remove users'
+          }
+        });
+      }
     }
 
     // Prevent users from removing themselves
@@ -381,20 +393,23 @@ router.post('/:brandId/users/invite', auth, authorize(['admin', 'manager']), asy
     }
 
     // Check if user has permission to invite users
-    const userBrand = await UserBrand.findOne({
-      user_id: req.user.id,
-      brand_id: brandId,
-      status: 'active'
-    });
-
-    if (!userBrand || !userBrand.hasPermission('can_invite_users')) {
-      return res.status(403).json({
-        success: false,
-        error: {
-          code: 'PERMISSION_DENIED',
-          message: 'Insufficient permissions to invite users'
-        }
+    // Admin users have permission to invite users to any brand
+    if (req.user.role !== 'admin') {
+      const userBrand = await UserBrand.findOne({
+        user_id: req.user.id,
+        brand_id: brandId,
+        status: 'active'
       });
+
+      if (!userBrand || !userBrand.hasPermission('can_invite_users')) {
+        return res.status(403).json({
+          success: false,
+          error: {
+            code: 'PERMISSION_DENIED',
+            message: 'Insufficient permissions to invite users'
+          }
+        });
+      }
     }
 
     // Check if user exists in database
@@ -644,20 +659,23 @@ router.get('/:brandId/users/pending', auth, authorize(['admin', 'manager']), asy
     const brandId = req.params.brandId;
 
     // Check if user has permission to view pending invitations
-    const userBrand = await UserBrand.findOne({
-      user_id: req.user.id,
-      brand_id: brandId,
-      status: 'active'
-    });
-
-    if (!userBrand || !userBrand.hasPermission('can_manage_users')) {
-      return res.status(403).json({
-        success: false,
-        error: {
-          code: 'PERMISSION_DENIED',
-          message: 'Insufficient permissions to view pending invitations'
-        }
+    // Admin users have permission to view pending invitations for any brand
+    if (req.user.role !== 'admin') {
+      const userBrand = await UserBrand.findOne({
+        user_id: req.user.id,
+        brand_id: brandId,
+        status: 'active'
       });
+
+      if (!userBrand || !userBrand.hasPermission('can_manage_users')) {
+        return res.status(403).json({
+          success: false,
+          error: {
+            code: 'PERMISSION_DENIED',
+            message: 'Insufficient permissions to view pending invitations'
+          }
+        });
+      }
     }
 
     // Get pending invitations for this brand

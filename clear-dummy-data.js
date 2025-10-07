@@ -15,7 +15,7 @@ const dotenv = require('dotenv');
 dotenv.config();
 
 // MongoDB connection
-const mongoUri = process.env.MONGODB_URI || process.env.MONGO_URI || 'mongodb://localhost:27017/asana';
+const mongoUri = process.env.MONGODB_URI || process.env.MONGO_URI || 'mongodb://localhost:27017/asana_dev';
 
 // Collections to clear (in order of dependencies)
 const collectionsToClear = [

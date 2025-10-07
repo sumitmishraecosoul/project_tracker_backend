@@ -68,6 +68,12 @@ const authorizeBrand = function(allowedRoles = []) {
       }
 
       // Check if user has the required role in this brand
+      // Admin users have access to all brands regardless of brand-specific role
+      if (req.user.role === 'admin') {
+        // Admin users can perform any action in any brand
+        return next();
+      }
+      
       if (!allowedRoles.includes(req.userRole)) {
         return res.status(403).json({ 
           success: false,

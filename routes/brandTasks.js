@@ -59,8 +59,27 @@ router.put('/:brandId/tasks/:id/priority', auth, brandContext, authorize(['admin
 router.get('/:brandId/tasks/:id/dependencies', auth, brandContext, brandTaskController.getTaskDependencies);
 router.post('/:brandId/tasks/:id/dependencies', auth, brandContext, authorize(['admin', 'manager']), brandTaskController.addTaskDependency);
 router.delete('/:brandId/tasks/:id/dependencies/:dependencyId', auth, brandContext, authorize(['admin', 'manager']), brandTaskController.removeTaskDependency);
+// Bulk update dependencies
+router.put('/:brandId/tasks/:taskId/dependencies', auth, brandContext, authorizeBrand(['owner', 'admin', 'manager', 'employee']), brandTaskController.updateTaskDependencies);
 
 // Task analytics by ID
 router.get('/:brandId/tasks/:id/analytics', auth, brandContext, brandTaskController.getTaskAnalyticsById);
+
+// ==================== TASK LINKS MANAGEMENT ====================
+
+// Get all links for a specific task
+router.get('/:brandId/tasks/:taskId/links', auth, brandContext, brandTaskController.getTaskLinks);
+
+// Create a new link for a task
+router.post('/:brandId/tasks/:taskId/links', auth, brandContext, authorizeBrand(['owner', 'admin', 'manager', 'employee']), brandTaskController.createTaskLink);
+
+// Update a specific task link
+router.put('/:brandId/tasks/:taskId/links/:linkId', auth, brandContext, authorizeBrand(['owner', 'admin', 'manager', 'employee']), brandTaskController.updateTaskLink);
+
+// Delete a specific task link
+router.delete('/:brandId/tasks/:taskId/links/:linkId', auth, brandContext, authorizeBrand(['owner', 'admin', 'manager', 'employee']), brandTaskController.deleteTaskLink);
+
+// Reorder task links
+router.put('/:brandId/tasks/:taskId/links-reorder', auth, brandContext, authorizeBrand(['owner', 'admin', 'manager', 'employee']), brandTaskController.reorderTaskLinks);
 
 module.exports = router;

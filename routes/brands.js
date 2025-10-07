@@ -12,25 +12,55 @@ const { authorize } = require('../middleware/authorize');
 // @access  Private
 router.get('/', auth, async (req, res) => {
   try {
-    const userBrands = await UserBrand.getUserBrands(req.user.id);
+    // Get the user's global role
+    const user = await User.findById(req.user.id).select('role');
     
-    const brands = userBrands.map(ub => ({
-      id: ub.brand_id._id,
-      name: ub.brand_id.name,
-      slug: ub.brand_id.slug,
-      description: ub.brand_id.description,
-      logo: ub.brand_id.logo,
-      status: ub.brand_id.status,
-      role: ub.role,
-      permissions: ub.permissions,
-      joined_at: ub.joined_at,
-      subscription: ub.brand_id.subscription
-    }));
+    let brands = [];
+    
+    // Admin (Primary Admin) can see ALL brands
+    if (user.role === 'admin') {
+      const allBrands = await Brand.find({ status: { $ne: 'deleted' } })
+        .populate('created_by', 'name email')
+        .sort({ created_at: -1 });
+      
+      brands = allBrands.map(brand => ({
+        id: brand._id,
+        name: brand.name,
+        slug: brand.slug,
+        description: brand.description,
+        logo: brand.logo,
+        status: brand.status,
+        role: 'admin', // Admin has admin role in all brands
+        permissions: {}, // Admin has all permissions
+        joined_at: brand.created_at,
+        subscription: brand.subscription,
+        is_global_admin: true
+      }));
+    } 
+    // Brand Admin and User can only see brands they're associated with
+    else {
+      const userBrands = await UserBrand.getUserBrands(req.user.id);
+      
+      brands = userBrands.map(ub => ({
+        id: ub.brand_id._id,
+        name: ub.brand_id.name,
+        slug: ub.brand_id.slug,
+        description: ub.brand_id.description,
+        logo: ub.brand_id.logo,
+        status: ub.brand_id.status,
+        role: ub.role,
+        permissions: ub.permissions,
+        joined_at: ub.joined_at,
+        subscription: ub.brand_id.subscription,
+        is_global_admin: false
+      }));
+    }
 
     res.json({
       success: true,
       data: brands,
-      message: 'Brands retrieved successfully'
+      message: 'Brands retrieved successfully',
+      user_global_role: user.role
     });
   } catch (error) {
     console.error('Error fetching brands:', error);
@@ -53,20 +83,23 @@ router.get('/:id', auth, async (req, res) => {
     const brandId = req.params.id;
     
     // Check if user has access to this brand
-    const userBrand = await UserBrand.findOne({
-      user_id: req.user.id,
-      brand_id: brandId,
-      status: 'active'
-    });
-
-    if (!userBrand) {
-      return res.status(403).json({
-        success: false,
-        error: {
-          code: 'ACCESS_DENIED',
-          message: 'Access denied to this brand'
-        }
+    // Admin users have access to ALL brands
+    if (req.user.role !== 'admin') {
+      const userBrand = await UserBrand.findOne({
+        user_id: req.user.id,
+        brand_id: brandId,
+        status: 'active'
       });
+
+      if (!userBrand) {
+        return res.status(403).json({
+          success: false,
+          error: {
+            code: 'ACCESS_DENIED',
+            message: 'Access denied to this brand'
+          }
+        });
+      }
     }
 
     const brand = await Brand.findById(brandId)
@@ -117,10 +150,22 @@ router.get('/:id', auth, async (req, res) => {
 
 // @route   POST /api/brands
 // @desc    Create a new brand
-// @access  Private
+// @access  Private (Admin and Brand Admin only)
 router.post('/', auth, async (req, res) => {
   try {
     const { name, description, logo, settings } = req.body;
+
+    // Check if user has permission to create brands (only admin and brand_admin)
+    const user = await User.findById(req.user.id).select('role');
+    if (user.role !== 'admin' && user.role !== 'brand_admin') {
+      return res.status(403).json({
+        success: false,
+        error: {
+          code: 'PERMISSION_DENIED',
+          message: 'Only admins and brand admins can create brands'
+        }
+      });
+    }
 
     // Validate required fields
     if (!name) {
@@ -343,20 +388,45 @@ router.post('/:id/switch', auth, async (req, res) => {
     const brandId = req.params.id;
 
     // Check if user has access to this brand
-    const userBrand = await UserBrand.findOne({
-      user_id: req.user.id,
-      brand_id: brandId,
-      status: 'active'
-    }).populate('brand_id', 'name slug status subscription');
+    // Admin users have access to ALL brands
+    let userBrand;
+    if (req.user.role === 'admin') {
+      // Admin users don't need UserBrand entry - they have access to all brands
+      const brand = await Brand.findById(brandId).select('name slug status subscription');
+      if (!brand) {
+        return res.status(404).json({
+          success: false,
+          error: {
+            code: 'BRAND_NOT_FOUND',
+            message: 'Brand not found'
+          }
+        });
+      }
+      
+      userBrand = {
+        user_id: req.user.id,
+        brand_id: brand,
+        role: 'admin',
+        permissions: {},
+        status: 'active'
+      };
+    } else {
+      // Non-admin users need UserBrand entry
+      userBrand = await UserBrand.findOne({
+        user_id: req.user.id,
+        brand_id: brandId,
+        status: 'active'
+      }).populate('brand_id', 'name slug status subscription');
 
-    if (!userBrand) {
-      return res.status(403).json({
-        success: false,
-        error: {
-          code: 'ACCESS_DENIED',
-          message: 'Access denied to this brand'
-        }
-      });
+      if (!userBrand) {
+        return res.status(403).json({
+          success: false,
+          error: {
+            code: 'ACCESS_DENIED',
+            message: 'Access denied to this brand'
+          }
+        });
+      }
     }
 
     // Check if brand is active

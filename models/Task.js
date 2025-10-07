@@ -7,6 +7,11 @@ const taskSchema = new mongoose.Schema(
       ref: 'Brand',
       required: true
     },
+    category_id: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'Category',
+      required: true
+    },
     id: {
       type: String,
       unique: true,
@@ -37,7 +42,7 @@ const taskSchema = new mongoose.Schema(
     },
     status: {
       type: String,
-      enum: ['Yet to Start', 'In Progress', 'Completed', 'Blocked', 'On Hold', 'Cancelled', 'Recurring'],
+      enum: ['Yet to Start', 'In Progress', 'Under Review', 'Completed', 'Blocked', 'On Hold', 'Cancelled', 'Recurring'],
       default: 'Yet to Start'
     },
     assignedTo: {
@@ -108,6 +113,11 @@ const taskSchema = new mongoose.Schema(
     },
     relatedTasks: {
       type: [String],
+      default: []
+    },
+    dependencies: {
+      type: [mongoose.Schema.Types.ObjectId],
+      ref: 'Task',
       default: []
     },
     parentTask: {
@@ -195,6 +205,11 @@ taskSchema.methods.isInProgress = function() {
 // Method to check if task is blocked
 taskSchema.methods.isBlocked = function() {
   return this.status === 'Blocked';
+};
+
+// Method to check if task is under review
+taskSchema.methods.isUnderReview = function() {
+  return this.status === 'Under Review';
 };
 
 // Static method to get tasks by brand
@@ -298,5 +313,16 @@ taskSchema.post('save', function(error, doc, next) {
   }
   next(error);
 });
+
+// Virtual relationship to task links
+taskSchema.virtual('links', {
+  ref: 'TaskLink',
+  localField: '_id',
+  foreignField: 'task_id'
+});
+
+// Ensure virtual fields are serialized
+taskSchema.set('toJSON', { virtuals: true });
+taskSchema.set('toObject', { virtuals: true });
 
 module.exports = mongoose.model('Task', taskSchema);
