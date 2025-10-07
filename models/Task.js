@@ -115,6 +115,11 @@ const taskSchema = new mongoose.Schema(
       type: [String],
       default: []
     },
+    dependencies: {
+      type: [mongoose.Schema.Types.ObjectId],
+      ref: 'Task',
+      default: []
+    },
     parentTask: {
       type: String
     },
@@ -308,5 +313,16 @@ taskSchema.post('save', function(error, doc, next) {
   }
   next(error);
 });
+
+// Virtual relationship to task links
+taskSchema.virtual('links', {
+  ref: 'TaskLink',
+  localField: '_id',
+  foreignField: 'task_id'
+});
+
+// Ensure virtual fields are serialized
+taskSchema.set('toJSON', { virtuals: true });
+taskSchema.set('toObject', { virtuals: true });
 
 module.exports = mongoose.model('Task', taskSchema);
