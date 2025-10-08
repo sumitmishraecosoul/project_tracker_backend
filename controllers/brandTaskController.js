@@ -11,7 +11,7 @@ const User = require('../models/User');
 const getBrandTasks = async (req, res) => {
   try {
     const { brandId } = req.params;
-    const { page = 1, limit = 10, status, priority, assignedTo, projectId, sectionId, search } = req.query;
+    const { page, limit, status, priority, assignedTo, projectId, sectionId, search } = req.query;
 
     // Build query with brand filter
     let query = { brand_id: brandId };
@@ -39,36 +39,60 @@ const getBrandTasks = async (req, res) => {
       ];
     }
 
-    // Calculate pagination
-    const skip = (parseInt(page) - 1) * parseInt(limit);
+    // Get total count
+    const totalTasks = await Task.countDocuments(query);
 
-    // Get tasks with pagination
-    const tasks = await Task.find(query)
+    // Build the query
+    let taskQuery = Task.find(query)
       .populate('assignedTo', 'name email')
       .populate('reporter', 'name email')
       .populate('projectId', 'title')
       .populate('section_id', 'name')
-      .sort({ createdAt: -1 })
-      .skip(skip)
-      .limit(parseInt(limit));
+      .sort({ createdAt: -1 });
 
-    // Get total count for pagination
-    const totalTasks = await Task.countDocuments(query);
-
-    res.json({
-      success: true,
-      data: {
-        tasks,
-        pagination: {
-          currentPage: parseInt(page),
-          totalPages: Math.ceil(totalTasks / parseInt(limit)),
-          totalTasks,
-          hasNextPage: skip + tasks.length < totalTasks,
-          hasPrevPage: parseInt(page) > 1
-        }
-      },
-      message: 'Brand tasks retrieved successfully'
-    });
+    // Apply pagination only if limit is specified
+    if (limit) {
+      const pageNum = parseInt(page) || 1;
+      const limitNum = parseInt(limit);
+      const skip = (pageNum - 1) * limitNum;
+      
+      taskQuery = taskQuery.skip(skip).limit(limitNum);
+      
+      const tasks = await taskQuery;
+      
+      res.json({
+        success: true,
+        data: {
+          tasks,
+          pagination: {
+            currentPage: pageNum,
+            totalPages: Math.ceil(totalTasks / limitNum),
+            totalTasks,
+            hasNextPage: skip + tasks.length < totalTasks,
+            hasPrevPage: pageNum > 1
+          }
+        },
+        message: 'Brand tasks retrieved successfully'
+      });
+    } else {
+      // No pagination - return all tasks
+      const tasks = await taskQuery;
+      
+      res.json({
+        success: true,
+        data: {
+          tasks,
+          pagination: {
+            currentPage: 1,
+            totalPages: 1,
+            totalTasks,
+            hasNextPage: false,
+            hasPrevPage: false
+          }
+        },
+        message: 'Brand tasks retrieved successfully'
+      });
+    }
   } catch (error) {
     console.error('Error fetching brand tasks:', error);
     res.status(500).json({
