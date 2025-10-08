@@ -161,11 +161,13 @@ exports.getAllTasks = async (req, res) => {
     // Set default department for admin (their own department or "All Departments")
     let selectedDepartment = req.query.department;
     if (req.user?.role === 'admin' && !selectedDepartment) {
-      selectedDepartment = req.user.department || 'All Departments';
+      // For admin, default to "All Departments" to see all tasks
+      selectedDepartment = 'All Departments';
     }
 
     // RBAC filtering
     if (req.user.role === 'admin') {
+      // Admins can see all tasks by default (no filtering)
       // Optional department scope for admins
       if (selectedDepartment && selectedDepartment !== 'All Departments') {
         const deptUserIds = await getDepartmentUserIds(selectedDepartment);
