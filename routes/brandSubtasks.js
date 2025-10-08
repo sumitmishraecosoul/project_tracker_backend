@@ -2,7 +2,7 @@ const express = require('express');
 const router = express.Router();
 const brandSubtaskController = require('../controllers/brandSubtaskController');
 const auth = require('../middleware/auth');
-const { authorize } = require('../middleware/authorize');
+const { authorize, authorizeBrand } = require('../middleware/authorize');
 const { brandContext } = require('../middleware/brandContext');
 
 // Brand-aware subtask routes
@@ -39,7 +39,7 @@ router.post('/:brandId/subtasks/:id/assign', auth, brandContext, authorize(['adm
 router.post('/:brandId/subtasks/:id/unassign', auth, brandContext, authorize(['admin', 'manager']), brandSubtaskController.unassignSubtask);
 
 // Subtask status management
-router.put('/:brandId/subtasks/:id/status', auth, brandContext, authorize(['admin', 'manager', 'employee']), brandSubtaskController.updateSubtaskStatus);
+router.put('/:brandId/subtasks/:id/status', auth, brandContext, authorizeBrand(['admin', 'manager', 'member']), brandSubtaskController.updateSubtaskStatus);
 router.put('/:brandId/subtasks/:id/priority', auth, brandContext, authorize(['admin', 'manager']), brandSubtaskController.updateSubtaskPriority);
 
 // Subtask organization
