@@ -17,7 +17,7 @@ if (!process.env.JWT_SECRET) {
   process.env.JWT_SECRET = 'your-super-secret-jwt-key-here-make-it-very-long-and-secure-for-production-use';
 }
 if (!process.env.MONGODB_URI && !process.env.MONGO_URI) {
-  process.env.MONGODB_URI = 'mongodb+srv://sumitmishrasm004:Ecosoul%40123@cluster0.jvgspc2.mongodb.net/asana_dev?retryWrites=true&w=majority';
+  process.env.MONGODB_URI = 'mongodb+srv://sumitmishrasm004:Ecosoul%40123@cluster0.jvgspc2.mongodb.net/asana_dev?retryWrites=true&w=majority&serverSelectionTimeoutMS=10000&connectTimeoutMS=10000&socketTimeoutMS=10000';
 }
 
 const app = express();
