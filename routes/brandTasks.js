@@ -44,8 +44,8 @@ router.get('/:brandId/tasks/:id', auth, brandContext, brandTaskController.getBra
 // Update task within a brand
 router.put('/:brandId/tasks/:id', auth, brandContext, authorizeBrand(['admin', 'manager', 'member']), brandTaskController.updateBrandTask);
 
-// Delete task within a brand
-router.delete('/:brandId/tasks/:id', auth, brandContext, authorize(['admin', 'manager']), brandTaskController.deleteBrandTask);
+// Delete task within a brand (permission check in controller)
+router.delete('/:brandId/tasks/:id', auth, brandContext, brandTaskController.deleteBrandTask);
 
 // Task assignment management
 router.post('/:brandId/tasks/:id/assign', auth, brandContext, authorizeBrand(['admin', 'manager']), brandTaskController.assignTask);

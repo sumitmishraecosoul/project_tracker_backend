@@ -350,6 +350,35 @@ const deleteBrandTask = async (req, res) => {
   try {
     const { brandId, id } = req.params;
 
+    // PERMISSION CHECK: Explicit role-based authorization
+    // Rule 1: Global admin - full access, no brand role check needed
+    if (req.user.role === 'admin') {
+      // Global admin can delete any task - proceed
+    } 
+    // Rule 2: Brand admin - must ALSO have owner or manager brand role
+    else if (req.user.role === 'brand_admin') {
+      if (!['owner', 'manager'].includes(req.userRole)) {
+        return res.status(403).json({
+          success: false,
+          error: {
+            code: 'INSUFFICIENT_PERMISSION',
+            message: 'Brand admins must have owner or manager role in this brand to delete tasks'
+          }
+        });
+      }
+      // Brand admin with proper brand role - proceed
+    } 
+    // Rule 3: Regular user (role: 'user') - NEVER allowed to delete
+    else {
+      return res.status(403).json({
+        success: false,
+        error: {
+          code: 'INSUFFICIENT_PERMISSION',
+          message: 'Only admins and brand admins with proper brand roles can delete tasks'
+        }
+      });
+    }
+
     // Check if id is a valid ObjectId, otherwise search by id field
     let task;
     if (mongoose.Types.ObjectId.isValid(id)) {
