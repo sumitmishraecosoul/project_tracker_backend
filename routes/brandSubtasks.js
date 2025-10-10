@@ -22,11 +22,11 @@ router.get('/:brandId/subtasks/filter', auth, brandContext, brandSubtaskControll
 // Get subtask details within a brand (MUST come after specific routes)
 router.get('/:brandId/subtasks/:id', auth, brandContext, brandSubtaskController.getBrandSubtaskById);
 
-// Create subtask within a brand
-router.post('/:brandId/subtasks', auth, brandContext, authorize(['admin', 'manager', 'employee']), brandSubtaskController.createBrandSubtask);
+// Create subtask within a brand (anyone in the brand can create)
+router.post('/:brandId/subtasks', auth, brandContext, brandSubtaskController.createBrandSubtask);
 
-// Update subtask within a brand
-router.put('/:brandId/subtasks/:id', auth, brandContext, authorize(['admin', 'manager', 'employee']), brandSubtaskController.updateBrandSubtask);
+// Update subtask within a brand (anyone in the brand can update)
+router.put('/:brandId/subtasks/:id', auth, brandContext, brandSubtaskController.updateBrandSubtask);
 
 // Delete subtask within a brand
 router.delete('/:brandId/subtasks/:id', auth, brandContext, authorize(['admin', 'manager']), brandSubtaskController.deleteBrandSubtask);
@@ -34,21 +34,21 @@ router.delete('/:brandId/subtasks/:id', auth, brandContext, authorize(['admin', 
 // Get subtasks for a specific task within a brand
 router.get('/:brandId/tasks/:taskId/subtasks', auth, brandContext, brandSubtaskController.getBrandTaskSubtasks);
 
-// Subtask assignment management
-router.post('/:brandId/subtasks/:id/assign', auth, brandContext, authorize(['admin', 'manager']), brandSubtaskController.assignSubtask);
-router.post('/:brandId/subtasks/:id/unassign', auth, brandContext, authorize(['admin', 'manager']), brandSubtaskController.unassignSubtask);
+// Subtask assignment management (anyone in the brand can assign)
+router.post('/:brandId/subtasks/:id/assign', auth, brandContext, brandSubtaskController.assignSubtask);
+router.post('/:brandId/subtasks/:id/unassign', auth, brandContext, brandSubtaskController.unassignSubtask);
 
-// Subtask status management
-router.put('/:brandId/subtasks/:id/status', auth, brandContext, authorizeBrand(['admin', 'manager', 'member']), brandSubtaskController.updateSubtaskStatus);
-router.put('/:brandId/subtasks/:id/priority', auth, brandContext, authorize(['admin', 'manager']), brandSubtaskController.updateSubtaskPriority);
+// Subtask status management (anyone in the brand can update)
+router.put('/:brandId/subtasks/:id/status', auth, brandContext, brandSubtaskController.updateSubtaskStatus);
+router.put('/:brandId/subtasks/:id/priority', auth, brandContext, brandSubtaskController.updateSubtaskPriority);
 
-// Subtask organization
-router.put('/:brandId/subtasks/:id/reorder', auth, brandContext, authorize(['admin', 'manager']), brandSubtaskController.reorderSubtasks);
-router.put('/:brandId/tasks/:taskId/subtasks/reorder', auth, brandContext, authorize(['admin', 'manager']), brandSubtaskController.reorderTaskSubtasks);
+// Subtask organization (anyone in the brand can reorder)
+router.put('/:brandId/subtasks/:id/reorder', auth, brandContext, brandSubtaskController.reorderSubtasks);
+router.put('/:brandId/tasks/:taskId/subtasks/reorder', auth, brandContext, brandSubtaskController.reorderTaskSubtasks);
 
-// Subtask completion
-router.put('/:brandId/subtasks/:id/complete', auth, brandContext, authorize(['admin', 'manager', 'employee']), brandSubtaskController.completeSubtask);
-router.put('/:brandId/subtasks/:id/uncomplete', auth, brandContext, authorize(['admin', 'manager', 'employee']), brandSubtaskController.uncompleteSubtask);
+// Subtask completion (anyone in the brand can complete)
+router.put('/:brandId/subtasks/:id/complete', auth, brandContext, brandSubtaskController.completeSubtask);
+router.put('/:brandId/subtasks/:id/uncomplete', auth, brandContext, brandSubtaskController.uncompleteSubtask);
 
 // Subtask templates
 router.get('/:brandId/subtask-templates', auth, brandContext, brandSubtaskController.getSubtaskTemplates);

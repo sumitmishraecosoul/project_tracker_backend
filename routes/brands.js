@@ -82,6 +82,18 @@ router.get('/:id', auth, async (req, res) => {
   try {
     const brandId = req.params.id;
     
+    // Validate ObjectId format to prevent casting errors
+    const mongoose = require('mongoose');
+    if (!mongoose.Types.ObjectId.isValid(brandId)) {
+      return res.status(400).json({
+        success: false,
+        error: {
+          code: 'INVALID_BRAND_ID',
+          message: 'Invalid brand ID format'
+        }
+      });
+    }
+    
     // Check if user has access to this brand
     // Admin users have access to ALL brands
     if (req.user.role !== 'admin') {
@@ -265,6 +277,19 @@ router.post('/', auth, async (req, res) => {
 router.put('/:id', auth, authorize(['owner', 'admin']), async (req, res) => {
   try {
     const brandId = req.params.id;
+    
+    // Validate ObjectId format
+    const mongoose = require('mongoose');
+    if (!mongoose.Types.ObjectId.isValid(brandId)) {
+      return res.status(400).json({
+        success: false,
+        error: {
+          code: 'INVALID_BRAND_ID',
+          message: 'Invalid brand ID format'
+        }
+      });
+    }
+    
     const { name, description, logo, settings, subscription } = req.body;
 
     // Check if user has permission to update this brand
@@ -341,6 +366,18 @@ router.put('/:id', auth, authorize(['owner', 'admin']), async (req, res) => {
 router.delete('/:id', auth, authorize(['owner']), async (req, res) => {
   try {
     const brandId = req.params.id;
+    
+    // Validate ObjectId format
+    const mongoose = require('mongoose');
+    if (!mongoose.Types.ObjectId.isValid(brandId)) {
+      return res.status(400).json({
+        success: false,
+        error: {
+          code: 'INVALID_BRAND_ID',
+          message: 'Invalid brand ID format'
+        }
+      });
+    }
 
     // Check if user is the owner of this brand
     const userBrand = await UserBrand.findOne({
@@ -386,6 +423,18 @@ router.delete('/:id', auth, authorize(['owner']), async (req, res) => {
 router.post('/:id/switch', auth, async (req, res) => {
   try {
     const brandId = req.params.id;
+    
+    // Validate ObjectId format
+    const mongoose = require('mongoose');
+    if (!mongoose.Types.ObjectId.isValid(brandId)) {
+      return res.status(400).json({
+        success: false,
+        error: {
+          code: 'INVALID_BRAND_ID',
+          message: 'Invalid brand ID format'
+        }
+      });
+    }
 
     // Check if user has access to this brand
     // Admin users have access to ALL brands
