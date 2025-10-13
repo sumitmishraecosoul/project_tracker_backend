@@ -58,3 +58,7 @@ pids/
 
 # TypeScript (optional)
 *.tsbuildinfo
+
+# Documentation files (auto-generated)
+*.md
+!README.md
