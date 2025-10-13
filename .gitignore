@@ -62,3 +62,23 @@ pids/
 # Documentation files (auto-generated)
 *.md
 !README.md
+
+# Test files
+test-*.js
+*-test.js
+check-*.js
+debug-*.js
+comprehensive-*.js
+migration-*.js
+setup-*.js
+create-*.js
+reset-*.js
+fix-*.js
+associate-*.js
+
+# JSON test/config files (keep package.json and vercel.json)
+*.json
+!package.json
+!package-lock.json
+!vercel.json
+!tsconfig.json
