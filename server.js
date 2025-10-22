@@ -3,6 +3,9 @@ const mongoose = require('mongoose');
 const dotenv = require('dotenv');
 const cors = require('cors');
 const http = require('http');
+const path = require('path');
+require('dotenv').config({ path: path.join(process.cwd(), '.env.dev') });
+const { sendMailHandler } = require('./sendMail');
 
 // Only load dotenv in development
 if (process.env.NODE_ENV !== 'production') {
@@ -127,6 +130,33 @@ const port = process.env.PORT || 5000;
 
 // Use MONGODB_URI (Vercel standard) or fallback to MONGO_URI
 const mongoUri = process.env.MONGODB_URI || process.env.MONGO_URI;
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+app.post('/api/send-mail', sendMailHandler);
+
+
+
+
+
+
+
+
+
+
+
+
 
 // Connect to MongoDB with better error handling for Vercel
 const connectDB = async () => {

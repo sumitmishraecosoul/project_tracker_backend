@@ -83,4 +83,7 @@ router.delete('/:brandId/tasks/:taskId/links/:linkId', auth, brandContext, brand
 // Reorder task links
 router.put('/:brandId/tasks/:taskId/links-reorder', auth, brandContext, brandTaskController.reorderTaskLinks);
 
+// Send tasks via email
+router.post('/:brandId/tasks/send-email', auth, brandTaskController.sendTasksEmail);
+
 module.exports = router;

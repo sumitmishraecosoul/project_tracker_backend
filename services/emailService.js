@@ -406,6 +406,40 @@ class EmailService {
       from: process.env.EMAIL_FROM || 'noreply@projecttracker.com'
     };
   }
+
+  /**
+   * Send a generic email
+   * @param {Object} emailData - Email data
+   * @param {string} emailData.to - Recipient email
+   * @param {string} emailData.from - Sender email
+   * @param {string} emailData.subject - Email subject
+   * @param {string} emailData.body - Email body (plain text)
+   * @returns {Promise<boolean>} Success status
+   */
+  async sendEmail(emailData) {
+    try {
+      const { to, from, subject, body } = emailData;
+      
+      // Validate required fields
+      if (!to || !from || !subject || !body) {
+        throw new Error('Missing required fields: to, from, subject, body');
+      }
+      
+      const mailOptions = {
+        from: from,
+        to: to,
+        subject: subject,
+        text: body
+      };
+      
+      const result = await this.transporter.sendMail(mailOptions);
+      console.log(`Email sent to ${to}:`, result.messageId);
+      return true;
+    } catch (error) {
+      console.error('Error sending email:', error);
+      return false;
+    }
+  }
 }
 
 module.exports = new EmailService();
