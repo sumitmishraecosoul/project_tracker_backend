@@ -126,7 +126,7 @@ app.use('/api/brands', require('./routes/brandInvitations'));
 app.use('/api', require('./routes/advancedComments'));
 
 // MongoDB Connection with Vercel compatibility
-const port = process.env.PORT || 5000;
+const port = process.env.PORT || 6000;
 
 // Use MONGODB_URI (Vercel standard) or fallback to MONGO_URI
 const mongoUri = process.env.MONGODB_URI || process.env.MONGO_URI;

@@ -105,7 +105,7 @@ A robust, scalable, and feature-rich RESTful API for comprehensive project and t
    # Configure your environment variables
    MONGODB_URI=mongodb://localhost:27017/project-tracker
    JWT_SECRET=your-secret-key
-   PORT=5000
+   PORT=6000
    ```
 
 4. **Start the server**
@@ -120,7 +120,7 @@ A robust, scalable, and feature-rich RESTful API for comprehensive project and t
 
 ### API Base URL
 ```
-http://localhost:5000/api
+http://localhost:6000/api
 ```
 
 ## 📚 API Documentation
